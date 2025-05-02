@@ -1,0 +1,38 @@
+---
+title: "Data science, chemical risk, community engagement"
+about: 
+  template: trestles
+  image: headshot.jpg
+  links:
+    - icon: github
+      text: GitHub
+      href: https://github.com/seanthimons
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/seanthimons/
+    - icon: journals
+      text: ORCID
+      href: https://orcid.org/0000-0002-3736-2529
+    - icon: envelope
+      text: Email
+      url: "mailto:sxthimons@gmail.com"
+---
+
+Sean Thimons is a Physical Scientist at the U.S. Environmental Protection Agency, focusing on **chemical risk assessment** for oil and gas wastewater, industrial wastewater, and water reuse. His research aims to enhance wastewater characterization for reuse, **prioritize emerging wastewater compounds**, and develop rapid chemical risk evaluation methods using high-throughput data. Thimons holds an M.S. in Water Resources, Science & Technology from Texas A&M University – San Antonio, where his thesis explored advanced treatment methods for hypersaline brines and oil/gas waste streams.
+
+Thimons' projects include supporting the EPA's Strategic Research Action Plans (StRAP), focusing on risk characterization for water reuse, data curation for chemical safety, and **technical assistance** for drinking water projects. He has developed applications for lead service-line inventory validation and site prioritization for water quality analysis. His work with the New Mexico Produced Water Research Consortium involves developing **risk-based workflows** for assessing treated produced water for reuse.
+
+His technical contributions extend to tools like the CompTox Chemistry Dashboard, Cheminformatics Toolbox, and ECOTOX database, **enhancing analysis** capabilities for thousands of compounds.
+
+He also volunteers as a **data scientist** for a volunteer-research group focused on reducing homelessness utilizing **machine learning** and artificial intelligence.
+
+## Education
+
+-   2021, M.S., Water Resources, Science & Technology, Texas A&M University – San Antonio
+-   2019, B.S., Biology, Texas A&M University – San Antonio
+
+## Selected Work Experience
+
+-   Present - 2025: **Physical Scientist**, U.S. EPA Office of Research and Development, Center for Environmental Solutions and Emergency Response
+
+-   2021 - 2025: **ORISE Research Fellow**, U.S. EPA Office of Research and Development, Center for Environmental Solutions and Emergency Response
