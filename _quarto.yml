@@ -1,0 +1,21 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Sean Thimons"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - projects.qmd
+    #  - community.qmd
+
+format:
+  html:
+    theme: sandstone
+    css: styles.css
+    toc: false
+
+editor: visual
+
