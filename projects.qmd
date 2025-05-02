@@ -16,6 +16,14 @@ format: html
 
 -   *Chemical Safety for Sustainability: 408.3*: Cross-disciplinary integration and applied case studies to support chemical safety decision making.
 
+## Fun things I work on: 
+
+-   [ComptoxR](https://github.com/seanthimons/ComptoxR) : R package designed to interface with various US EPA API products for chemcial risk evaluation.
+
+-   [Curation](https://github.com/seanthimons/curation) work : various R scripts and workflows that I use to grab data to build into relevant datasets.
+
+-   [THREAT](https://github.com/seanthimons/THREAT) : R Shiny application that leverages CompToxR and databases built out from various curation work to allow for users to cross-walk observational data against relevant benchmarks for environmental water quality.
+
 ## Technical Support
 
 -   Region 8 RARE project: *Evaluation of Produced Water Intended for Beneficial Reuse in Multiple Oil and Gas Basins*. Stakeholders include EPA’s Region 3 and 6, US Department of Energy’s National Energy Technology Laboratory, and US EPA ORD-CCTE/CEMM
@@ -46,7 +54,7 @@ format: html
 ## Publications
 
 ::: {#refs}
-  [@*]
+[@*]
 :::
 
 ## Presentations, Posters, and Panels

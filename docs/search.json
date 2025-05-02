@@ -14,6 +14,13 @@
     "text": "EPA-ORD Strategic Research Planning Support:\n\nSafe and Sustainable Water Resources: 406.1: Risk Characterization to inform fit-for-purpose water use.\nChemical Safety for Sustainability: 407.1: Generate and curate data relevant to chemical substances, structures, samples, and properties.\nChemical Safety for Sustainability: 408.3: Cross-disciplinary integration and applied case studies to support chemical safety decision making."
   },
   {
+    "objectID": "projects.html#fun-things-i-work-on",
+    "href": "projects.html#fun-things-i-work-on",
+    "title": "Projects, Technical Support, Publications",
+    "section": "Fun things I work on:",
+    "text": "Fun things I work on:\n\nComptoxR : R package designed to interface with various US EPA API products for chemcial risk evaluation.\nCuration work : various R scripts and workflows that I use to grab data to build into relevant datasets.\nTHREAT : R Shiny application that leverages CompToxR and databases built out from various curation work to allow for users to cross-walk observational data against relevant benchmarks for environmental water quality."
+  },
+  {
     "objectID": "projects.html#technical-support",
     "href": "projects.html#technical-support",
     "title": "Projects, Technical Support, Publications",
