@@ -9,7 +9,6 @@ website:
       - href: index.qmd
         text: Home
       - projects.qmd
-    #  - community.qmd
 
 format:
   html:
@@ -18,4 +17,3 @@ format:
     toc: false
 
 editor: visual
-
