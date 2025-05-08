@@ -1,0 +1,22 @@
+---
+title: "Volunteering"
+format: html
+---
+
+I currently volunteer in my local community in a variety of ways!
+
+### Cincinnati Machine Learning Meetup group
+
+I serve as a meeting organize, co-host, and occasional guest lecturer for the Cincinnati Machine Learning Meetup group, where we have a rotating schedule of technical talks, practical demonstrations, and social meetups on all things involving machine learning and artificial intelligence.
+
+I've given talks on exploratory data analysis and time-series analysis using R as well as machine learning on complex data sets (also in R).
+
+Some of my work can be found here: [FracFocus Curation](https://github.com/sxthimons/frac_curation)
+
+### 2024 Housing Stabilization Hackathon
+
+I also participated in the 2024 Housing Stabilization Hackathon competition with other data scientists, programmers, market research professionals, real estate investors, and community development advocates to propose new ways of reducing evictions in Cincinnati.
+
+Our team (with Serge Doumit, Mahmoud Shobair) proposed a novel method of early intervention by using data from housing and other social services to predict relative risk of eviction *before* an individual was in a housing crisis situation. Our method utilized national, state, and localized datasets to identify large-scale and local characteristics that drive evictions across the city via a random forest model which identified several prominent that predominately drove eviction homelessness rates here in Cincinnati. We ended winning "Best Presentation".
+
+![](flywheel.jpg){fig-align="center" width="624"}

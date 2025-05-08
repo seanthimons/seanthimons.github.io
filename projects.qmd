@@ -16,7 +16,7 @@ format: html
 
 -   *Chemical Safety for Sustainability: 408.3*: Cross-disciplinary integration and applied case studies to support chemical safety decision making.
 
-## Fun things I work on: 
+## Fun things I work on:
 
 -   [ComptoxR](https://github.com/seanthimons/ComptoxR) : R package designed to interface with various US EPA API products for chemcial risk evaluation.
 
