@@ -8,6 +8,7 @@ website:
     left:
       - href: index.qmd
         text: Home
+      - blog.qmd
       - projects.qmd
       - volunteer.qmd
 
@@ -17,4 +18,7 @@ format:
     css: styles.css
     toc: false
 
-editor: visual
+editor: source
+
+execute:
+  freeze: auto  # re-render only when source changes

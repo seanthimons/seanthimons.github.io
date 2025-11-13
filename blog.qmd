@@ -1,0 +1,14 @@
+---
+title: "Blog"
+listing:
+  contents: posts
+  sort: "date desc"
+  type: default
+  categories: true
+page-layout: full
+title-block-banner: false
+---
+
+Welcome to my blog. Here you'll find my personal thoughts and explorations on various topics, mainly centered around data science, water resources, and risk assessment.
+
+**Disclaimer:** The views and opinions expressed on this blog are my own and do not necessarily reflect the views or positions of my employer.
