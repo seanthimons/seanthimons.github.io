@@ -21,4 +21,4 @@ Our team (with Serge Doumit, Mahmoud Shobair) proposed a novel method of early i
 
 You can read more here: [Hackathon](https://www.flywheelcincinnati.org/blog/2024/2/6/hackathon-brings-innovation-and-focus-to-the-problem-of-reducing-evictions)
 
-![](flywheel.jpg){fig-align="center" width="624"}
+![](images/flywheel.jpg){fig-align="center" width="624"}
