@@ -1,7 +1,8 @@
 ---
 title: "Volunteering"
-body-class: "page-volunteer"
-format: html
+format:
+  html:
+    body-classes: page-volunteer
 ---
 
 ### Cincinnati Machine Learning Meetup group
