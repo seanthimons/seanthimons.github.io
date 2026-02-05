@@ -223,21 +223,36 @@ h2, h3 {
 
 // ---- Blog (Oxblood) ----
 body.page-blog {
+  // All links in content area
   #quarto-content a,
   .quarto-title a,
-  main a {
+  main a,
+  .quarto-listing a,
+  .listing-item a,
+  .quarto-listing-default a {
     color: $oxblood !important;
     text-decoration-color: rgba($oxblood, 0.3);
     &:hover {
       text-decoration-color: $oxblood;
+      color: darken($oxblood, 10%) !important;
     }
   }
 
+  // Headings
   #quarto-content h1,
   #quarto-content h2,
   #quarto-content h3,
-  .quarto-title h1 {
+  .quarto-title h1,
+  .listing-title,
+  .quarto-listing h3 {
     color: darken($oxblood, 10%) !important;
+  }
+
+  // Category badges
+  .quarto-category {
+    background-color: rgba($oxblood, 0.1) !important;
+    color: $oxblood !important;
+    border-color: rgba($oxblood, 0.2) !important;
   }
 
   .navbar a, .nav-link {
@@ -285,30 +300,38 @@ body.page-work {
   .btn-primary {
     background-color: $tyrian !important;
     border-color: $tyrian !important;
+    color: white !important;
 
     &:hover {
       background-color: darken($tyrian, 8%) !important;
       border-color: darken($tyrian, 8%) !important;
+      color: white !important;
     }
   }
 }
 
 // ---- Volunteer (Amber/Gold) ----
 body.page-volunteer {
+  // All links in content area
   #quarto-content a,
   .quarto-title a,
-  main a {
+  main a,
+  .content a,
+  article a {
     color: darken($amber, 5%) !important;
     text-decoration-color: rgba($amber, 0.3);
     &:hover {
       text-decoration-color: $amber;
+      color: darken($amber, 15%) !important;
     }
   }
 
+  // Headings
   #quarto-content h1,
   #quarto-content h2,
   #quarto-content h3,
-  .quarto-title h1 {
+  .quarto-title h1,
+  h1, h2, h3 {
     color: darken($amber, 15%) !important;
   }
 
