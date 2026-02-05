@@ -11,4 +11,4 @@ title-block-banner: false
 
 Data science explorations, TidyTuesday contributions, and the occasional deep-dive into topics I find interesting. This is where I scratch the itch.
 
-*Views expressed here are my own.*
+**Disclaimer:** The views and opinions expressed on this blog are my own and do not necessarily reflect the views or positions of my employer.
