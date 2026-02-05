@@ -4,6 +4,7 @@ project:
 
 website:
   title: "Sean Thimons"
+  favicon: favicon.svg
   navbar:
     left:
       - href: index.qmd
