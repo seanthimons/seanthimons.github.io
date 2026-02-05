@@ -6,7 +6,6 @@ format:
 bibliography: works.bib
 nocite: |
   @*
-format: html
 ---
 
 ## Open Source Tools
