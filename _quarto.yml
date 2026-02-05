@@ -10,6 +10,7 @@ website:
         text: Home
       - blog.qmd
       - projects.qmd
+      - project_management_model.qmd
       - volunteer.qmd
 
 format:

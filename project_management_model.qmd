@@ -1,0 +1,376 @@
+---
+title: "Project Management Mental Model"
+subtitle: "A connected framework of principles, tradeoffs, and risks"
+format:
+  html:
+    page-layout: full
+    toc: false
+---
+
+```{ojs}
+//| echo: false
+
+// Mermaid diagram definition - EDIT THIS to update the diagram
+mermaidDef = `
+flowchart TB
+    subgraph motivation["🎯 MOTIVATION (4 Types)"]
+        M1[Captivate]
+        M2[Create]
+        M3[Compete]
+        M4[Complete]
+    end
+
+    subgraph problem_forming["🔍 PROBLEM FORMING (Not an Oracle!)"]
+        PF1["Why? (5 Whys - recursive)"]
+        PF2[Current State]
+        PF3[Gaps]
+        PF4[Desired Future State]
+        PF5["Success Criteria:<br/>• Describe end state<br/>• Spec + conditions"]
+        
+        PF1 --> PF2
+        PF2 --> PF3
+        PF3 --> PF4
+        PF4 --> PF5
+    end
+
+    subgraph iron_triangle["⚖️ PROJECT CONSTRAINTS"]
+        SCOPE["SCOPE<br/>(For who?)"]
+        TIME["TIME<br/>• Tempo/Cadence<br/>• Fast & Often"]
+        RESOURCES[RESOURCES]
+        
+        SCOPE <--> TIME
+        TIME <--> RESOURCES
+        RESOURCES <--> SCOPE
+        
+        PARKINSON["⚠️ Parkinson's Law:<br/>Work expands to fill time"]
+        TIME --- PARKINSON
+        
+        OPP_COST["💰 Opportunity Cost<br/>(What are you NOT doing?)"]
+        OPP_COST -.->|"Applies to all"| SCOPE
+        OPP_COST -.->|"Applies to all"| TIME
+        OPP_COST -.->|"Applies to all"| RESOURCES
+    end
+
+    subgraph roles["👤 ROLES & KNOWLEDGE"]
+        FACTOTUM["Factotum<br/>(Jack of all trades)"]
+        BUS_FACTOR["🚌 Bus Factor<br/>(Knowledge distribution risk)"]
+        
+        FACTOTUM -.->|"Increases"| BUS_FACTOR
+    end
+
+    subgraph cap["🔺 CAP Theorem (Pick 2)"]
+        CAP_C[Consistency]
+        CAP_A[Availability]
+        CAP_P[Partition Tolerance]
+    end
+
+    subgraph design_principles["🏗️ DESIGN PRINCIPLES"]
+        DRY["DRY: Don't Repeat Yourself<br/>Single representation of knowledge"]
+        DRY_SUB["• Don't duplicate code<br/>• Don't duplicate intent<br/>• Don't duplicate structure for knowledge"]
+        YAGNI["YAGNI:<br/>You Aren't Gonna Need It"]
+        DESIGN_WEAR["Design vs Wear/Tear<br/>(Intentional vs Emergent)"]
+        TECH_DEBT["💳 Technical Debt<br/>(Accumulated wear)"]
+        DURABLE["Durable vs Defensible"]
+        
+        DRY --- DRY_SUB
+        DRY <-.->|"Tension"| YAGNI
+        DESIGN_WEAR -->|"Accumulates as"| TECH_DEBT
+        DURABLE -.->|"Tension"| DESIGN_WEAR
+    end
+
+    subgraph scope_tools["🎯 SCOPING STRATEGIES"]
+        PARS_PRO_TOTO["Pars Pro Toto<br/>(Part for the whole)"]
+        MVP["Minimum Viable X<br/>(Smallest useful unit)"]
+        
+        PARS_PRO_TOTO -->|"Operationalized as"| MVP
+    end
+
+    subgraph output_quality["📦 OUTPUT QUALITY"]
+        FAIR["F.A.I.R. Principles"]
+        F[Findable]
+        A[Accessible]
+        I[Interoperable]
+        R[Reusable]
+        
+        FAIR --- F
+        FAIR --- A
+        FAIR --- I
+        FAIR --- R
+        
+        ROI["ROI → Usefulness = f(tech)"]
+    end
+
+    subgraph perf_tuning["⚡ PERFORMANCE (Slow? Wrong?)"]
+        PERF1[Better Algorithm]
+        PERF2[Better Data Structure]
+        PERF3[Lower Level System]
+        PERF4[Accept Less Precision]
+        PERF5[Use Parallelisation]
+    end
+
+    subgraph tradeoffs["📊 TRADEOFFS"]
+        TRADEOFF_3D["Accuracy ↔ Reliability ↔ Certainty<br/>(Can't maximize all three)"]
+    end
+
+    subgraph project_risks["⚠️ PROJECT RISKS"]
+        YAK_SHAVING["🐃 Yak Shaving<br/>(Recursive prerequisite tasks:<br/>To do X, first must do Y, Z...)"]
+        SANDBAGGING["Sandbagging<br/>(Inflated estimates)"]
+        SCOPE_CREEP["Scope Creep"]
+        
+        YAK_SHAVING -->|"Causes"| SCOPE_CREEP
+    end
+
+    subgraph communication["💬 COMMUNICATION"]
+        COMPLAIN["Complain + Propose"]
+        COMPLAIN_SUB["• Is it a big deal?<br/>• Bundle proposal with complaint<br/>• Reverse roles, receive as other person"]
+        
+        COMPLAIN --- COMPLAIN_SUB
+    end
+
+    %% ====== CORE FLOW ======
+    motivation -->|"Drives"| problem_forming
+    problem_forming -->|"Defines"| SCOPE
+    SCOPE -->|"Architecture decisions"| cap
+    cap -->|"Informs"| design_principles
+    design_principles -->|"Shapes"| output_quality
+    iron_triangle -->|"Measured by"| ROI
+    
+    %% ====== SCOPING CONNECTIONS ======
+    SCOPE -->|"Managed via"| scope_tools
+    MVP -->|"Reduces"| SCOPE_CREEP
+    PERF4 -.->|"Leverages"| PARS_PRO_TOTO
+    PARS_PRO_TOTO -.->|"Informs"| TRADEOFF_3D
+    
+    %% ====== ROLE CONNECTIONS ======
+    RESOURCES -->|"Staffed by"| roles
+    BUS_FACTOR -.->|"Mitigated by"| DRY
+    FACTOTUM -.->|"Enables small"| SCOPE
+    
+    %% ====== RISK CONNECTIONS ======
+    YAK_SHAVING -.->|"Wastes"| TIME
+    YAK_SHAVING -.->|"Tension with"| DRY
+    YAK_SHAVING <-.->|"Check: Is it worth it?"| COMPLAIN
+    SANDBAGGING -.->|"Distorts"| TIME
+    TECH_DEBT -.->|"Triggers"| YAK_SHAVING
+    YAGNI -.->|"Prevents"| YAK_SHAVING
+    
+    %% ====== TRADEOFF CONNECTIONS ======
+    cap -.->|"Similar pattern"| TRADEOFF_3D
+    TRADEOFF_3D -.->|"Guides"| PERF4
+    
+    %% ====== COMMUNICATION CONNECTIONS ======
+    communication -.->|"Throughout"| iron_triangle
+    BUS_FACTOR -.->|"Reduced by"| communication
+
+    %% ====== STYLING ======
+    classDef principle fill:#e1f5fe,stroke:#0288d1
+    classDef warning fill:#fff3e0,stroke:#f57c00
+    classDef output fill:#e8f5e9,stroke:#388e3c
+    classDef tradeoff fill:#fce4ec,stroke:#c2185b
+    classDef risk fill:#ffebee,stroke:#c62828
+    classDef strategy fill:#f3e5f5,stroke:#7b1fa2
+    
+    class DRY,FAIR,DESIGN_WEAR,DURABLE,YAGNI principle
+    class PARKINSON,SANDBAGGING,BUS_FACTOR warning
+    class F,A,I,R,ROI output
+    class TRADEOFF_3D,cap,OPP_COST tradeoff
+    class YAK_SHAVING,SCOPE_CREEP,TECH_DEBT risk
+    class PARS_PRO_TOTO,MVP,FACTOTUM strategy
+`
+```
+
+```{ojs}
+//| echo: false
+
+// Import mermaid from CDN
+mermaid = {
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  document.head.appendChild(script);
+
+  return new Promise((resolve) => {
+    script.onload = () => resolve(window.mermaid);
+  });
+}
+```
+
+```{ojs}
+//| echo: false
+
+// State management
+mutable scale = 0.5
+mutable panX = 0
+mutable panY = 0
+```
+
+```{ojs}
+//| echo: false
+
+// Control buttons
+viewof controls = {
+  const container = html`<div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;">
+    <button id="zoomIn" style="background: #3a3a5c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">➕ Zoom In</button>
+    <button id="zoomOut" style="background: #3a3a5c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">➖ Zoom Out</button>
+    <button id="reset" style="background: #3a3a5c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">↺ Reset</button>
+    <span id="zoomLevel" style="color: #666; font-size: 0.9rem; display: flex; align-items: center; padding: 0 12px;">${Math.round(scale * 100)}%</span>
+  </div>`;
+  
+  container.querySelector('#zoomIn').onclick = () => { mutable scale = Math.min(scale * 1.2, 3); };
+  container.querySelector('#zoomOut').onclick = () => { mutable scale = Math.max(scale / 1.2, 0.1); };
+  container.querySelector('#reset').onclick = () => { 
+    mutable scale = 0.5; 
+    mutable panX = 0; 
+    mutable panY = 0; 
+  };
+  
+  return container;
+}
+```
+
+```{ojs}
+//| echo: false
+
+// Render mermaid diagram with pan/zoom
+diagram = {
+  // Initialize mermaid
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'default',
+    flowchart: {
+      useMaxWidth: false,
+      htmlLabels: true,
+      curve: 'basis'
+    },
+    securityLevel: 'loose'
+  });
+
+  // Create container
+  const wrapper = html`<div style="
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    overflow: hidden;
+    height: 600px;
+    position: relative;
+    cursor: grab;
+  "></div>`;
+
+  // Local pan state (not reactive to avoid re-render during drag)
+  let currentPanX = panX;
+  let currentPanY = panY;
+  let currentScale = scale;
+
+  const inner = html`<div style="
+    position: absolute;
+    transform-origin: 0 0;
+    padding: 40px;
+    transform: translate(${currentPanX}px, ${currentPanY}px) scale(${currentScale});
+  "></div>`;
+
+  wrapper.appendChild(inner);
+
+  // Render mermaid
+  const id = 'mermaid-' + Math.random().toString(36).substr(2, 9);
+  mermaid.render(id, mermaidDef).then(({svg}) => {
+    inner.innerHTML = svg;
+  });
+
+  // Helper to update transform
+  const updateTransform = () => {
+    inner.style.transform = `translate(${currentPanX}px, ${currentPanY}px) scale(${currentScale})`;
+  };
+
+  // Pan/zoom interaction
+  let isDragging = false;
+  let startX, startY, startPanX, startPanY;
+
+  wrapper.onmousedown = (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startPanX = currentPanX;
+    startPanY = currentPanY;
+    wrapper.style.cursor = 'grabbing';
+  };
+
+  wrapper.onmousemove = (e) => {
+    if (!isDragging) return;
+    currentPanX = startPanX + (e.clientX - startX);
+    currentPanY = startPanY + (e.clientY - startY);
+    updateTransform();
+  };
+
+  wrapper.onmouseup = () => {
+    isDragging = false;
+    wrapper.style.cursor = 'grab';
+    // Sync back to mutables so state is preserved on re-render
+    mutable panX = currentPanX;
+    mutable panY = currentPanY;
+  };
+
+  wrapper.onmouseleave = () => {
+    isDragging = false;
+    wrapper.style.cursor = 'grab';
+  };
+
+  wrapper.onwheel = (e) => {
+    e.preventDefault();
+    const rect = wrapper.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const oldScale = currentScale;
+    const newScale = e.deltaY < 0
+      ? Math.min(currentScale * 1.1, 3)
+      : Math.max(currentScale / 1.1, 0.1);
+
+    const scaleChange = newScale / oldScale;
+    currentPanX = mouseX - (mouseX - currentPanX) * scaleChange;
+    currentPanY = mouseY - (mouseY - currentPanY) * scaleChange;
+    currentScale = newScale;
+
+    updateTransform();
+
+    // Update zoom display
+    const zoomLabel = document.querySelector('#zoomLevel');
+    if (zoomLabel) zoomLabel.textContent = Math.round(currentScale * 100) + '%';
+  };
+
+  // Update zoom display on initial render
+  const zoomLabel = document.querySelector('#zoomLevel');
+  if (zoomLabel) zoomLabel.textContent = Math.round(currentScale * 100) + '%';
+
+  return wrapper;
+}
+```
+
+```{ojs}
+//| echo: false
+
+// Legend
+legend = html`
+<p style="color: #666; font-size: 0.8rem; text-align: center; margin: 10px 0;">
+  🖱️ Scroll to zoom • Click and drag to pan • Use buttons for precise control
+</p>
+<div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; padding: 15px; background: #f5f5f5; border-radius: 8px; margin-top: 10px;">
+  <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+    <div style="width: 16px; height: 16px; background: #e1f5fe; border: 1px solid #0288d1; border-radius: 3px;"></div> Principles
+  </div>
+  <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+    <div style="width: 16px; height: 16px; background: #fff3e0; border: 1px solid #f57c00; border-radius: 3px;"></div> Warnings
+  </div>
+  <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+    <div style="width: 16px; height: 16px; background: #e8f5e9; border: 1px solid #388e3c; border-radius: 3px;"></div> Outputs
+  </div>
+  <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+    <div style="width: 16px; height: 16px; background: #fce4ec; border: 1px solid #c2185b; border-radius: 3px;"></div> Tradeoffs
+  </div>
+  <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+    <div style="width: 16px; height: 16px; background: #ffebee; border: 1px solid #c62828; border-radius: 3px;"></div> Risks
+  </div>
+  <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+    <div style="width: 16px; height: 16px; background: #f3e5f5; border: 1px solid #7b1fa2; border-radius: 3px;"></div> Strategies
+  </div>
+</div>
+`
+```

@@ -15,7 +15,7 @@ about:
       href: https://orcid.org/0000-0002-3736-2529
     - icon: envelope
       text: Email
-      url: "mailto:sxthimons@gmail.com"
+      url: "mailto:thimons.sean@gmail.com"
 ---
 
 Sean Thimons is a Physical Scientist at the U.S. Environmental Protection Agency, focusing on **chemical risk assessment** for oil and gas wastewater, industrial wastewater, and water reuse. His research aims to enhance wastewater characterization for reuse, **prioritize emerging wastewater compounds**, and develop rapid chemical risk evaluation methods using high-throughput data.
