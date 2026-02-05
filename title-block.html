@@ -1,0 +1,38 @@
+<header id="title-block-header" class="hero-section">
+  <!-- Particle container -->
+  <div id="particles-js"></div>
+
+  <!-- Content overlaid on particles -->
+  <div class="hero-content">
+    <img src="images/headshot.jpg" alt="Sean Thimons headshot" class="hero-headshot">
+    <h1>Sean Thimons</h1>
+    <p class="subtitle">Water Data Scientist & EPA Researcher</p>
+
+    <div class="hero-links">
+      <a href="https://github.com/seanthimons" title="GitHub" aria-label="GitHub">
+        <i class="bi bi-github"></i>
+      </a>
+      <a href="https://www.linkedin.com/in/seanthimons/" title="LinkedIn" aria-label="LinkedIn">
+        <i class="bi bi-linkedin"></i>
+      </a>
+      <a href="https://orcid.org/0000-0002-3736-2529" title="ORCID" aria-label="ORCID">
+        <i class="bi bi-journals"></i>
+      </a>
+      <a href="mailto:thimons.sean@gmail.com" title="Email" aria-label="Email">
+        <i class="bi bi-envelope"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- Load particles.js from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+
+  <!-- Initialize with config -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof particlesJS !== 'undefined') {
+        particlesJS.load('particles-js', 'particles.json');
+      }
+    });
+  </script>
+</header>

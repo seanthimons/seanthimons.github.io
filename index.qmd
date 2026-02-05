@@ -1,21 +1,11 @@
 ---
-title: "Water reuse, data science, risk characterization, community engagement"
-about: 
-  template: trestles
-  image: images/headshot.jpg
-  links:
-    - icon: github
-      text: GitHub
-      href: https://github.com/seanthimons
-    - icon: linkedin
-      text: LinkedIn
-      href: https://www.linkedin.com/in/seanthimons/
-    - icon: journals
-      text: ORCID
-      href: https://orcid.org/0000-0002-3736-2529
-    - icon: envelope
-      text: Email
-      url: "mailto:thimons.sean@gmail.com"
+title: "Sean Thimons"
+format:
+  html:
+    template-partials:
+      - title-block.html
+resources:
+  - particles.json
 ---
 
 Sean Thimons is a Physical Scientist at the U.S. Environmental Protection Agency, focusing on **chemical risk assessment** for oil and gas wastewater, industrial wastewater, and water reuse. His research aims to enhance wastewater characterization for reuse, **prioritize emerging wastewater compounds**, and develop rapid chemical risk evaluation methods using high-throughput data.

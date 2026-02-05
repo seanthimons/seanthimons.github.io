@@ -12,10 +12,13 @@ website:
       - projects.qmd
       - project_management_model.qmd
       - volunteer.qmd
+  page-footer:
+    center: "© 2025 Sean Thimons · Built with Quarto"
 
 format:
   html:
-    theme: sandstone
+    theme:
+      light: [flatly, custom.scss]
     css: styles.css
     toc: false
 
