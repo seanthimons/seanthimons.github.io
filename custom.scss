@@ -222,39 +222,51 @@ h2, h3 {
 // ============================================
 
 // ---- Blog (Oxblood) ----
-.page-blog {
-  a {
-    color: $oxblood;
+body.page-blog {
+  #quarto-content a,
+  .quarto-title a,
+  main a {
+    color: $oxblood !important;
     text-decoration-color: rgba($oxblood, 0.3);
     &:hover {
       text-decoration-color: $oxblood;
     }
   }
 
-  h1, h2, h3 {
-    color: darken($oxblood, 10%);
+  #quarto-content h1,
+  #quarto-content h2,
+  #quarto-content h3,
+  .quarto-title h1 {
+    color: darken($oxblood, 10%) !important;
   }
 
   .navbar a, .nav-link {
+    color: $dark-slate !important;
     text-decoration: none;
   }
 }
 
 // ---- Work (Tyrian Purple) ----
-.page-work {
-  a {
-    color: $tyrian;
+body.page-work {
+  #quarto-content a,
+  .quarto-title a,
+  main a {
+    color: $tyrian !important;
     text-decoration-color: rgba($tyrian, 0.3);
     &:hover {
       text-decoration-color: $tyrian;
     }
   }
 
-  h1, h2, h3 {
-    color: darken($tyrian, 5%);
+  #quarto-content h1,
+  #quarto-content h2,
+  #quarto-content h3,
+  .quarto-title h1 {
+    color: darken($tyrian, 5%) !important;
   }
 
   .navbar a, .nav-link {
+    color: $dark-slate !important;
     text-decoration: none;
   }
 
@@ -266,36 +278,42 @@ h2, h3 {
     }
 
     h3 {
-      color: $tyrian;
+      color: $tyrian !important;
     }
   }
 
   .btn-primary {
-    background-color: $tyrian;
-    border-color: $tyrian;
+    background-color: $tyrian !important;
+    border-color: $tyrian !important;
 
     &:hover {
-      background-color: darken($tyrian, 8%);
-      border-color: darken($tyrian, 8%);
+      background-color: darken($tyrian, 8%) !important;
+      border-color: darken($tyrian, 8%) !important;
     }
   }
 }
 
 // ---- Volunteer (Amber/Gold) ----
-.page-volunteer {
-  a {
-    color: darken($amber, 5%);
+body.page-volunteer {
+  #quarto-content a,
+  .quarto-title a,
+  main a {
+    color: darken($amber, 5%) !important;
     text-decoration-color: rgba($amber, 0.3);
     &:hover {
       text-decoration-color: $amber;
     }
   }
 
-  h1, h2, h3 {
-    color: darken($amber, 15%);
+  #quarto-content h1,
+  #quarto-content h2,
+  #quarto-content h3,
+  .quarto-title h1 {
+    color: darken($amber, 15%) !important;
   }
 
   .navbar a, .nav-link {
+    color: $dark-slate !important;
     text-decoration: none;
   }
 }
