@@ -9,8 +9,10 @@ website:
       - href: index.qmd
         text: Home
       - blog.qmd
-      - projects.qmd
-      - project_management_model.qmd
+      - href: projects.qmd
+        text: Work
+      - href: project_management_model.qmd
+        text: Mental Model
       - volunteer.qmd
   page-footer:
     center: "© 2025 Sean Thimons · Built with Quarto"

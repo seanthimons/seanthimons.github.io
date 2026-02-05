@@ -1,6 +1,6 @@
 ---
-title: "Project Management Mental Model"
-subtitle: "A connected framework of principles, tradeoffs, and risks"
+title: "Mental Model"
+subtitle: "How I think about projects: principles, tradeoffs, and risks"
 format:
   html:
     page-layout: full
