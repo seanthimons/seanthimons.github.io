@@ -6,3 +6,6 @@
 /.quarto/
 /.vscode/
 
+# Rendered output (now built by GitHub Actions)
+/docs/
+
