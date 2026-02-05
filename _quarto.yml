@@ -28,4 +28,4 @@ format:
 editor: source
 
 execute:
-  freeze: auto  # re-render only when source changes
+  freeze: true  # never re-execute on CI; render locally to update _freeze/
