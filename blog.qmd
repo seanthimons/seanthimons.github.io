@@ -1,5 +1,6 @@
 ---
 title: "Blog"
+body-class: "page-blog"
 listing:
   contents: posts
   sort: "date desc"

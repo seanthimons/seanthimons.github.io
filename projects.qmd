@@ -1,5 +1,6 @@
 ---
 title: "Work"
+body-class: "page-work"
 bibliography: works.bib
 nocite: |
   @*

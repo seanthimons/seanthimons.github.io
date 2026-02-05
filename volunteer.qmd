@@ -1,5 +1,6 @@
 ---
 title: "Volunteering"
+body-class: "page-volunteer"
 format: html
 ---
 

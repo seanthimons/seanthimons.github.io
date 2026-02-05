@@ -1,6 +1,6 @@
 /*-- scss:defaults --*/
 
-// ---- Phthalo Waters Palette ----
+// ---- Phthalo Waters Palette (Home, default) ----
 $phthalo-deep:    #0D5C63;
 $aquamarine:      #78CDD7;
 $dark-slate:      #1A2E35;
@@ -8,6 +8,14 @@ $soft-dark:       #3D4F58;
 $light-teal-bg:   #F0F5F4;
 $near-white:      #FAFBFB;
 $code-bg:         #EEF2F3;
+
+// ---- Section Color Palettes ----
+$oxblood:         #6B1C23;
+$oxblood-light:   #D4A3A7;
+$tyrian:          #5D2E8C;
+$tyrian-light:    #B8A9C9;
+$amber:           #B8860B;
+$amber-light:     #E8D4A8;
 
 // ---- Bootstrap / Quarto Variable Overrides ----
 $body-bg:         $near-white;
@@ -207,4 +215,87 @@ h2, h3 {
   padding: 1.5rem;
   text-align: center;
   font-size: 0.9rem;
+}
+
+// ============================================
+// SECTION-SPECIFIC COLOR SCHEMES
+// ============================================
+
+// ---- Blog (Oxblood) ----
+.page-blog {
+  a {
+    color: $oxblood;
+    text-decoration-color: rgba($oxblood, 0.3);
+    &:hover {
+      text-decoration-color: $oxblood;
+    }
+  }
+
+  h1, h2, h3 {
+    color: darken($oxblood, 10%);
+  }
+
+  .navbar a, .nav-link {
+    text-decoration: none;
+  }
+}
+
+// ---- Work (Tyrian Purple) ----
+.page-work {
+  a {
+    color: $tyrian;
+    text-decoration-color: rgba($tyrian, 0.3);
+    &:hover {
+      text-decoration-color: $tyrian;
+    }
+  }
+
+  h1, h2, h3 {
+    color: darken($tyrian, 5%);
+  }
+
+  .navbar a, .nav-link {
+    text-decoration: none;
+  }
+
+  .card {
+    border-color: rgba($tyrian, 0.15);
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba($tyrian, 0.12);
+    }
+
+    h3 {
+      color: $tyrian;
+    }
+  }
+
+  .btn-primary {
+    background-color: $tyrian;
+    border-color: $tyrian;
+
+    &:hover {
+      background-color: darken($tyrian, 8%);
+      border-color: darken($tyrian, 8%);
+    }
+  }
+}
+
+// ---- Volunteer (Amber/Gold) ----
+.page-volunteer {
+  a {
+    color: darken($amber, 5%);
+    text-decoration-color: rgba($amber, 0.3);
+    &:hover {
+      text-decoration-color: $amber;
+    }
+  }
+
+  h1, h2, h3 {
+    color: darken($amber, 15%);
+  }
+
+  .navbar a, .nav-link {
+    text-decoration: none;
+  }
 }
