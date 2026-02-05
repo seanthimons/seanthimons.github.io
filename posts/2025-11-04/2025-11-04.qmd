@@ -1,8 +1,9 @@
 ---
-title: "Tidy Tuesday 2025-11-04: Lead concentration in Flint water samples in 2015"
+title: "Tidy Tuesday: Lead in Flint Water Samples"
 author: "Sean Thimons"
 date: "2025-11-04"
-categories: [tidytuesday]
+description: "Analyzing the 2015 Flint lead data using ANOVA and ggstatsplot to show how censored samples masked an actionable exceedance."
+categories: [tidytuesday, R, statistics]
 ---
 
 # Preface
