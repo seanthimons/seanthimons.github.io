@@ -171,10 +171,10 @@ img[src*="headshot"] {
 
 // ---- Buttons ----
 .btn-primary {
-  background-color: $phthalo-deep;
-  border-color: $phthalo-deep;
-  color: white;
-  text-decoration: none;
+  background-color: $phthalo-deep !important;
+  border-color: $phthalo-deep !important;
+  color: white !important;
+  text-decoration: none !important;
   padding: 0.5rem 1.25rem;
   border-radius: 6px;
   font-weight: 500;
@@ -184,9 +184,9 @@ img[src*="headshot"] {
   margin-top: auto;
 
   &:hover {
-    background-color: darken($phthalo-deep, 8%);
-    border-color: darken($phthalo-deep, 8%);
-    color: white;
+    background-color: darken($phthalo-deep, 8%) !important;
+    border-color: darken($phthalo-deep, 8%) !important;
+    color: white !important;
     transform: translateY(-1px);
   }
 }
