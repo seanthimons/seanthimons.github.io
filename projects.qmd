@@ -49,7 +49,7 @@ format: html
 ## Selected Awards and Professional Experience
 
 -   New Mexico Produced Water Research Consortium
--   US EPA *Shooting Start Award*: “Region 8 is grateful for your work organizing and analyzing our produced water data”
+-   US EPA *Shooting Star Award*: “Region 8 is grateful for your work organizing and analyzing our produced water data”
 
 ## Publications
 
