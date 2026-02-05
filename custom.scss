@@ -263,9 +263,10 @@ body.page-blog {
 
 // ---- Work (Tyrian Purple) ----
 body.page-work {
-  #quarto-content a,
-  .quarto-title a,
-  main a {
+  // Links (excluding buttons)
+  #quarto-content a:not(.btn),
+  .quarto-title a:not(.btn),
+  main a:not(.btn) {
     color: $tyrian !important;
     text-decoration-color: rgba($tyrian, 0.3);
     &:hover {
