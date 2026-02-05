@@ -8,11 +8,39 @@ format: html
 
 ## Open Source Tools
 
-**[CompToxR](https://github.com/seanthimons/ComptoxR)** — R package for accessing EPA's CompTox Chemistry Dashboard API. Enables programmatic retrieval of chemical properties, hazard data, and exposure predictions for risk evaluation workflows.
+::: {.grid}
 
-**[THREAT](https://github.com/seanthimons/THREAT)** — R Shiny application for comparing observational water quality data against toxicological benchmarks. Integrates CompToxR and curated reference datasets to support environmental risk screening.
+::: {.g-col-12 .g-col-md-4}
+::: {.card}
+### CompToxR
 
-**[Curation](https://github.com/seanthimons/curation)** — R scripts and workflows for aggregating chemical and toxicological data from public sources into analysis-ready datasets.
+R package for accessing EPA's CompTox Chemistry Dashboard API. Enables programmatic retrieval of chemical properties, hazard data, and exposure predictions for risk evaluation workflows.
+
+[GitHub](https://github.com/seanthimons/ComptoxR){.btn .btn-primary}
+:::
+:::
+
+::: {.g-col-12 .g-col-md-4}
+::: {.card}
+### THREAT
+
+R Shiny application for comparing observational water quality data against toxicological benchmarks. Integrates CompToxR and curated reference datasets to support environmental risk screening.
+
+[GitHub](https://github.com/seanthimons/THREAT){.btn .btn-primary}
+:::
+:::
+
+::: {.g-col-12 .g-col-md-4}
+::: {.card}
+### Curation
+
+R scripts and workflows for aggregating chemical and toxicological data from public sources into analysis-ready datasets.
+
+[GitHub](https://github.com/seanthimons/curation){.btn .btn-primary}
+:::
+:::
+
+:::
 
 ## Research Focus
 

@@ -131,14 +131,61 @@ img[src*="headshot"] {
 
 // ---- Project cards ----
 .card {
-  border: 1px solid rgba($phthalo-deep, 0.1);
-  border-radius: 8px;
+  border: 1px solid rgba($phthalo-deep, 0.15);
+  border-radius: 12px;
   padding: 1.5rem;
   background: white;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, transform 0.2s;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba($phthalo-deep, 0.1);
+    box-shadow: 0 8px 24px rgba($phthalo-deep, 0.12);
+    transform: translateY(-2px);
+  }
+
+  h3 {
+    color: $phthalo-deep;
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    flex-grow: 1;
+    color: $soft-dark;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+}
+
+// ---- Buttons ----
+.btn-primary {
+  background-color: $phthalo-deep;
+  border-color: $phthalo-deep;
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: background-color 0.2s, transform 0.2s;
+  display: inline-block;
+  margin-top: auto;
+
+  &:hover {
+    background-color: darken($phthalo-deep, 8%);
+    border-color: darken($phthalo-deep, 8%);
+    color: white;
+    transform: translateY(-1px);
+  }
+}
+
+// Grid cards equal height
+.grid {
+  .g-col-12 {
+    display: flex;
   }
 }
 
