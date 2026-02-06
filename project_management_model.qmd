@@ -11,6 +11,8 @@ format:
 //| echo: false
 
 // Mermaid diagram definition - EDIT THIS to update the diagram
+// To control where the diagram starts rendering (zoom and position),
+// see the "CONFIGURATION" section below after the mermaid definition.
 mermaidDef = `
 flowchart TB
     subgraph motivation["🎯 MOTIVATION (4 Types)"]
@@ -197,10 +199,19 @@ mermaid = {
 ```{ojs}
 //| echo: false
 
-// State management
-mutable scale = 0.5
-mutable panX = 0
-mutable panY = 0
+// ===== CONFIGURATION: Control initial diagram position =====
+// Modify these values to change where the diagram starts rendering:
+// - initialScale: zoom level (0.1 to 3.0, where 1.0 is 100%)
+// - initialPanX: horizontal offset in pixels (positive = right, negative = left)
+// - initialPanY: vertical offset in pixels (positive = down, negative = up)
+initialScale = 0.5  // Start at 50% zoom
+initialPanX = 0     // Start at left edge (0px offset)
+initialPanY = 0     // Start at top edge (0px offset)
+
+// State management (uses initial values above)
+mutable scale = initialScale
+mutable panX = initialPanX
+mutable panY = initialPanY
 ```
 
 ```{ojs}
@@ -218,9 +229,9 @@ viewof controls = {
   container.querySelector('#zoomIn').onclick = () => { mutable scale = Math.min(scale * 1.2, 3); };
   container.querySelector('#zoomOut').onclick = () => { mutable scale = Math.max(scale / 1.2, 0.1); };
   container.querySelector('#reset').onclick = () => { 
-    mutable scale = 0.5; 
-    mutable panX = 0; 
-    mutable panY = 0; 
+    mutable scale = initialScale; 
+    mutable panX = initialPanX; 
+    mutable panY = initialPanY; 
   };
   
   return container;
