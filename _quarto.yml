@@ -16,7 +16,7 @@ website:
         text: Mental Model
       - volunteer.qmd
   page-footer:
-    center: "© 2025 Sean Thimons · Built with Quarto"
+    center: "© 2026 Sean Thimons · Built with Quarto"
 
 format:
   html:
