@@ -197,10 +197,10 @@ mermaid = {
 ```{ojs}
 //| echo: false
 
-// State management
-mutable scale = 0.5
-mutable panX = 0
-mutable panY = 0
+// State management - BETTER INITIAL VALUES
+mutable scale = 0.85
+mutable panX = 50
+mutable panY = 20
 ```
 
 ```{ojs}
@@ -209,18 +209,25 @@ mutable panY = 0
 // Control buttons
 viewof controls = {
   const container = html`<div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;">
-    <button id="zoomIn" style="background: #3a3a5c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">➕ Zoom In</button>
-    <button id="zoomOut" style="background: #3a3a5c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">➖ Zoom Out</button>
-    <button id="reset" style="background: #3a3a5c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">↺ Reset</button>
+    <button id="zoomIn" style="background: #0D5C63; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">➕ Zoom In</button>
+    <button id="zoomOut" style="background: #0D5C63; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">➖ Zoom Out</button>
+    <button id="reset" style="background: #0D5C63; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">↺ Reset</button>
+    <button id="fitView" style="background: #78CDD7; color: #1A2E35; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">⊡ Fit to View</button>
     <span id="zoomLevel" style="color: #666; font-size: 0.9rem; display: flex; align-items: center; padding: 0 12px;">${Math.round(scale * 100)}%</span>
   </div>`;
   
   container.querySelector('#zoomIn').onclick = () => { mutable scale = Math.min(scale * 1.2, 3); };
   container.querySelector('#zoomOut').onclick = () => { mutable scale = Math.max(scale / 1.2, 0.1); };
   container.querySelector('#reset').onclick = () => { 
-    mutable scale = 0.5; 
-    mutable panX = 0; 
-    mutable panY = 0; 
+    mutable scale = 0.85; 
+    mutable panX = 50; 
+    mutable panY = 20; 
+  };
+  container.querySelector('#fitView').onclick = () => {
+    // Zoom out to see everything, centered
+    mutable scale = 0.45;
+    mutable panX = 150;
+    mutable panY = 50;
   };
   
   return container;
@@ -250,7 +257,7 @@ diagram = {
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.15);
     overflow: hidden;
-    height: 600px;
+    height: 700px;
     position: relative;
     cursor: grab;
   "></div>`;
@@ -273,6 +280,23 @@ diagram = {
   const id = 'mermaid-' + Math.random().toString(36).substr(2, 9);
   mermaid.render(id, mermaidDef).then(({svg}) => {
     inner.innerHTML = svg;
+    
+    // Auto-center on first render: get SVG dimensions and center it
+    setTimeout(() => {
+      const svgEl = inner.querySelector('svg');
+      if (svgEl) {
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const svgRect = svgEl.getBoundingClientRect();
+        
+        // Calculate centering offset (only if not already manually positioned)
+        if (currentPanX === 50 && currentPanY === 20) {
+          // Center the top portion of the diagram (motivation -> problem forming flow)
+          currentPanX = (wrapperRect.width - svgRect.width * currentScale) / 2 + 100;
+          currentPanY = 30;
+          updateTransform();
+        }
+      }
+    }, 100);
   });
 
   // Helper to update transform
@@ -330,6 +354,9 @@ diagram = {
     currentScale = newScale;
 
     updateTransform();
+
+    // Update mutable scale for button sync
+    mutable scale = currentScale;
 
     // Update zoom display
     const zoomLabel = document.querySelector('#zoomLevel');
