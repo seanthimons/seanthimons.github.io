@@ -118,6 +118,7 @@ flowchart TB
         YAK_SHAVING["🐃 Yak Shaving<br/>(Recursive prerequisite tasks:<br/>To do X, first must do Y, Z...)"]
         SANDBAGGING["Sandbagging<br/>(Inflated estimates)"]
         SCOPE_CREEP["Scope Creep"]
+        SALT["🧂 Salt Principle:<br/>If something spoils, add salt to fix it.<br/>But woe to the day the salt itself has spoiled.<br/>(The fix becomes the problem)"]
         
         YAK_SHAVING -->|"Causes"| SCOPE_CREEP
     end
@@ -154,6 +155,7 @@ flowchart TB
     YAK_SHAVING <-.->|"Check: Is it worth it?"| COMPLAIN
     SANDBAGGING -.->|"Distorts"| TIME
     TECH_DEBT -.->|"Triggers"| YAK_SHAVING
+    TECH_DEBT -.->|"Risk of"| SALT
     YAGNI -.->|"Prevents"| YAK_SHAVING
     
     %% ====== TRADEOFF CONNECTIONS ======
@@ -176,7 +178,7 @@ flowchart TB
     class PARKINSON,SANDBAGGING,BUS_FACTOR warning
     class F,A,I,R,ROI output
     class TRADEOFF_3D,cap,OPP_COST tradeoff
-    class YAK_SHAVING,SCOPE_CREEP,TECH_DEBT risk
+    class YAK_SHAVING,SCOPE_CREEP,TECH_DEBT,SALT risk
     class PARS_PRO_TOTO,MVP,FACTOTUM strategy
 `
 ```
