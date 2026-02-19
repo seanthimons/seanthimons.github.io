@@ -9,3 +9,6 @@
 # Rendered output (now built by GitHub Actions)
 /docs/
 
+# GSD planning docs
+/.planning/
+
