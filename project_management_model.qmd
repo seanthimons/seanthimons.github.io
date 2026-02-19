@@ -202,11 +202,11 @@ mermaid = {
 // ===== CONFIGURATION: Control initial diagram position =====
 // Modify these values to change where the diagram starts rendering:
 // - initialScale: zoom level (0.1 to 3.0, where 1.0 is 100%)
-// - initialPanX: horizontal offset in pixels (positive = right, negative = left)
-// - initialPanY: vertical offset in pixels (positive = down, negative = up)
+// - initialPanX: horizontal offset in pixels (positive = right, negative = left; 0 = no horizontal offset)
+// - initialPanY: vertical offset in pixels (positive = down, negative = up; 0 = no vertical offset)
 initialScale = 0.5  // Start at 50% zoom
-initialPanX = 0     // Start at left edge (0px offset)
-initialPanY = 0     // Start at top edge (0px offset)
+initialPanX = 0     // No initial horizontal offset (0px)
+initialPanY = 0     // No initial vertical offset (0px)
 
 // State management (uses initial values above)
 mutable scale = initialScale
