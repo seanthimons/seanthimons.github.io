@@ -49,6 +49,8 @@ generated=0
 skipped=0
 failed=0
 failed_weeks=""
+commits_since_push=0
+PUSH_BATCH_SIZE=10
 
 # Read manifest length
 entry_count=$(jq 'length' "$MANIFEST")
@@ -162,6 +164,20 @@ PROMPT
       git -C "$PROJECT_DIR" commit -m "Add Tidy Tuesday post: $week_date $dataset_name"
       echo "  COMMITTED: Add Tidy Tuesday post: $week_date $dataset_name"
       echo "  COMMIT $week_date $dataset_name" >> "$LOG_FILE"
+      commits_since_push=$((commits_since_push + 1))
+
+      # US-005: Batch push to remote every PUSH_BATCH_SIZE commits
+      if [[ $commits_since_push -ge $PUSH_BATCH_SIZE ]]; then
+        echo "  Pushing batch of $commits_since_push commits to remote..."
+        if git -C "$PROJECT_DIR" push 2>>"$LOG_FILE"; then
+          echo "  PUSHED $commits_since_push commits" >> "$LOG_FILE"
+          echo "  PUSH OK: $commits_since_push commits pushed to remote"
+          commits_since_push=0
+        else
+          echo "  PUSH FAIL: Push failed, will retry after next batch" >> "$LOG_FILE"
+          echo "  WARN: Push to remote failed — will retry after next batch"
+        fi
+      fi
     else
       echo "  WARN: Claude exited 0 but post file not found at posts/$week_date/$week_date.qmd"
       echo "  FAIL $week_date $dataset_name (post file not created)" >> "$LOG_FILE"
@@ -177,6 +193,19 @@ PROMPT
 
   echo ""
 done
+
+# US-005: Push any remaining commits at the end of the run
+if [[ $commits_since_push -gt 0 ]]; then
+  echo "Pushing final batch of $commits_since_push commits to remote..."
+  if git -C "$PROJECT_DIR" push 2>>"$LOG_FILE"; then
+    echo "  PUSHED final $commits_since_push commits" >> "$LOG_FILE"
+    echo "PUSH OK: Final $commits_since_push commits pushed to remote"
+    commits_since_push=0
+  else
+    echo "  PUSH FAIL: Final push failed" >> "$LOG_FILE"
+    echo "WARN: Final push to remote failed — run 'git push' manually"
+  fi
+fi
 
 # Print summary
 echo "=========================================="

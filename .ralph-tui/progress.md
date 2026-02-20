@@ -80,3 +80,15 @@ after each iteration and it's included in prompts for context.
   - The rescan uses three detection strategies (tt_load dates, substituted_from references, dataset name matching) for robustness — any one alone could miss cases
   - Most of the BYOD substitution infra was already built in US-001; US-006 is primarily about idempotency on manifest rebuild and ensuring annotation in generated posts
 ---
+
+## 2026-02-20 - US-005
+- Added batch push logic to `scripts/run_backfill.sh` — pushes to remote every 10 successful commits
+- Added `commits_since_push` counter and `PUSH_BATCH_SIZE=10` constant
+- After each commit, counter increments; when it hits 10, `git push` runs and counter resets
+- End-of-run block pushes any remaining uncommitted-to-remote commits (handles <10 remaining)
+- Push failures are caught with `if git push` — logged to console and `backfill-log.txt` but do not stop the run
+- Files changed: `scripts/run_backfill.sh` (modified — ~20 lines added)
+- **Learnings:**
+  - Redirecting `git push` stderr to the log file (`2>>"$LOG_FILE"`) captures remote rejection messages for later diagnosis
+  - The `commits_since_push` counter only resets on successful push, so failed pushes accumulate and get retried with the next batch
+---

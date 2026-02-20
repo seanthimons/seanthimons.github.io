@@ -1,0 +1,59 @@
+# Iteration 5 Log
+
+## Metadata
+
+- **Task ID**: US-004
+- **Task Title**: Individual Commit Per Post
+- **Description**: As a developer, I want each completed post committed individually so that git history clearly shows when each post was added.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-20T14:24:36.305Z
+- **Ended At**: 2026-02-20T14:25:20.436Z
+- **Duration**: 44s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the progress file and the existing codebase to understand the current state.
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/tasks/prd.json[0m
+[94m[Glob][0m pattern: [96mtasks/*.sh[0m
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/run_backfill.sh[0m
+Now I understand the codebase. US-004 requires adding git commit logic to `run_backfill.sh` so that after each successful post generation, only that post's directory is staged and committed with the specified format.
+
+I need to add commit logic after the success verification (line 158 area). Let me implement this.
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/run_backfill.sh[0m edit: "    # Verify the post was actually created
+    if ..." → "    # Verify the post was actually created
+    if ..."
+Now let me verify the edit looks correct in context.
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/run_backfill.sh[0m
+Let me verify all acceptance criteria are met:
+
+1. **After each post renders successfully, it is staged and committed** — Yes, `git add` + `git commit` runs inside the `if [[ -f ... ]]` success block (lines 161-162).
+2. **Commit message format: `Add Tidy Tuesday post: YYYY-MM-DD dataset-name`** — Yes, line 162 uses exactly this format.
+3. **Only the post directory contents are included in each commit** — Yes, `git add "posts/$week_date/"` stages only that specific post directory.
+4. **Failed/skipped posts do not produce commits** — Yes, the commit only runs in the success branch. Skipped posts hit `continue` on line 100, and failed posts go to the `else` branches.
+
+Now let me update progress.md.
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/.ralph-tui/progress.md[0m edit: "## 2026-02-20 - US-006" → "## 2026-02-20 - US-004
+- Added git commit logic to..."
+Implementation complete. Here's what was done:
+
+**US-004 — Individual Commit Per Post**
+
+Added 4 lines to `scripts/run_backfill.sh` (lines 160-164) that run after each successful post creation:
+
+1. `git add "posts/$week_date/"` — stages only the new post's directory
+2. `git commit -m "Add Tidy Tuesday post: $week_date $dataset_name"` — commits with the required format
+3. Console + log file confirmation of the commit
+
+All 4 acceptance criteria are met:
+- Commits happen only after successful render (inside the success `if` block)
+- Commit message matches `Add Tidy Tuesday post: YYYY-MM-DD dataset-name`
+- Only the post directory is staged (no unrelated changes)
+- Failed/skipped posts never reach the commit code path
+
+<promise>COMPLETE</promise>
