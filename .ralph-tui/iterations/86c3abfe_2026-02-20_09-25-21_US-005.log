@@ -1,0 +1,67 @@
+# Iteration 6 Log
+
+## Metadata
+
+- **Task ID**: US-005
+- **Task Title**: Batch Push to Remote
+- **Description**: As a developer, I want completed posts pushed to remote in batches of ~10 so that progress is saved incrementally without excessive pushes.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-20T14:25:21.508Z
+- **Ended At**: 2026-02-20T14:26:23.218Z
+- **Duration**: 1m 1s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the progress file and the existing codebase to understand the current state.
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/.ralph-tui/progress.md[0m
+[94m[Glob][0m [95m/home/sean/Documents/seanthimons.github.io[0m pattern: [96mtasks/run_*.sh[0m
+[94m[Glob][0m [95m/home/sean/Documents/seanthimons.github.io[0m pattern: [96mtasks/*.sh[0m
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/run_backfill.sh[0m
+Now I understand the codebase. I need to add batch push logic to `run_backfill.sh`:
+
+1. Track commits since last push
+2. After every 10 successful commits, push to remote
+3. Push remaining commits at the end
+4. Push failures are logged but don't stop the run
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/run_backfill.sh[0m edit: "# Counters
+total=0
+generated=0
+skipped=0
+failed=0
+..." → "# Counters
+total=0
+generated=0
+skipped=0
+failed=0
+..."
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/run_backfill.sh[0m edit: "      # US-004: Stage and commit only this post's ..." → "      # US-004: Stage and commit only this post's ..."
+Now add the final push after the loop, before the summary:
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/run_backfill.sh[0m edit: "# Print summary" → "# US-005: Push any remaining commits at the end of..."
+Let me verify the final file looks correct:
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/run_backfill.sh[0m
+Let me run a syntax check on the script:
+[94m[Bash][0m Check bash script syntax $ bash -n /home/sean/Documents/seanthimons.github.io/scripts/run_backfill.sh
+Syntax is clean. Now let me verify all acceptance criteria:
+
+- **After every 10 successful commits, push to remote** — Lines 169-180: checks `commits_since_push >= PUSH_BATCH_SIZE` after each commit
+- **Push remaining commits at the end of the full run** — Lines 197-208: pushes if `commits_since_push > 0` after the loop
+- **If fewer than 10 posts remain, push at completion** — Covered by the end-of-run push block
+- **Push failures are logged but do not stop the run** — Push uses `if git push` pattern; failures log to both console and log file, but execution continues
+
+Now update progress.md:
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/.ralph-tui/progress.md[0m edit: "  - Most of the BYOD substitution infra was alread..." → "  - Most of the BYOD substitution infra was alread..."
+All acceptance criteria are met:
+
+| Acceptance Criteria | Implementation |
+|---|---|
+| After every 10 successful commits, push to remote | `commits_since_push` counter triggers push at `>= PUSH_BATCH_SIZE` (line 170) |
+| Push remaining commits at end of run | End-of-run block pushes if `commits_since_push > 0` (line 198) |
+| If fewer than 10 posts remain, push at completion | Covered by end-of-run block |
+| Push failures logged but don't stop the run | `if git push` pattern with log output on failure, no `exit` (lines 172-179, 200-207) |
+
+<promise>COMPLETE</promise>

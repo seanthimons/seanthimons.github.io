@@ -92,3 +92,15 @@ after each iteration and it's included in prompts for context.
   - Redirecting `git push` stderr to the log file (`2>>"$LOG_FILE"`) captures remote rejection messages for later diagnosis
   - The `commits_since_push` counter only resets on successful push, so failed pushes accumulate and get retried with the next batch
 ---
+
+## 2026-02-20 - US-007
+- Verified US-007 summary/error log was already implemented as part of US-002 in `scripts/run_backfill.sh`
+- Console summary (lines 211-223): formatted block with total/generated/skipped/failed counters and failed week details
+- Log file summary (lines 226-237): same info appended to `tasks/backfill-log.txt` with timestamps
+- Failed weeks tracked in `failed_weeks` variable with dataset name and error reason (claude error or post file not created)
+- Per-week logging throughout the run: OK/SKIP/FAIL status lines written to log file during iteration
+- All 4 acceptance criteria verified as met — no code changes needed
+- Files changed: none (already implemented)
+- **Learnings:**
+  - US-002 proactively included both US-003 skip logic and US-007 summary/logging — always check existing code before implementing
+---
