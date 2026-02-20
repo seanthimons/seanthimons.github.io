@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "sessionId": "86c3abfe-442d-42a9-987f-65dce81844c5",
+  "status": "running",
+  "startedAt": "2026-02-20T14:10:36.018Z",
+  "updatedAt": "2026-02-20T14:18:35.435Z",
+  "currentIteration": 0,
+  "maxIterations": 10,
+  "tasksCompleted": 0,
+  "isPaused": false,
+  "agentPlugin": "claude",
+  "trackerState": {
+    "plugin": "json",
+    "totalTasks": 0,
+    "tasks": []
+  },
+  "iterations": [],
+  "skippedTaskIds": [],
+  "cwd": "/home/sean/Documents/seanthimons.github.io",
+  "activeTaskIds": [],
+  "subagentPanelVisible": true
+}

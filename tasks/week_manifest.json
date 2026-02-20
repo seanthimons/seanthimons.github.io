@@ -1,0 +1,529 @@
+[
+  {
+    "week_date": "2025-02-25",
+    "year": 2025,
+    "week_number": 8,
+    "dataset_name": "Academic Literature on Racial and Ethnic Disparities in Reproductive Medicine in the US",
+    "dataset_slug": "academic-literature-on-racial-and-ethnic-disparities-in-repr",
+    "data_source_url": "https://www.ajog.org/article/S0002-9378(24)00775-0/fulltext",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-03-04",
+    "year": 2025,
+    "week_number": 9,
+    "dataset_name": "Long Beach Animal Shelter",
+    "dataset_slug": "long-beach-animal-shelter",
+    "data_source_url": "https://data.longbeach.gov/explore/dataset/animal-shelter-intakes-and-outcomes/information/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-03-11",
+    "year": 2025,
+    "week_number": 10,
+    "dataset_name": "Pixar Films",
+    "dataset_slug": "pixar-films",
+    "data_source_url": "https://erictleung.com/pixarfilms/index.html",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-03-18",
+    "year": 2025,
+    "week_number": 11,
+    "dataset_name": "Palm Trees",
+    "dataset_slug": "palm-trees",
+    "data_source_url": "https://github.com/EmilHvitfeldt/palmtrees",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-03-25",
+    "year": 2025,
+    "week_number": 12,
+    "dataset_name": "Text Data From Amazon's Annual Reports",
+    "dataset_slug": "text-data-from-amazons-annual-reports",
+    "data_source_url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-04-01",
+    "year": 2025,
+    "week_number": 13,
+    "dataset_name": "Pokemon",
+    "dataset_slug": "pokemon",
+    "data_source_url": "https://github.com/williamorim/pokemon/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-04-08",
+    "year": 2025,
+    "week_number": 14,
+    "dataset_name": "Timely and Effective Care by US State",
+    "dataset_slug": "timely-and-effective-care-by-us-state",
+    "data_source_url": "https://data.cms.gov/provider-data/dataset/apyc-v239",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-04-15",
+    "year": 2025,
+    "week_number": 15,
+    "dataset_name": "Base R Penguins",
+    "dataset_slug": "base-r-penguins",
+    "data_source_url": "https://www.r-project.org/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-04-22",
+    "year": 2025,
+    "week_number": 16,
+    "dataset_name": "Fatal Car Crashes on 4/20",
+    "dataset_slug": "fatal-car-crashes-on-420",
+    "data_source_url": "https://osf.io/qnrg6/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-04-29",
+    "year": 2025,
+    "week_number": 17,
+    "dataset_name": "useR! 2025 program",
+    "dataset_slug": "user-2025-program",
+    "data_source_url": "https://user2025.r-project.org/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-05-06",
+    "year": 2025,
+    "week_number": 18,
+    "dataset_name": "National Science Foundation Grant Terminations under the Trump Administration",
+    "dataset_slug": "national-science-foundation-grant-terminations-under-the-tru",
+    "data_source_url": "https://grant-watch.us/nsf-data.html",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-05-13",
+    "year": 2025,
+    "week_number": 19,
+    "dataset_name": "Seismic Events at Mount Vesuvius",
+    "dataset_slug": "seismic-events-at-mount-vesuvius",
+    "data_source_url": "https://www.ingv.it/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-05-20",
+    "year": 2025,
+    "week_number": 20,
+    "dataset_name": "Water Quality at Sydney Beaches",
+    "dataset_slug": "water-quality-at-sydney-beaches",
+    "data_source_url": [
+      "https://www.beachwatch.nsw.gov.au/waterMonitoring/waterQualityData",
+      "https://open-meteo.com/"
+    ],
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-05-27",
+    "year": 2025,
+    "week_number": 21,
+    "dataset_name": "Dungeons and Dragons Monsters (2024)",
+    "dataset_slug": "dungeons-and-dragons-monsters-2024",
+    "data_source_url": "https://www.dndbeyond.com/srd",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-06-03",
+    "year": 2025,
+    "week_number": 22,
+    "dataset_name": "Project Gutenberg",
+    "dataset_slug": "project-gutenberg",
+    "data_source_url": "https://docs.ropensci.org/gutenbergr/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-06-10",
+    "year": 2025,
+    "week_number": 23,
+    "dataset_name": "U.S. Judges and the historydata R package",
+    "dataset_slug": "us-judges-and-the-historydata-r-package",
+    "data_source_url": "https://github.com/ropensci/historydata",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-06-17",
+    "year": 2025,
+    "week_number": 24,
+    "dataset_name": "API Specs",
+    "dataset_slug": "api-specs",
+    "data_source_url": "https://apis.guru",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-06-24",
+    "year": 2025,
+    "week_number": 25,
+    "dataset_name": "Measles cases across the world",
+    "dataset_slug": "measles-cases-across-the-world",
+    "data_source_url": "https://immunizationdata.who.int/global?topic=Provisional-measles-and-rubella-data&location=",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-07-01",
+    "year": 2025,
+    "week_number": 26,
+    "dataset_name": "Weekly US Gas Prices",
+    "dataset_slug": "weekly-us-gas-prices",
+    "data_source_url": "https://www.eia.gov/dnav/pet/xls/PET_PRI_GND_DCUS_NUS_W.xls",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-07-08",
+    "year": 2025,
+    "week_number": 27,
+    "dataset_name": "The xkcd Color Survey Results",
+    "dataset_slug": "the-xkcd-color-survey-results",
+    "data_source_url": "https://xkcd.com/color/colorsurvey.tar.gz",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-07-15",
+    "year": 2025,
+    "week_number": 28,
+    "dataset_name": "British Library Funding",
+    "dataset_slug": "british-library-funding",
+    "data_source_url": "https://docs.google.com/spreadsheets/d/1uxjiuWYZrALF2mthmiYbUPieu1dEdEwv9GB8dEAizso/edit?gid=0#gid=0",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-07-22",
+    "year": 2025,
+    "week_number": 29,
+    "dataset_name": "MTA Permanent Art Catalog",
+    "dataset_slug": "mta-permanent-art-catalog",
+    "data_source_url": "https://data.ny.gov/Transportation/MTA-Permanent-Art-Catalog-Beginning-1980/4y8j-9pkd/about_data",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-07-29",
+    "year": 2025,
+    "week_number": 30,
+    "dataset_name": "What have we been watching on Netflix?",
+    "dataset_slug": "what-have-we-been-watching-on-netflix",
+    "data_source_url": "https://assets.ctfassets.net/4cd45et68cgf/inuAnzotdsAEgbInGLzH5/1be323ba419b2af3a96bffa29acc31a3/What_We_Watched_A_Netflix_Engagement_Report_2023Jul-Dec.xlsx, https://assets.ctfassets.net/4cd45et68cgf/2PoZlfdc46dH2gQvI8eUzI/9db5840720c47acfcf7b89ffe2402860/What_We_Watched_A_Netflix_Engagement_Report_2024Jan-Jun.xlsx, https://assets.ctfassets.net/4cd45et68cgf/6XSmoEjBjVMPRtYybT9d1E/8c0b0b2645b8712d5597b0bdbe0d64e2/What_We_Watched_A_Netflix_Engagement_Report_2024Jul-Dec.xlsx, https://assets.ctfassets.net/4cd45et68cgf/mplcXj5ulHDfbCPCr0f0I/5dbb6ec09f03df89706476e380e9b8bd/What_We_Watched_A_Netflix_Engagement_Report_2025Jan-Jun.xlsx",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-08-05",
+    "year": 2025,
+    "week_number": 31,
+    "dataset_name": "Income Inequality Before and After Taxes",
+    "dataset_slug": "income-inequality-before-and-after-taxes",
+    "data_source_url": "https://ourworldindata.org",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-08-12",
+    "year": 2025,
+    "week_number": 32,
+    "dataset_name": "Extreme Weather Attribution Studies",
+    "dataset_slug": "extreme-weather-attribution-studies",
+    "data_source_url": "https://carbonbrief.org",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-08-19",
+    "year": 2025,
+    "week_number": 33,
+    "dataset_name": "Scottish Munros",
+    "dataset_slug": "scottish-munros",
+    "data_source_url": "https://www.hills-database.co.uk/downloads.html",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-08-26",
+    "year": 2025,
+    "week_number": 34,
+    "dataset_name": "Billboard Hot 100 Number Ones",
+    "dataset_slug": "billboard-hot-100-number-ones",
+    "data_source_url": "https://docs.google.com/spreadsheets/d/1j1AUgtMnjpFTz54UdXgCKZ1i4bNxFjf01ImJ-BqBEt0/edit?gid=1974823090#gid=1974823090",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-09-02",
+    "year": 2025,
+    "week_number": 35,
+    "dataset_name": "Australian Frogs",
+    "dataset_slug": "australian-frogs",
+    "data_source_url": "https://www.frogid.net.au/explore",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-09-09",
+    "year": 2025,
+    "week_number": 36,
+    "dataset_name": "Henley Passport Index Data",
+    "dataset_slug": "henley-passport-index-data",
+    "data_source_url": "https://api.henleypassportindex.com/api/v3/countries",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-09-16",
+    "year": 2025,
+    "week_number": 37,
+    "dataset_name": "Allrecipes",
+    "dataset_slug": "allrecipes",
+    "data_source_url": "https://cran.r-project.org/package=tastyR",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-09-23",
+    "year": 2025,
+    "week_number": 38,
+    "dataset_name": "FIDE Chess Player Ratings",
+    "dataset_slug": "fide-chess-player-ratings",
+    "data_source_url": "https://ratings.fide.com/download_lists.phtml",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-09-30",
+    "year": 2025,
+    "week_number": 39,
+    "dataset_name": "Crane Observations at Lake Hornborgasj\u00f6n, Sweden (1994\u20132024)",
+    "dataset_slug": "crane-observations-at-lake-hornborgasjn-sweden-19942024",
+    "data_source_url": "https://www.hornborga.com/naturen/transtatistik/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-10-07",
+    "year": 2025,
+    "week_number": 40,
+    "dataset_name": "EuroLeague Basketball",
+    "dataset_slug": "euroleague-basketball",
+    "data_source_url": "https://github.com/natanast/EuroleagueBasketball",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-10-14",
+    "year": 2025,
+    "week_number": 41,
+    "dataset_name": "World Food Day",
+    "dataset_slug": "world-food-day",
+    "data_source_url": "https://www.fao.org/faostat/en/#data/FS",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-10-21",
+    "year": 2025,
+    "week_number": 42,
+    "dataset_name": "Historic UK Meteorological & Climate Data",
+    "dataset_slug": "historic-uk-meteorological-climate-data",
+    "data_source_url": "https://www.data.gov.uk/dataset/17ba3bbe-0e98-4a8c-9937-bd1d50fdc3c5/historic-monthly-meteorological-station-data",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-10-28",
+    "year": 2025,
+    "week_number": 43,
+    "dataset_name": "Selected British Literary Prizes (1990-2022)",
+    "dataset_slug": "selected-british-literary-prizes-1990-2022",
+    "data_source_url": "https://data.post45.org/posts/british-literary-prizes/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-11-04",
+    "year": 2025,
+    "week_number": 44,
+    "dataset_name": "Lead concentration in Flint water samples in 2015",
+    "dataset_slug": "lead-concentration-in-flint-water-samples-in-2015",
+    "data_source_url": "https://onlinelibrary.wiley.com/doi/pdf/10.1111/test.12187?casa_token=av3lP7OmqS0AAAAA:QAF3yU5kGzsUkqi1VlXkMlIN8ExolHZBSkdJ3hIHnlptUES57dGVoXjE3qdwPPHtLHNRd9VvX1x8f6VN",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-11-11",
+    "year": 2025,
+    "week_number": 45,
+    "dataset_name": "WHO TB Burden Data: Incidence, Mortality, and Population",
+    "dataset_slug": "who-tb-burden-data-incidence-mortality-and-population",
+    "data_source_url": "https://github.com/seabbs/getTBinR/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-11-18",
+    "year": 2025,
+    "week_number": 46,
+    "dataset_name": "The Complete Sherlock Holmes",
+    "dataset_slug": "the-complete-sherlock-holmes",
+    "data_source_url": "https://github.com/EmilHvitfeldt/sherlock",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-11-25",
+    "year": 2025,
+    "week_number": 47,
+    "dataset_name": "Statistical Performance Indicators",
+    "dataset_slug": "statistical-performance-indicators",
+    "data_source_url": "https://datacatalog.worldbank.org/search/dataset/0037996/Statistical-Performance-Indicators",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-12-02",
+    "year": 2025,
+    "week_number": 48,
+    "dataset_name": "Can an exploding snowman predict the summer season?",
+    "dataset_slug": "can-an-exploding-snowman-predict-the-summer-season",
+    "data_source_url": "https://github.com/philshem/Sechselaeuten-data",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-12-09",
+    "year": 2025,
+    "week_number": 49,
+    "dataset_name": "Cars in Qatar",
+    "dataset_slug": "cars-in-qatar",
+    "data_source_url": "https://profmusgrave.github.io/qatarcars/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-12-16",
+    "year": 2025,
+    "week_number": 50,
+    "dataset_name": "Roundabouts across the world",
+    "dataset_slug": "roundabouts-across-the-world",
+    "data_source_url": "https://github.com/EmilHvitfeldt/roundabouts",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-12-23",
+    "year": 2025,
+    "week_number": 51,
+    "dataset_name": "The Languages of the World",
+    "dataset_slug": "the-languages-of-the-world",
+    "data_source_url": "https://github.com/glottolog/glottolog-cldf/tree/master/cldf",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2025-12-30",
+    "year": 2025,
+    "week_number": 52,
+    "dataset_name": "Christmas Novels",
+    "dataset_slug": "christmas-novels",
+    "data_source_url": "https://www.gutenberg.org/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-01-06",
+    "year": 2026,
+    "week_number": 1,
+    "dataset_name": "Canadian NHL Player Birth Dates",
+    "dataset_slug": "canadian-nhl-player-birth-dates",
+    "data_source_url": "https://github.com/rfordatascience/tidytuesday/tree/main/data/2024/2024-01-09",
+    "is_byod": true,
+    "substituted_from": {
+      "year": 2024,
+      "week": 2,
+      "date": "2024-01-09"
+    }
+  },
+  {
+    "week_date": "2026-01-13",
+    "year": 2026,
+    "week_number": 2,
+    "dataset_name": "The Languages of Africa",
+    "dataset_slug": "the-languages-of-africa",
+    "data_source_url": "https://en.wikipedia.org/wiki/Languages_of_Africa",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-01-20",
+    "year": 2026,
+    "week_number": 3,
+    "dataset_name": "Astronomy Picture of the Day (APOD) Archive",
+    "dataset_slug": "astronomy-picture-of-the-day-apod-archive",
+    "data_source_url": "https://api.nasa.gov/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-01-27",
+    "year": 2026,
+    "week_number": 4,
+    "dataset_name": "Brazilian Companies",
+    "dataset_slug": "brazilian-companies",
+    "data_source_url": "https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/2025-12/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-02-03",
+    "year": 2026,
+    "week_number": 5,
+    "dataset_name": "Edible Plants Database",
+    "dataset_slug": "edible-plants-database",
+    "data_source_url": "https://discovery.dundee.ac.uk/en/datasets/edible-plant-database/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-02-10",
+    "year": 2026,
+    "week_number": 6,
+    "dataset_name": "The 2026 Winter Olympics!",
+    "dataset_slug": "the-2026-winter-olympics",
+    "data_source_url": "https://raw.githubusercontent.com/chendaniely/olympics-2026/refs/heads/main/data/final/olympics/olympics_events.csv",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-02-17",
+    "year": 2026,
+    "week_number": 7,
+    "dataset_name": "Agricultural Production Statistics in New Zealand",
+    "dataset_slug": "agricultural-production-statistics-in-new-zealand",
+    "data_source_url": "https://figure.nz/table/TSQ8lkuKnyzfERF3",
+    "is_byod": false,
+    "substituted_from": null
+  }
+]
