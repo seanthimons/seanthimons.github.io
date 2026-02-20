@@ -1,0 +1,102 @@
+# Iteration 4 Log
+
+## Metadata
+
+- **Task ID**: US-006
+- **Task Title**: BYOD/BYOC Substitution Logic
+- **Description**: As a developer, I want BYOD and BYOC weeks to substitute an unused 2024 TidyTuesday dataset so that every week has content.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-20T14:22:13.665Z
+- **Ended At**: 2026-02-20T14:24:35.227Z
+- **Duration**: 2m 21s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the PRD and progress file to understand the context, then implement US-006.
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/tasks/prd.json[0m
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/tasks/week_manifest.json[0m
+Now let me look at the existing scripts to understand the current substitution logic and what needs to change.
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/build_manifest.py[0m
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/run_backfill.sh[0m
+Now let me assess the current state. Looking at the acceptance criteria for US-006:
+
+1. **Identify all BYOD/BYOC weeks** — Already done in `build_manifest.py` (line 144-147, `is_byod()` function) and the manifest already flags 2026-01-06 as BYOD.
+
+2. **Select a 2024 TidyTuesday dataset not already used** — Already done in `build_manifest.py` (lines 326-346), substituting with "Canadian NHL Player Birth Dates".
+
+3. **Substituted dataset is noted in the post** — Already handled in `run_backfill.sh` (lines 111-117), where `byod_note` is set and included in the prompt for the Claude invocation.
+
+4. **No 2024 dataset is used more than once** — The `build_manifest.py` uses `used_2024_indices` set to track used datasets (lines 153, 335).
+
+5. **Rescan of existing posts informs which 2024 datasets are already used (avoids duplicates on resume)** — This is the **missing piece**. Currently, `build_manifest.py` starts with an empty `used_2024_indices` set. If the manifest is rebuilt after some posts have already been generated (using 2024 substitutions), it doesn't scan existing posts to see which 2024 datasets are already used. However, the manifest is built once and consumed by the runner — the runner itself doesn't rebuild the manifest.
+
+Let me check if there are any existing posts that use 2024 datasets.
+[94m[Bash][0m List existing posts $ ls /home/sean/Documents/seanthimons.github.io/posts/ 2>/dev/null
+Let me check what the 2025-11-04 post looks like (that's the one mentioned as existing) and whether any of these reference 2024 datasets.
+[94m[Glob][0m pattern: [96mposts/**/*.qmd[0m
+[94m[TodoWrite][0m
+Let me understand the full picture. The key gap is AC #5: "Rescan of existing posts informs which 2024 datasets are already used (avoids duplicates on resume)." Currently `build_manifest.py` doesn't scan existing posts. If the script is re-run after some BYOD-substituted posts already exist, it could re-assign the same 2024 dataset.
+
+Also, for AC #3 ("Substituted dataset is noted in the post"), the `byod_note` in the prompt tells Claude to mention it, but there's no explicit frontmatter field. Let me check if the BYOD note makes it into the prompt structure properly, and then enhance the system.
+
+Let me look at what needs to happen:
+
+1. `build_manifest.py` needs to scan existing posts to identify which 2024 datasets are already used, and exclude them from the substitution pool
+2. The `run_backfill.sh` prompt should explicitly request that BYOD substitution is noted in the post frontmatter (not just the intro text)
+
+Let me implement the rescan logic in `build_manifest.py`.
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/build_manifest.py[0m
+Now let me implement the changes. I need to add a function to scan existing posts for 2024 dataset references, and integrate it into the build_manifest flow.
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/build_manifest.py[0m edit: "import json
+import subprocess
+import re
+import sys..." → "import json
+import subprocess
+import re
+import sys..."
+Now add the rescan function before `build_manifest()`:
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/build_manifest.py[0m edit: "def build_manifest():
+    """Build the full 52-wee..." → "def scan_existing_posts_for_2024_datasets(posts_di..."
+Now I need to integrate the rescan into the substitution section. Let me find and update the substitution block:
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/build_manifest.py[0m
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/build_manifest.py[0m edit: "    # Substitute BYOD weeks with unused 2024 datas..." → "    # US-006: Rescan existing posts to find which ..."
+Now let me update the `run_backfill.sh` to ensure BYOD substitution is explicitly noted in the post frontmatter and introductory text. The current prompt includes a `byod_note` variable but let me strengthen it to explicitly request frontmatter annotation.
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/run_backfill.sh[0m edit: "  if [[ "$is_byod" == "true" && -n "$sub_date" ]];..." → "  if [[ "$is_byod" == "true" && -n "$sub_date" ]];..."
+Now let me verify the changes look correct by reading the modified files.
+[94m[TodoWrite][0m
+Let me do a quick syntax check on the Python script:
+[94m[Bash][0m Syntax check build_manifest.py $ py_compile.compile('scripts/build_manifest.py', doraise=True)"
+[94m[Bash][0m Syntax check run_backfill.sh $ bash -n scripts/run_backfill.sh
+Both pass syntax checks. Now let me verify each acceptance criterion:
+
+**AC 1: Identify all BYOD/BYOC weeks in the 52-week range** — The `is_byod()` function (line 144-147) checks for "bring your own", "byod", "byoc" in dataset names. The manifest flags `is_byod: true` for 2026-01-06. ✅
+
+**AC 2: Select a 2024 TidyTuesday dataset not already used by another week or existing post** — The substitution logic in `build_manifest.py` picks from `DATASETS_2024` pool, skipping indices in `used_2024_indices`. The rescan function now pre-populates this set from existing posts. ✅
+
+**AC 3: Substituted dataset is noted in the post (frontmatter or introductory text)** — The `byod_note` in `run_backfill.sh` now explicitly instructs Claude to add `substituted_from` to YAML frontmatter and mention it in the introductory text. ✅
+
+**AC 4: No 2024 dataset is used more than once across all substitutions** — The `used_2024_indices` set in `build_manifest.py` ensures uniqueness. The rescan pre-populates it from existing posts. ✅
+
+**AC 5: Rescan of existing posts informs which 2024 datasets are already used** — The new `scan_existing_posts_for_2024_datasets()` function scans all `.qmd` files in `posts/` for `tt_load("2024-XX-XX")` calls, `substituted_from` references, and 2024 dataset names in content. Results are merged into `used_2024_indices` before substitution. ✅
+
+Now let me update progress.md:
+[94m[TodoWrite][0m
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/.ralph-tui/progress.md[0m
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/.ralph-tui/progress.md[0m edit: "- **Post date override**: The skill normally uses ..." → "- **Post date override**: The skill normally uses ..."
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/.ralph-tui/progress.md[0m edit: "  - US-002 proactively included US-003 skip logic,..." → "  - US-002 proactively included US-003 skip logic,..."
+[94m[TodoWrite][0m
+All acceptance criteria are met:
+
+- **AC1** ✅ BYOD/BYOC weeks identified via `is_byod()` function — 2026-01-06 flagged in manifest
+- **AC2** ✅ Selects unused 2024 dataset from pool, now with rescan-informed exclusions
+- **AC3** ✅ Runner prompt explicitly instructs adding `substituted_from` to frontmatter + introductory note
+- **AC4** ✅ `used_2024_indices` set prevents any 2024 dataset from being assigned twice
+- **AC5** ✅ New `scan_existing_posts_for_2024_datasets()` rescans posts/ for 2024 dataset references before substitution
+
+<promise>COMPLETE</promise>

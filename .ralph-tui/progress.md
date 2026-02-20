@@ -58,6 +58,17 @@ after each iteration and it's included in prompts for context.
   - US-002 proactively included US-003 skip logic, making the stories overlap — always check existing code before implementing
 ---
 
+## 2026-02-20 - US-004
+- Added git commit logic to `scripts/run_backfill.sh` inside the post-success verification block
+- After each successful post creation: stages only `posts/$week_date/` and commits with format `Add Tidy Tuesday post: YYYY-MM-DD dataset-name`
+- Skipped and failed posts never reach the commit code path
+- Commit action is logged to both console and `backfill-log.txt`
+- Files changed: `scripts/run_backfill.sh` (modified — 4 lines added)
+- **Learnings:**
+  - Using `git -C "$PROJECT_DIR"` ensures git commands work regardless of the shell's cwd
+  - Staging with a trailing `/` on the directory path ensures all contents are included
+---
+
 ## 2026-02-20 - US-006
 - Added `scan_existing_posts_for_2024_datasets()` function to `scripts/build_manifest.py` that scans `posts/**/*.qmd` for 2024 dataset references
 - Rescan checks for: `tt_load("2024-XX-XX")` calls, `substituted_from` frontmatter/comment references, and 2024 dataset names in post content

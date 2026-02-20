@@ -156,6 +156,12 @@ PROMPT
       echo "  SUCCESS: Post created at posts/$week_date/$week_date.qmd"
       echo "  OK $week_date $dataset_name" >> "$LOG_FILE"
       generated=$((generated + 1))
+
+      # US-004: Stage and commit only this post's directory
+      git -C "$PROJECT_DIR" add "posts/$week_date/"
+      git -C "$PROJECT_DIR" commit -m "Add Tidy Tuesday post: $week_date $dataset_name"
+      echo "  COMMITTED: Add Tidy Tuesday post: $week_date $dataset_name"
+      echo "  COMMIT $week_date $dataset_name" >> "$LOG_FILE"
     else
       echo "  WARN: Claude exited 0 but post file not found at posts/$week_date/$week_date.qmd"
       echo "  FAIL $week_date $dataset_name (post file not created)" >> "$LOG_FILE"
