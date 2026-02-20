@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Chemist's Bench - Color Palette | Sean Thimons</title>
+  <meta name="description" content="A scientifically meaningful color palette derived from pigment chemistry, spectral emissions, minerals, and biological compounds.">
+  <meta name="author" content="Sean Thimons">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0d1117 100%);
+      color: #eee;
+      min-height: 100vh;
+    }
+    
+    .site-nav {
+      background: rgba(13, 92, 99, 0.95);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    
+    .site-nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    .site-nav a:hover { color: #78CDD7; }
+    
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .nav-links a { font-size: 0.9rem; }
+    .site-title { font-size: 1.1rem; font-weight: 600; }
+    
+    main {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      font-size: 2.8rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #78CDD7, #D4AF37, #E34234);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #888;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+    
+    .research-note {
+      text-align: center;
+      color: #666;
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+      font-style: italic;
+    }
+    
+    .download-bar {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+    }
+    
+    .download-btn {
+      background: #0D5C63;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: background 0.2s, transform 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .download-btn:hover {
+      background: #43B3AE;
+      transform: translateY(-2px);
+    }
+    
+    .palette-section { margin-bottom: 3rem; }
+    
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .section-desc {
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      margin-top: -0.5rem;
+    }
+    
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    
+    .swatch {
+      border-radius: 12px;
+      overflow: hidden;
+      background: #252540;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    
+    .swatch:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    
+    .swatch-color {
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+    
+    .swatch-info { padding: 0.9rem; }
+    .swatch-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; }
+    .swatch-hex { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #78CDD7; margin-bottom: 0.4rem; }
+    .swatch-formula { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #D4AF37; margin-bottom: 0.4rem; }
+    .swatch-desc { font-size: 0.75rem; color: #999; line-height: 1.4; }
+    .swatch-source { font-size: 0.65rem; color: #666; margin-top: 0.3rem; font-style: italic; }
+    
+    .copied-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #0D5C63;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-weight: 500;
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 1000;
+    }
+    
+    .copied-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    
+    .toc {
+      background: rgba(26, 26, 46, 0.8);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 3rem;
+      border: 1px solid #333;
+    }
+    
+    .toc h3 { margin-bottom: 1rem; color: #78CDD7; }
+    
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.5rem;
+    }
+    
+    .toc a {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    
+    .toc a:hover { background: #333; color: #fff; }
+    
+    .site-footer {
+      text-align: center;
+      padding: 2rem;
+      color: #666;
+      font-size: 0.85rem;
+      border-top: 1px solid #333;
+      margin-top: 3rem;
+    }
+    
+    .site-footer a { color: #78CDD7; text-decoration: none; }
+    
+    @media (max-width: 768px) {
+      .nav-links { gap: 1rem; font-size: 0.8rem; }
+      h1 { font-size: 2rem; }
+      .swatches { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+      .download-bar { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="index.html" class="site-title">Sean Thimons</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="work.html">Work</a>
+      <a href="blog.html">Blog</a>
+    </div>
+  </nav>
+
+  <main>
+    <h1>🧪 The Chemist's Bench</h1>
+    <p class="subtitle">An Expanded Scientific Color Palette</p>
+    <p class="research-note">Researched via Wikipedia rabbit holes • Click any swatch to copy hex code</p>
+    
+    <div class="download-bar">
+      <a href="chemists-bench-themes.json" download class="download-btn">📥 Download Themes JSON</a>
+      <a href="chemists-bench-palette.json" download class="download-btn">📥 Download Full Palette JSON</a>
+    </div>
+    
+    <nav class="toc">
+      <h3>📑 Categories</h3>
+      <div class="toc-grid">
+        <a href="#core">🌊 Core Phthalo Waters</a>
+        <a href="#section_accents">🎨 Section Accents</a>
+        <a href="#metallic_compounds">⚗️ Metallic Compounds</a>
+        <a href="#minerals">💎 Minerals & Ores</a>
+        <a href="#flame_test">🔥 Flame Test Colors</a>
+        <a href="#spectral">💡 Spectral Emissions</a>
+        <a href="#biological">🌿 Biological Pigments</a>
+        <a href="#historical">📜 Historical Pigments</a>
+        <a href="#fountain_pen_inks">🖋️ Fountain Pen Inks</a>
+        <a href="#toxic_beautiful">☠️ Beautiful & Deadly</a>
+      </div>
+    </nav>
+
+<!-- CORE PHTHALO WATERS -->
+<div class="palette-section" id="core">
+  <h2 class="section-title">🌊 Core Phthalo Waters</h2>
+  <p class="section-desc">The site's primary palette — phthalocyanine pigments and aquatic tones</p>
+  <div class="swatches">
+    <div class="swatch" onclick="copyColor('#0D5C63')">
+  <div class="swatch-color" style="background: #0D5C63; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Phthalo Deep</div>
+    <div class="swatch-hex">#0D5C63</div>
+    <div class="swatch-formula">C₃₂H₁₆CuN₈</div>
+    <div class="swatch-desc">Phthalocyanine blue-green pigment</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#78CDD7')">
+  <div class="swatch-color" style="background: #78CDD7; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Aquamarine</div>
+    <div class="swatch-hex">#78CDD7</div>
+    <div class="swatch-formula">Be₃Al₂Si₆O₁₈</div>
+    <div class="swatch-desc">Beryl gemstone, color from trace iron</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#003153')">
+  <div class="swatch-color" style="background: #003153; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Prussian Blue</div>
+    <div class="swatch-hex">#003153</div>
+    <div class="swatch-formula">Fe₄[Fe(CN)₆]₃</div>
+    <div class="swatch-desc">First modern synthetic pigment (1706)</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#1A2E35')">
+  <div class="swatch-color" style="background: #1A2E35; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Dark Slate</div>
+    <div class="swatch-hex">#1A2E35</div>
+    
+    <div class="swatch-desc">Metamorphic rock</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#3D4F58')">
+  <div class="swatch-color" style="background: #3D4F58; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Soft Slate</div>
+    <div class="swatch-hex">#3D4F58</div>
+    
+    <div class="swatch-desc">Weathered slate</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#F0F5F4')">
+  <div class="swatch-color" style="background: #F0F5F4; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Light Teal</div>
+    <div class="swatch-hex">#F0F5F4</div>
+    
+    <div class="swatch-desc">Tinted background</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#FAFBFB')">
+  <div class="swatch-color" style="background: #FAFBFB; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Near White</div>
+    <div class="swatch-hex">#FAFBFB</div>
+    
+    <div class="swatch-desc">Page background</div>
+    
+  </div>
+</div>
+  </div>
+</div>
+<!-- SECTION ACCENTS -->
+<div class="palette-section" id="section_accents">
+  <h2 class="section-title">🎨 Section Accents</h2>
+  <p class="section-desc">Distinct colors for different site sections</p>
+  <div class="swatches">
+    <div class="swatch" onclick="copyColor('#6B1C23')">
+  <div class="swatch-color" style="background: #6B1C23; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Oxblood</div>
+    <div class="swatch-hex">#6B1C23</div>
+    
+    <div class="swatch-desc">Iron-rich hemoglobin oxidation, traditional leather dye</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#5D2E8C')">
+  <div class="swatch-color" style="background: #5D2E8C; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Tyrian Purple</div>
+    <div class="swatch-hex">#5D2E8C</div>
+    <div class="swatch-formula">C₁₆H₈Br₂N₂O₂</div>
+    <div class="swatch-desc">Murex snail mucus, worth more than gold in antiquity</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#B8860B')">
+  <div class="swatch-color" style="background: #B8860B; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Amber</div>
+    <div class="swatch-hex">#B8860B</div>
+    
+    <div class="swatch-desc">Fossilized tree resin, 30-90 million years old</div>
+    
+  </div>
+</div>
+  </div>
+</div>
+<!-- METALLIC COMPOUNDS -->
+<div class="palette-section" id="metallic_compounds">
+  <h2 class="section-title">⚗️ Metallic Compounds</h2>
+  <p class="section-desc">Colors from copper, iron, cobalt, and other transition metals</p>
+  <div class="swatches">
+    <div class="swatch" onclick="copyColor('#D4AF37')">
+  <div class="swatch-color" style="background: #D4AF37; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Nd:YAG Gold</div>
+    <div class="swatch-hex">#D4AF37</div>
+    <div class="swatch-formula">Nd:Y₃Al₅O₁₂</div>
+    <div class="swatch-desc">Neodymium laser emission</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#43B3AE')">
+  <div class="swatch-color" style="background: #43B3AE; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Verdigris</div>
+    <div class="swatch-hex">#43B3AE</div>
+    <div class="swatch-formula">Cu(CH₃COO)₂·nCu(OH)₂</div>
+    <div class="swatch-desc">Copper acetate patina, Statue of Liberty green</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#4169E1')">
+  <div class="swatch-color" style="background: #4169E1; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Azurite</div>
+    <div class="swatch-hex">#4169E1</div>
+    <div class="swatch-formula">Cu₃(CO₃)₂(OH)₂</div>
+    <div class="swatch-desc">Copper carbonate, slowly converts to malachite</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#0BDA51')">
+  <div class="swatch-color" style="background: #0BDA51; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Malachite</div>
+    <div class="swatch-hex">#0BDA51</div>
+    <div class="swatch-formula">Cu₂CO₃(OH)₂</div>
+    <div class="swatch-desc">Copper carbonate hydroxide, ancient eyeshadow</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#0047AB')">
+  <div class="swatch-color" style="background: #0047AB; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Cobalt Blue</div>
+    <div class="swatch-hex">#0047AB</div>
+    <div class="swatch-formula">CoAl₂O₄</div>
+    <div class="swatch-desc">Cobalt aluminate, PB28, exceptionally stable</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#26619C')">
+  <div class="swatch-color" style="background: #26619C; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Egyptian Blue</div>
+    <div class="swatch-hex">#26619C</div>
+    <div class="swatch-formula">CaCuSi₄O₁₀</div>
+    <div class="swatch-desc">First synthetic pigment (~3000 BCE)</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#002FA7')">
+  <div class="swatch-color" style="background: #002FA7; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Ultramarine</div>
+    <div class="swatch-hex">#002FA7</div>
+    <div class="swatch-formula">Na₈Al₆Si₆O₂₄S₂</div>
+    <div class="swatch-desc">From lapis lazuli, once more expensive than gold</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#0093AF')">
+  <div class="swatch-color" style="background: #0093AF; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">YInMn Blue</div>
+    <div class="swatch-hex">#0093AF</div>
+    <div class="swatch-formula">YIn₁₋ₓMnₓO₃</div>
+    <div class="swatch-desc">First new blue in 200 years (2009)</div>
+    
+  </div>
+</div>
+  </div>
+</div>
+<!-- MINERALS & ORES -->
+<div class="palette-section" id="minerals">
+  <h2 class="section-title">💎 Minerals & Ores</h2>
+  <p class="section-desc">Natural mineral pigments — iron oxides, clays, and crystalline structures</p>
+  <div class="swatches">
+    <div class="swatch" onclick="copyColor('#CC7722')">
+  <div class="swatch-color" style="background: #CC7722; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Yellow Ochre</div>
+    <div class="swatch-hex">#CC7722</div>
+    <div class="swatch-formula">Fe₂O₃·H₂O</div>
+    <div class="swatch-desc">Hydrated iron oxide, 40,000+ years of use</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#8B4513')">
+  <div class="swatch-color" style="background: #8B4513; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Raw Sienna</div>
+    <div class="swatch-hex">#8B4513</div>
+    <div class="swatch-formula">Fe₂O₃ + MnO₂ + Al₂O₃</div>
+    <div class="swatch-desc">From Siena, Italy, limonite clay</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#6F4E37')">
+  <div class="swatch-color" style="background: #6F4E37; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Raw Umber</div>
+    <div class="swatch-hex">#6F4E37</div>
+    <div class="swatch-formula">Fe₂O₃ + MnO₂ + SiO₂</div>
+    <div class="swatch-desc">From Umbria, cooler than sienna</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#722F37')">
+  <div class="swatch-color" style="background: #722F37; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Caput Mortuum</div>
+    <div class="swatch-hex">#722F37</div>
+    <div class="swatch-formula">Fe₂O₃</div>
+    <div class="swatch-desc">Purple-brown hematite, Mars Violet</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#E34234')">
+  <div class="swatch-color" style="background: #E34234; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Cinnabar</div>
+    <div class="swatch-hex">#E34234</div>
+    <div class="swatch-formula">HgS</div>
+    <div class="swatch-desc">Mercury sulfide, dragon's blood in alchemy</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#7B68EE')">
+  <div class="swatch-color" style="background: #7B68EE; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Fluorite</div>
+    <div class="swatch-hex">#7B68EE</div>
+    <div class="swatch-formula">CaF₂</div>
+    <div class="swatch-desc">Origin of the word fluorescence</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#40E0D0')">
+  <div class="swatch-color" style="background: #40E0D0; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Turquoise</div>
+    <div class="swatch-hex">#40E0D0</div>
+    <div class="swatch-formula">CuAl₆(PO₄)₄(OH)₈·4H₂O</div>
+    <div class="swatch-desc">Copper aluminum phosphate, 6000 years of jewelry</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#E9967A')">
+  <div class="swatch-color" style="background: #E9967A; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Rhodochrosite</div>
+    <div class="swatch-hex">#E9967A</div>
+    <div class="swatch-formula">MnCO₃</div>
+    <div class="swatch-desc">Manganese carbonate, rose stone</div>
+    
+  </div>
+</div>
+  </div>
+</div>
+<!-- FLAME TEST COLORS -->
+<div class="palette-section" id="flame_test">
+  <h2 class="section-title">🔥 Flame Test Colors</h2>
+  <p class="section-desc">Element identification via atomic emission — from Bunsen burner to fireworks</p>
+  <div class="swatches">
+    <div class="swatch" onclick="copyColor('#FFD700')">
+  <div class="swatch-color" style="background: #FFD700; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Sodium Yellow</div>
+    <div class="swatch-hex">#FFD700</div>
+    
+    <div class="swatch-desc">D-line doublet, masks other elements</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#DC143C')">
+  <div class="swatch-color" style="background: #DC143C; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Lithium Crimson</div>
+    <div class="swatch-hex">#DC143C</div>
+    
+    <div class="swatch-desc">Element discovered by flame test (1817)</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#FF0000')">
+  <div class="swatch-color" style="background: #FF0000; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Strontium Red</div>
+    <div class="swatch-hex">#FF0000</div>
+    
+    <div class="swatch-desc">Road flares, red fireworks</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#7CFC00')">
+  <div class="swatch-color" style="background: #7CFC00; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Barium Green</div>
+    <div class="swatch-hex">#7CFC00</div>
+    
+    <div class="swatch-desc">Apple green, from Ba⁺ ion</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#8B008B')">
+  <div class="swatch-color" style="background: #8B008B; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Potassium Violet</div>
+    <div class="swatch-hex">#8B008B</div>
+    
+    <div class="swatch-desc">Pale lilac flame</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#00CED1')">
+  <div class="swatch-color" style="background: #00CED1; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Copper Blue-Green</div>
+    <div class="swatch-hex">#00CED1</div>
+    
+    <div class="swatch-desc">Green alone, blue with chloride</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#FF4500')">
+  <div class="swatch-color" style="background: #FF4500; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Calcium Orange</div>
+    <div class="swatch-hex">#FF4500</div>
+    
+    <div class="swatch-desc">Orange-red flame</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#4169E1')">
+  <div class="swatch-color" style="background: #4169E1; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Cesium Blue</div>
+    <div class="swatch-hex">#4169E1</div>
+    
+    <div class="swatch-desc">First element discovered spectroscopically</div>
+    
+  </div>
+</div>
+  </div>
+</div>
+<!-- SPECTRAL EMISSIONS -->
+<div class="palette-section" id="spectral">
+  <h2 class="section-title">💡 Spectral Emissions</h2>
+  <p class="section-desc">Laser lines, hydrogen series, and laboratory light sources</p>
+  <div class="swatches">
+    <div class="swatch" onclick="copyColor('#FF6B6B')">
+  <div class="swatch-color" style="background: #FF6B6B; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">HeNe Red</div>
+    <div class="swatch-hex">#FF6B6B</div>
+    
+    <div class="swatch-desc">Helium-neon laser, barcode scanners</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#32CD32')">
+  <div class="swatch-color" style="background: #32CD32; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">KTP Green</div>
+    <div class="swatch-hex">#32CD32</div>
+    
+    <div class="swatch-desc">Frequency-doubled Nd:YAG, green laser pointer</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#00BFFF')">
+  <div class="swatch-color" style="background: #00BFFF; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Argon Blue</div>
+    <div class="swatch-hex">#00BFFF</div>
+    
+    <div class="swatch-desc">Argon-ion laser, flow cytometry</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#9370DB')">
+  <div class="swatch-color" style="background: #9370DB; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Nitrogen UV</div>
+    <div class="swatch-hex">#9370DB</div>
+    
+    <div class="swatch-desc">N₂ laser, MALDI mass spec</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#DC143C')">
+  <div class="swatch-color" style="background: #DC143C; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">H-alpha</div>
+    <div class="swatch-hex">#DC143C</div>
+    
+    <div class="swatch-desc">Hydrogen Balmer series, emission nebulae</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#00CED1')">
+  <div class="swatch-color" style="background: #00CED1; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">H-beta</div>
+    <div class="swatch-hex">#00CED1</div>
+    
+    <div class="swatch-desc">Hydrogen blue-green line</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#FF1493')">
+  <div class="swatch-color" style="background: #FF1493; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Rhodamine</div>
+    <div class="swatch-hex">#FF1493</div>
+    <div class="swatch-formula">C₂₈H₃₁ClN₂O₃</div>
+    <div class="swatch-desc">Fluorescent water tracer, EPA hydrology</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#ADFF2F')">
+  <div class="swatch-color" style="background: #ADFF2F; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Fluorescein</div>
+    <div class="swatch-hex">#ADFF2F</div>
+    <div class="swatch-formula">C₂₀H₁₂O₅</div>
+    <div class="swatch-desc">Chicago River green, medical imaging</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#E0115F')">
+  <div class="swatch-color" style="background: #E0115F; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Ruby Laser</div>
+    <div class="swatch-hex">#E0115F</div>
+    <div class="swatch-formula">694.3nm</div>
+    <div class="swatch-desc">First working laser (1960). Chromium-doped aluminum oxide.</div>
+    <div class="swatch-source">Wikipedia: Ruby laser</div>
+  </div>
+</div>
+  </div>
+</div>
+<!-- BIOLOGICAL PIGMENTS -->
+<div class="palette-section" id="biological">
+  <h2 class="section-title">🌿 Biological Pigments</h2>
+  <p class="section-desc">Living color — photosynthesis, blood, autumn leaves</p>
+  <div class="swatches">
+    <div class="swatch" onclick="copyColor('#228B22')">
+  <div class="swatch-color" style="background: #228B22; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Chlorophyll</div>
+    <div class="swatch-hex">#228B22</div>
+    <div class="swatch-formula">C₅₅H₇₂MgN₄O₅</div>
+    <div class="swatch-desc">Magnesium porphyrin, powers photosynthesis</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#FF8C00')">
+  <div class="swatch-color" style="background: #FF8C00; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">β-Carotene</div>
+    <div class="swatch-hex">#FF8C00</div>
+    <div class="swatch-formula">C₄₀H₅₆</div>
+    <div class="swatch-desc">Carrots, autumn leaves, flamingos</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#C41E3A')">
+  <div class="swatch-color" style="background: #C41E3A; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Hemoglobin</div>
+    <div class="swatch-hex">#C41E3A</div>
+    <div class="swatch-formula">C₂₉₅₂H₄₆₆₄N₈₁₂O₈₃₂S₈Fe₄</div>
+    <div class="swatch-desc">Iron porphyrin in blood</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#E3A857')">
+  <div class="swatch-color" style="background: #E3A857; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Bilirubin</div>
+    <div class="swatch-hex">#E3A857</div>
+    <div class="swatch-formula">C₃₃H₃₆N₄O₆</div>
+    <div class="swatch-desc">Heme breakdown, bruise yellow</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#8B0000')">
+  <div class="swatch-color" style="background: #8B0000; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Anthocyanin</div>
+    <div class="swatch-hex">#8B0000</div>
+    <div class="swatch-formula">C₁₅H₁₁O₆⁺</div>
+    <div class="swatch-desc">pH indicator, blueberries to autumn leaves</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#FF6347')">
+  <div class="swatch-color" style="background: #FF6347; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Lycopene</div>
+    <div class="swatch-hex">#FF6347</div>
+    <div class="swatch-formula">C₄₀H₅₆</div>
+    <div class="swatch-desc">Tomatoes, watermelon</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#36454F')">
+  <div class="swatch-color" style="background: #36454F; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Melanin</div>
+    <div class="swatch-hex">#36454F</div>
+    <div class="swatch-formula">(C₁₈H₁₀N₂O₄)ₙ</div>
+    <div class="swatch-desc">UV protection in skin, hair, eyes</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#FFD700')">
+  <div class="swatch-color" style="background: #FFD700; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Lutein</div>
+    <div class="swatch-hex">#FFD700</div>
+    <div class="swatch-formula">C₄₀H₅₆O₂</div>
+    <div class="swatch-desc">Yellow xanthophyll, eye protection</div>
+    
+  </div>
+</div>
+  </div>
+</div>
+<!-- HISTORICAL PIGMENTS -->
+<div class="palette-section" id="historical">
+  <h2 class="section-title">📜 Historical Pigments</h2>
+  <p class="section-desc">From cave paintings to Renaissance masters — pigments with stories</p>
+  <div class="swatches">
+    <div class="swatch" onclick="copyColor('#DC143C')">
+  <div class="swatch-color" style="background: #DC143C; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Carmine</div>
+    <div class="swatch-hex">#DC143C</div>
+    <div class="swatch-formula">C₂₂H₂₀O₁₃</div>
+    <div class="swatch-desc">Cochineal bug, 70,000 bugs per pound</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#4B0082')">
+  <div class="swatch-color" style="background: #4B0082; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Indigo</div>
+    <div class="swatch-hex">#4B0082</div>
+    <div class="swatch-formula">C₁₆H₁₀N₂O₂</div>
+    <div class="swatch-desc">6000 years of denim and rebellion</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#8B0000')">
+  <div class="swatch-color" style="background: #8B0000; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Dragon's Blood</div>
+    <div class="swatch-hex">#8B0000</div>
+    
+    <div class="swatch-desc">Dracaena tree resin, ancient varnish</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#704214')">
+  <div class="swatch-color" style="background: #704214; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Mummy Brown</div>
+    <div class="swatch-hex">#704214</div>
+    
+    <div class="swatch-desc">Literally made from Egyptian mummies</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#E6C200')">
+  <div class="swatch-color" style="background: #E6C200; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Indian Yellow</div>
+    <div class="swatch-hex">#E6C200</div>
+    
+    <div class="swatch-desc">Mango-fed cow urine, Turner's favorite</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#FF4D00')">
+  <div class="swatch-color" style="background: #FF4D00; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Minium</div>
+    <div class="swatch-hex">#FF4D00</div>
+    <div class="swatch-formula">Pb₃O₄</div>
+    <div class="swatch-desc">Red lead, illuminated manuscripts</div>
+    
+  </div>
+</div>
+  </div>
+</div>
+<!-- FOUNTAIN PEN INKS -->
+<div class="palette-section" id="fountain_pen_inks">
+  <h2 class="section-title">🖋️ Fountain Pen Inks</h2>
+  <p class="section-desc">Classic formulations and iron gall chemistry</p>
+  <div class="swatches">
+    <div class="swatch" onclick="copyColor('#1A1A40')">
+  <div class="swatch-color" style="background: #1A1A40; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Iron Gall Blue-Black</div>
+    <div class="swatch-hex">#1A1A40</div>
+    <div class="swatch-formula">Fe³⁺ + tannic acid</div>
+    <div class="swatch-desc">1400+ years of use, UK birth certificates</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#0066CC')">
+  <div class="swatch-color" style="background: #0066CC; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Waterman Blue</div>
+    <div class="swatch-hex">#0066CC</div>
+    
+    <div class="swatch-desc">Serenity Blue, gold standard safe ink</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#003366')">
+  <div class="swatch-color" style="background: #003366; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Pelikan 4001</div>
+    <div class="swatch-hex">#003366</div>
+    
+    <div class="swatch-desc">Royal Blue, German reliability since 1838</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#6A5ACD')">
+  <div class="swatch-color" style="background: #6A5ACD; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">R&K Scabiosa</div>
+    <div class="swatch-hex">#6A5ACD</div>
+    
+    <div class="swatch-desc">Purple-gray iron gall, named for the flower</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#4682B4')">
+  <div class="swatch-color" style="background: #4682B4; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">R&K Salix</div>
+    <div class="swatch-hex">#4682B4</div>
+    
+    <div class="swatch-desc">Blue-black iron gall, named for willow</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#800020')">
+  <div class="swatch-color" style="background: #800020; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Diamine Oxblood</div>
+    <div class="swatch-hex">#800020</div>
+    
+    <div class="swatch-desc">British ink since 1864, excellent shading</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#00308F')">
+  <div class="swatch-color" style="background: #00308F; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Parker Quink</div>
+    <div class="swatch-hex">#00308F</div>
+    
+    <div class="swatch-desc">Quick-drying ink since 1931</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#191970')">
+  <div class="swatch-color" style="background: #191970; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Registrar's Ink</div>
+    <div class="swatch-hex">#191970</div>
+    
+    <div class="swatch-desc">UK archival standard for official documents</div>
+    
+  </div>
+</div>
+  </div>
+</div>
+<!-- BEAUTIFUL & DEADLY -->
+<div class="palette-section" id="toxic_beautiful">
+  <h2 class="section-title">☠️ Beautiful & Deadly</h2>
+  <p class="section-desc">Gorgeous colors with murderous histories — arsenic, lead, and mercury</p>
+  <div class="swatches">
+    <div class="swatch" onclick="copyColor('#50C878')">
+  <div class="swatch-color" style="background: #50C878; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Scheele's Green</div>
+    <div class="swatch-hex">#50C878</div>
+    <div class="swatch-formula">CuHAsO₃</div>
+    <div class="swatch-desc">Copper arsenite, possibly killed Napoleon</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#00A86B')">
+  <div class="swatch-color" style="background: #00A86B; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Paris Green</div>
+    <div class="swatch-hex">#00A86B</div>
+    <div class="swatch-formula">Cu(C₂H₃O₂)₂·3Cu(AsO₂)₂</div>
+    <div class="swatch-desc">May have caused Cézanne's diabetes</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#E6E200')">
+  <div class="swatch-color" style="background: #E6E200; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Orpiment</div>
+    <div class="swatch-hex">#E6E200</div>
+    <div class="swatch-formula">As₂S₃</div>
+    <div class="swatch-desc">King's Yellow, arsenic trisulfide</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#E97451')">
+  <div class="swatch-color" style="background: #E97451; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Realgar</div>
+    <div class="swatch-hex">#E97451</div>
+    <div class="swatch-formula">As₄S₄</div>
+    <div class="swatch-desc">Arsenic sulfide, firework orange</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#FADA5E')">
+  <div class="swatch-color" style="background: #FADA5E; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Chrome Yellow</div>
+    <div class="swatch-hex">#FADA5E</div>
+    <div class="swatch-formula">PbCrO₄</div>
+    <div class="swatch-desc">Van Gogh's sunflowers, school bus yellow</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#F0DC82')">
+  <div class="swatch-color" style="background: #F0DC82; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Naples Yellow</div>
+    <div class="swatch-hex">#F0DC82</div>
+    <div class="swatch-formula">Pb₃(SbO₄)₂</div>
+    <div class="swatch-desc">Lead antimonate, oldest synthetic still used</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#E34234')">
+  <div class="swatch-color" style="background: #E34234; color: white;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Vermilion</div>
+    <div class="swatch-hex">#E34234</div>
+    <div class="swatch-formula">HgS</div>
+    <div class="swatch-desc">Synthetic cinnabar, mercury sulfide</div>
+    
+  </div>
+</div>
+        <div class="swatch" onclick="copyColor('#FFFAF0')">
+  <div class="swatch-color" style="background: #FFFAF0; color: #1a1a2e;">Aa</div>
+  <div class="swatch-info">
+    <div class="swatch-name">Lead White</div>
+    <div class="swatch-hex">#FFFAF0</div>
+    <div class="swatch-formula">(PbCO₃)₂·Pb(OH)₂</div>
+    <div class="swatch-desc">Cremnitz white, Vermeer & Rembrandt</div>
+    
+  </div>
+</div>
+  </div>
+</div>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 Sean Thimons · Built with Quarto · <a href="index.html">Back to Home</a></p>
+    <p style="margin-top: 0.5rem;">Colors researched via Wikipedia rabbit holes on pigment chemistry, spectral emissions, and historical dyes.</p>
+  </footer>
+
+  <div class="copied-toast" id="toast">Copied!</div>
+  
+  <script>
+    function copyColor(hex) {
+      navigator.clipboard.writeText(hex).then(() => {
+        const toast = document.getElementById('toast');
+        toast.textContent = `Copied ${hex}`;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1500);
+      });
+    }
+  </script>
+</body>
+</html>
