@@ -46,3 +46,13 @@ after each iteration and it's included in prompts for context.
   - `--max-budget-usd` can cap per-invocation spend as a safety net
   - The tidy-tuesday skill has two distinct dates: post date (folder/frontmatter) and dataset date (tt_load) — the runner must pass both explicitly to override the skill's default Sys.Date() behavior
 ---
+
+## 2026-02-20 - US-003
+- Verified US-003 skip logic was already implemented as part of US-002 in `scripts/run_backfill.sh` (lines 95-101)
+- Per-iteration rescan of `posts/` directory using glob `${week_date}*` before each week's generation
+- Skips with log message matching AC format: "Skipping week YYYY-MM-DD — post already exists"
+- All 6 acceptance criteria verified as met — no code changes needed
+- Files changed: none (already implemented)
+- **Learnings:**
+  - US-002 proactively included US-003 skip logic, making the stories overlap — always check existing code before implementing
+---
