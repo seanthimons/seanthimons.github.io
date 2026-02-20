@@ -121,7 +121,7 @@
         "Rescan of existing posts informs which 2024 datasets are already used (avoids duplicates on resume)"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "dependsOn": [
         "US-001",
         "US-003"
@@ -129,7 +129,8 @@
       "labels": [
         "data",
         "substitution"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-007",
@@ -153,6 +154,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-20T14:22:12.618Z"
+    "updatedAt": "2026-02-20T14:24:35.228Z"
   }
 }

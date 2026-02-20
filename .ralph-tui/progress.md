@@ -12,6 +12,7 @@ after each iteration and it's included in prompts for context.
 - **Claude CLI invocation for automation**: Use `CLAUDECODE= claude -p --dangerously-skip-permissions --model sonnet` to invoke Claude Code from a bash script. The `CLAUDECODE=` unset is required to avoid the nested-session guard.
 - **Tidy-tuesday autonomous mode triggers**: Include words like "autonomous", "hands-off", or "unattended" in the prompt to skip all interactive checkpoints.
 - **Post date override**: The skill normally uses `Sys.Date()` for the post date. For backfill, explicitly instruct it to use the manifest's `week_date` instead.
+- **BYOD rescan deduplication**: `build_manifest.py` scans existing posts for `tt_load("2024-XX-XX")` calls, `substituted_from` references, and 2024 dataset names to avoid reusing a 2024 dataset that's already in an existing post.
 
 ---
 
@@ -55,4 +56,16 @@ after each iteration and it's included in prompts for context.
 - Files changed: none (already implemented)
 - **Learnings:**
   - US-002 proactively included US-003 skip logic, making the stories overlap — always check existing code before implementing
+---
+
+## 2026-02-20 - US-006
+- Added `scan_existing_posts_for_2024_datasets()` function to `scripts/build_manifest.py` that scans `posts/**/*.qmd` for 2024 dataset references
+- Rescan checks for: `tt_load("2024-XX-XX")` calls, `substituted_from` frontmatter/comment references, and 2024 dataset names in post content
+- Results are merged into `used_2024_indices` before BYOD substitution, preventing duplicate 2024 dataset usage on resume
+- Updated `scripts/run_backfill.sh` BYOD prompt to explicitly instruct Claude to add `substituted_from` to YAML frontmatter and note the substitution in introductory text
+- US-001 already had the core substitution logic (BYOD detection, 2024 pool selection, `used_2024_indices` tracking) — US-006 adds the rescan-on-rebuild and post-annotation pieces
+- Files changed: `scripts/build_manifest.py` (modified), `scripts/run_backfill.sh` (modified)
+- **Learnings:**
+  - The rescan uses three detection strategies (tt_load dates, substituted_from references, dataset name matching) for robustness — any one alone could miss cases
+  - Most of the BYOD substitution infra was already built in US-001; US-006 is primarily about idempotency on manifest rebuild and ensuring annotation in generated posts
 ---

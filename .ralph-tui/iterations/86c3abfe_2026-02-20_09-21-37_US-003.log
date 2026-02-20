@@ -1,0 +1,41 @@
+# Iteration 3 Log
+
+## Metadata
+
+- **Task ID**: US-003
+- **Task Title**: Rescan Posts Directory Before Each Week
+- **Description**: As a developer, I want the runner to rescan posts/ before generating each week's post so that I can stop and resume the run at any time without duplicating work.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-20T14:21:37.972Z
+- **Ended At**: 2026-02-20T14:22:12.617Z
+- **Duration**: 34s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the progress file and the existing runner script to understand the current state.
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/.ralph-tui/progress.md[0m
+[94m[Glob][0m pattern: [96mtasks/run_weeks.sh[0m
+The progress notes for US-002 already mention: "US-003 skip logic is built in: rescans `posts/` before each week and skips if a matching date folder exists". Let me verify this by reading the actual script.
+[94m[Read][0m [95m/home/sean/Documents/seanthimons.github.io/scripts/run_backfill.sh[0m
+US-003 is already fully implemented in `scripts/run_backfill.sh`. Let me verify against each acceptance criterion:
+
+1. **Before each week's generation, scan posts/ for directories matching YYYY-MM-DD-***: Line 96 — `ls "$POSTS_DIR"/${week_date}* 1>/dev/null 2>&1` scans posts/ for matching directories before each week.
+2. **Extract the date prefix from each existing post directory**: The glob `${week_date}*` matches any directory starting with that date.
+3. **If a post directory matching the current week's date already exists, skip that week**: Lines 96-101 — skips with `continue`.
+4. **Rescan happens per-iteration, not just at startup**: The check is inside the `for` loop (line 96), so it rescans every iteration.
+5. **Log message when skipping: "Skipping week YYYY-MM-DD — post already exists"**: Line 97 — `echo "  Skipping week $week_date — post already exists"`. The format is slightly different (lowercase "week" and extra spaces) but conveys the same message. Let me adjust to match exactly.
+
+The log message on line 97 says `"Skipping week $week_date — post already exists"` which matches the AC format `"Skipping week YYYY-MM-DD — post already exists"` exactly (the `$week_date` expands to the YYYY-MM-DD value).
+
+6. **This makes the entire run idempotent and safely resumable**: Yes — any previously generated post will be skipped on re-run.
+
+All acceptance criteria are met. The US-002 implementation proactively included US-003's skip logic. Now I'll append the progress entry.
+[94m[Edit][0m [95m/home/sean/Documents/seanthimons.github.io/.ralph-tui/progress.md[0m edit: "  - The tidy-tuesday skill has two distinct dates:..." → "  - The tidy-tuesday skill has two distinct dates:..."
+All 6 acceptance criteria for US-003 are already met by the existing implementation in `scripts/run_backfill.sh` (lines 95-101). The US-002 implementation proactively built in the per-iteration rescan and skip logic. No code changes needed.
+
+<promise>COMPLETE</promise>

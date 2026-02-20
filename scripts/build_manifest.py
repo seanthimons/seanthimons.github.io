@@ -11,6 +11,7 @@ import subprocess
 import re
 import sys
 from pathlib import Path
+from glob import glob
 
 REPO = "rfordatascience/tidytuesday"
 OUTPUT_PATH = Path(__file__).parent.parent / "tasks" / "week_manifest.json"
@@ -145,6 +146,57 @@ def is_byod(data_name: str) -> bool:
     """Check if a week's dataset name indicates BYOD/BYOC."""
     lower = data_name.lower()
     return "bring your own" in lower or "byod" in lower or "byoc" in lower
+
+
+def scan_existing_posts_for_2024_datasets(posts_dir: Path, datasets_2024: list, names_2024: dict) -> set:
+    """Scan existing posts to find which 2024 datasets are already used.
+
+    Checks post .qmd files for tt_load() calls referencing 2024 dates,
+    and for frontmatter fields indicating a substituted 2024 dataset.
+    Returns a set of indices into DATASETS_2024 that are already consumed.
+    """
+    used_indices = set()
+    if not posts_dir.exists():
+        return used_indices
+
+    # Build a reverse lookup: 2024 date -> index in DATASETS_2024
+    date_to_idx = {}
+    for idx, (week, date) in enumerate(datasets_2024):
+        date_to_idx[date] = idx
+
+    # Also build name -> index lookup for matching by dataset name
+    name_to_idx = {}
+    for idx, (week, date) in enumerate(datasets_2024):
+        name = names_2024.get(date, "")
+        if name:
+            name_to_idx[name.lower()] = idx
+
+    # Scan all .qmd files in posts/
+    for qmd in posts_dir.glob("*/*.qmd"):
+        try:
+            content = qmd.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            continue
+
+        # Check for tt_load("2024-XX-XX") patterns
+        for m in re.finditer(r'tt_load\s*\(\s*["\']?(2024-\d{2}-\d{2})["\']?\s*\)', content):
+            tt_date = m.group(1)
+            if tt_date in date_to_idx:
+                used_indices.add(date_to_idx[tt_date])
+
+        # Check for substituted_from references in frontmatter or comments
+        for m in re.finditer(r'substituted[_-]from[:\s].*?(2024-\d{2}-\d{2})', content):
+            sub_date = m.group(1)
+            if sub_date in date_to_idx:
+                used_indices.add(date_to_idx[sub_date])
+
+        # Check if any 2024 dataset name appears in the frontmatter/content
+        content_lower = content.lower()
+        for name, idx in name_to_idx.items():
+            if name in content_lower:
+                used_indices.add(idx)
+
+    return used_indices
 
 
 def build_manifest():
@@ -321,6 +373,18 @@ def build_manifest():
             print(f"  ✓ {date}: {entry['dataset_name']}")
         else:
             print(f"  ✗ {date}: meta.yaml not found, using readme table data")
+
+    # US-006: Rescan existing posts to find which 2024 datasets are already used
+    posts_dir = Path(__file__).parent.parent / "posts"
+    already_used = scan_existing_posts_for_2024_datasets(
+        posts_dir, DATASETS_2024, names_2024
+    )
+    if already_used:
+        print(f"\nRescan found {len(already_used)} 2024 dataset(s) already used in existing posts:")
+        for idx in sorted(already_used):
+            week, date = DATASETS_2024[idx]
+            print(f"  - {names_2024.get(date, date)} (2024 week {week})")
+    used_2024_indices.update(already_used)
 
     # Substitute BYOD weeks with unused 2024 datasets
     byod_entries = [e for e in manifest if e["is_byod"]]

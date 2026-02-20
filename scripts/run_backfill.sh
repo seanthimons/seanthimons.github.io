@@ -110,7 +110,9 @@ for i in $(seq 0 $((entry_count - 1))); do
   # For BYOD weeks with a substitution, use the substituted date
   if [[ "$is_byod" == "true" && -n "$sub_date" ]]; then
     tt_load_date="$sub_date"
-    byod_note="This is a BYOD week. Using substituted dataset from $sub_date (year $sub_year)."
+    byod_note="This is a BYOD (Bring Your Own Data) week. Using substituted 2024 dataset from $sub_date (year $sub_year).
+Add 'substituted_from: \"$sub_date\"' to the YAML frontmatter.
+In the introductory text, note that this week was originally BYOD and the analysis uses $dataset_name from the 2024 TidyTuesday archive ($sub_date) as a substitute."
   else
     tt_load_date="$week_date"
     byod_note=""
