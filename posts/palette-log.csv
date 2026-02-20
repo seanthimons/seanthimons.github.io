@@ -1,0 +1,12 @@
+post_date,palette,package,type
+2025-02-11,hardcoded (red/blue binary),custom,discrete
+2025-02-25,hardcoded (clinical_palette),custom,discrete
+2025-03-04,default_jco,ggsci,discrete
+2025-03-04,hardcoded (outcome_colors),custom,discrete
+2025-03-11,hardcoded (franchise colors),custom,discrete
+2025-03-18,hardcoded (palette_palms),custom,discrete
+2025-03-25,hardcoded (Amazon brand colors),custom,discrete
+2025-11-04,hardcoded (inline red/blue),custom,discrete
+2026-02-12,hardcoded (Olympic gradient),custom,continuous
+2026-02-12,hardcoded (city colors),custom,discrete
+"2026-02-20","Hiroshige","MetBrewer","discrete"

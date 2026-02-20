@@ -75,7 +75,8 @@ My handy booster pack that allows me to install (if needed) and load my usual an
       'skimr',
 
       ### Plot ----
-      'camcorder',
+      # !! DO NOT USE camcorder — it intercepts plot output and prevents Quarto from rendering plots !!
+      # 'camcorder',
       'patchwork',         # Multi-panel layouts
       'ggtext',            # Rich text in ggplot
       'ggrepel',           # Non-overlapping labels
@@ -298,26 +299,6 @@ outcome_focus <- articles %>%
 # Visualization
 
 ```{r}
-#| label: camcorder
-#| warning: false
-
-if (!dir.exists(here::here('posts', '2025-02-25', 'output'))) {
-  dir.create(here::here('posts', '2025-02-25', 'output'), recursive = TRUE)
-}
-
-gg_record(
-  here::here('posts', '2025-02-25', 'output'),
-  device = "png",
-  width = 12,
-  height = 10,
-  units = "in",
-  dpi = 320
-)
-
-
-```
-
-```{r}
 #| label: viz-disparity-landscape
 #| message: false
 #| warning: false
@@ -401,7 +382,7 @@ p3 <- outcome_focus %>%
   )
 
 # Combine panels
-(p1 / p2 / p3) +
+p_final <- (p1 / p2 / p3) +
   plot_annotation(
     title = "The Landscape of Reproductive Health Disparities Research",
     subtitle = "Academic literature from eight high-impact OB/GYN journals (2010-2023)",
@@ -412,6 +393,8 @@ p3 <- outcome_focus %>%
       plot.caption = element_text(size = 9, color = "gray50", hjust = 0)
     )
   )
+
+print(p_final)
 
 ```
 
