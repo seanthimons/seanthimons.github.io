@@ -356,32 +356,13 @@ The D.C. metro area dominates, but the geographic spread beyond that tells the m
 # Visualization
 
 ```{r}
-#| label: camcorder
-#| warning: false
-#| echo: false
-
-if (!dir.exists(here::here('posts', '2025-03-10', 'output'))) {
-  dir.create(here::here('posts', '2025-03-10', 'output'), recursive = TRUE)
-}
-
-gg_record(
-  here::here('posts', '2025-03-10', 'output'),
-  device = "png",
-  width = 12,
-  height = 8,
-  units = "in",
-  dpi = 320
-)
-```
-
-```{r}
 #| label: viz-fed-map
 #| message: false
 #| warning: false
 #| fig.width: 12
 #| fig.height: 8
 
-ggplot() +
+hero <- ggplot() +
   geom_sf(
     data = counties,
     fill = "grey95",
@@ -422,6 +403,22 @@ ggplot() +
     plot.margin = margin(15, 15, 15, 15)
   )
 ```
+
+```{r}
+#| label: save-hero
+#| echo: false
+#| output: false
+
+ggsave(
+  here::here("posts", "2025-03-10", "hero.png"),
+  plot = hero,
+  width = 12, height = 10, units = "in", dpi = 320,
+  bg = "white"
+)
+
+```
+
+![](hero.png)
 
 ## Interpretation
 

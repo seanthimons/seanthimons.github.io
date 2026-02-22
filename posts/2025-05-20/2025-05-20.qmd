@@ -79,6 +79,7 @@ My handy booster pack that allows me to install (if needed) and load my usual an
 
     ### Spatial ----
     'sf',
+    'rnaturalearth',
 
     ### Misc ----
     'tidytuesdayR'
@@ -360,12 +361,15 @@ Where are the dirtiest beaches? Using the site-level quality grades, we can map 
 #| echo: true
 #| message: false
 #| warning: false
-#| fig.width: 10
-#| fig.height: 10
+#| fig.width: 12
+#| fig.height: 8
 
 # Convert to sf for spatial plotting
 site_sf <- site_stats %>%
   st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
+
+# Get Australia coastline for map context
+aus <- ne_countries(scale = "large", country = "Australia", returnclass = "sf")
 
 # Grade colors from Hiroshige — clean blues to contaminated reds
 grade_colors <- setNames(
@@ -373,29 +377,65 @@ grade_colors <- setNames(
   c("Good", "Fair", "Poor", "Very Poor")
 )
 
-p_map <- ggplot(site_sf) +
-  geom_sf(aes(color = quality_grade, size = p90_entero), alpha = 0.75) +
-  scale_color_manual(values = grade_colors, drop = FALSE) +
-  scale_size_continuous(
-    range = c(2, 8),
-    trans = "log10",
-    labels = scales::comma_format(),
-    name = "90th Percentile\nEnterococci"
-  ) +
-  labs(
+# Split sites: coastal/harbour vs western Sydney rivers
+coastal_sf <- site_sf %>% filter(region != "Western Sydney")
+western_sf <- site_sf %>% filter(region == "Western Sydney")
+
+# Shared scales and theme for both panels
+map_base <- function(data, xlim, ylim, title) {
+  ggplot() +
+    geom_sf(data = aus, fill = "grey90", color = "grey50", linewidth = 0.3) +
+    geom_sf(data = data, aes(color = quality_grade, size = p90_entero), alpha = 0.75) +
+    coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
+    scale_color_manual(values = grade_colors, drop = FALSE) +
+    scale_size_continuous(
+      range = c(2, 10),
+      trans = "log10",
+      breaks = c(10, 50, 200, 1000),
+      labels = scales::comma_format(),
+      name = "90th Percentile\nEnterococci"
+    ) +
+    labs(title = title, color = "Quality Grade") +
+    theme_minimal(base_size = 11) +
+    theme(
+      plot.title = element_text(face = "bold", size = 12),
+      panel.grid = element_line(color = "grey92"),
+      axis.text = element_text(size = 7)
+    )
+}
+
+# Coastal panel — harbour & ocean beaches
+coastal_bbox <- st_bbox(coastal_sf)
+p_coast <- map_base(
+  coastal_sf,
+  xlim = c(as.numeric(coastal_bbox["xmin"]) - 0.02, as.numeric(coastal_bbox["xmax"]) + 0.02),
+  ylim = c(as.numeric(coastal_bbox["ymin"]) - 0.02, as.numeric(coastal_bbox["ymax"]) + 0.02),
+  title = "Coastal & Harbour Sites"
+)
+
+# Western Sydney panel — river swim sites
+western_bbox <- st_bbox(western_sf)
+p_west <- map_base(
+  western_sf,
+  xlim = c(as.numeric(western_bbox["xmin"]) - 0.03, as.numeric(western_bbox["xmax"]) + 0.03),
+  ylim = c(as.numeric(western_bbox["ymin"]) - 0.03, as.numeric(western_bbox["ymax"]) + 0.03),
+  title = "Western Sydney River Sites"
+)
+
+# Combine with shared legend
+p_map <- p_coast + p_west +
+  plot_layout(guides = "collect") +
+  plot_annotation(
     title = "Sydney Swim Site Water Quality Grades",
-    subtitle = "Color = overall quality grade | Size = 90th percentile enterococci (log scale)",
-    color = "Quality Grade",
-    caption = "Source: NSW Beachwatch via TidyTuesday | Grades based on NHMRC 2008 guidelines"
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(color = "grey40", size = 10),
-    legend.position = "right",
-    panel.grid = element_line(color = "grey92"),
-    axis.text = element_text(size = 8)
-  )
+    subtitle = "Color = overall quality grade | Size = 90th percentile enterococci",
+    caption = "Source: NSW Beachwatch via TidyTuesday | Grades based on NHMRC 2008 guidelines",
+    theme = theme(
+      plot.title = element_text(face = "bold", size = 14),
+      plot.subtitle = element_text(color = "grey40", size = 10),
+      plot.caption = element_text(color = "grey60", size = 8)
+    )
+  ) &
+  theme(legend.position = "bottom")
 
 p_map
 
@@ -466,7 +506,6 @@ hero <- p_map + p_spark +
     )
   )
 
-hero
 
 ```
 
@@ -476,13 +515,17 @@ hero
 #| output: false
 
 ggsave(
-  here::here("posts", "2025-05-20", "hero.png"),
+  here::her
+	e("posts", "2025-05-20", "hero.png"),
   plot = hero,
   width = 12, height = 10, units = "in", dpi = 320,
   bg = "white"
 )
 
 ```
+
+
+![](hero.png)
 
 # Final thoughts and takeaways
 

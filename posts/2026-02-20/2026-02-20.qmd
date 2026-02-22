@@ -2,6 +2,7 @@
 title: "If the Salt Itself Spoils"
 description: "Responding to Roya Pakzad's work on multilingual LLM evaluation and the guardrails that need guarding — and what it means when we stop tasting the salt."
 date: "2026-02-20"
+draft: true
 categories: [response, ai-safety, multilingual, guardrails]
 image: hero.png
 format:

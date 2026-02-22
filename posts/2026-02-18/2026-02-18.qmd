@@ -2,6 +2,7 @@
 title: "The Human in the Loop is Tired — And I Have Feelings About It"
 description: "Responding to Laura Summers' piece on the exhaustion of LLM-assisted development, from the perspective of someone building skills and workflows to make the loop less punishing."
 date: "2026-02-18"
+draft: true
 categories: [response, ai-tools, developer-experience, workflows]
 image: hero.png
 format:

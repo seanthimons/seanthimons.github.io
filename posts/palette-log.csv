@@ -9,4 +9,4 @@ post_date,palette,package,type
 2025-11-04,hardcoded (inline red/blue),custom,discrete
 2026-02-12,hardcoded (Olympic gradient),custom,continuous
 2026-02-12,hardcoded (city colors),custom,discrete
-"2026-02-20","Hiroshige","MetBrewer","discrete"
+2026-02-20,Hiroshige,MetBrewer,discrete
