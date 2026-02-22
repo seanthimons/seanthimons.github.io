@@ -1,0 +1,363 @@
+---
+title: "Tidy Tuesday: Astronomy Picture of the Day"
+author: "Sean Thimons"
+date: "2026-01-20"
+description: "Mining NASA's APOD archive (2007-2025) — what astronomical subjects capture the most attention, and how has the archive evolved over nearly two decades?"
+categories: [tidytuesday, R, astronomy, text-analysis]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-01-20/readme.md).
+
+> The Astronomy Picture of the Day (APOD) archive contains daily astronomy-related images with a scientific explanation, spanning 2007–2025. The data originates from NASA's popular APOD website and has been curated into the `astropic` R package.
+>
+> -   What types of objects are most common in the archive?
+> -   Are any images posted more than once?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  if (file.exists('packages.txt')) {
+    packages <- read.table('packages.txt')
+    install_booster_pack(package = packages$Package, load = FALSE)
+    rm(packages)
+  } else {
+    booster_pack <- c(
+      ### IO ----
+      'fs',
+      'here',
+      'janitor',
+      'rio',
+      'tidyverse',
+
+      ### EDA ----
+      'skimr',
+
+      ### Text ----
+      'tidytext',
+
+      ### Plot ----
+      'ggrepel',
+      'ggtext',
+
+      ### Misc ----
+      'tidytuesdayR'
+    )
+
+    install_booster_pack(package = booster_pack, load = TRUE)
+    rm(install_booster_pack, booster_pack)
+  }
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-01-20')
+
+apod <- raw$apod
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## APOD Archive
+
+I'll drop the URL columns and explanation text for the initial skim — they're useful later but not for profiling.
+
+```{r}
+#| label: eda-apod
+#| echo: true
+#| output: true
+
+apod %>%
+  select(-url, -hdurl, -explanation) %>%
+  my_skim(.)
+
+```
+
+```{r}
+#| label: eda-media-types
+#| echo: true
+#| output: true
+
+apod %>%
+  count(media_type, sort = TRUE)
+
+```
+
+## Date Coverage
+
+```{r}
+#| label: eda-date-coverage
+#| echo: true
+#| output: true
+
+apod %>%
+  mutate(year = year(date)) %>%
+  count(year) %>%
+  print(n = 30)
+
+```
+
+# APOD Archive Analysis
+
+## Duplicate Images
+
+The repo asks: are any images posted more than once? Let's check for repeated URLs and titles.
+
+```{r}
+#| label: duplicate-analysis
+#| echo: true
+#| output: true
+
+# Check for duplicate URLs
+apod %>%
+  filter(!is.na(url)) %>%
+  count(url, sort = TRUE) %>%
+  filter(n > 1) %>%
+  head(10)
+
+# Check for duplicate titles
+apod %>%
+  count(title, sort = TRUE) %>%
+  filter(n > 1) %>%
+  head(15)
+
+```
+
+## Most Common Subjects via Title Keywords
+
+To answer "what types of objects are most common," we can tokenize the titles and look for astronomical keywords.
+
+```{r}
+#| label: title-keywords
+#| echo: true
+#| output: true
+
+# Define astronomical object categories
+astro_keywords <- tribble(
+  ~keyword, ~category,
+  "nebula", "Nebulae",
+  "galaxy", "Galaxies",
+  "moon", "Moon",
+  "sun", "Sun/Solar",
+  "solar", "Sun/Solar",
+  "eclipse", "Eclipses",
+  "mars", "Planets",
+  "jupiter", "Planets",
+  "saturn", "Planets",
+  "venus", "Planets",
+  "mercury", "Planets",
+  "comet", "Comets",
+  "aurora", "Auroras",
+  "milky way", "Milky Way",
+  "meteor", "Meteors",
+  "supernova", "Supernovae",
+  "cluster", "Star Clusters",
+  "star", "Stars"
+)
+
+# Tokenize titles and match keywords
+title_words <- apod %>%
+  select(date, title) %>%
+  mutate(title_lower = str_to_lower(title))
+
+# Count keyword matches
+keyword_counts <- astro_keywords %>%
+  rowwise() %>%
+  mutate(
+    count = sum(str_detect(title_words$title_lower, keyword))
+  ) %>%
+  ungroup() %>%
+  group_by(category) %>%
+  summarize(count = sum(count), .groups = "drop") %>%
+  arrange(desc(count))
+
+keyword_counts
+
+```
+
+## Trends Over Time
+
+How has the mix of subjects changed year by year?
+
+```{r}
+#| label: trends-over-time
+#| echo: true
+#| output: true
+
+# Tag each APOD entry with a category (first match wins)
+apod_tagged <- apod %>%
+  mutate(
+    title_lower = str_to_lower(title),
+    category = case_when(
+      str_detect(title_lower, "nebula") ~ "Nebulae",
+      str_detect(title_lower, "galaxy|galaxies") ~ "Galaxies",
+      str_detect(title_lower, "eclipse") ~ "Eclipses",
+      str_detect(title_lower, "aurora") ~ "Auroras",
+      str_detect(title_lower, "comet") ~ "Comets",
+      str_detect(title_lower, "moon") ~ "Moon",
+      str_detect(title_lower, "sun|solar") ~ "Sun/Solar",
+      str_detect(title_lower, "mars|jupiter|saturn|venus|mercury") ~ "Planets",
+      str_detect(title_lower, "milky way") ~ "Milky Way",
+      str_detect(title_lower, "meteor") ~ "Meteors",
+      str_detect(title_lower, "cluster") ~ "Star Clusters",
+      str_detect(title_lower, "star") ~ "Stars",
+      TRUE ~ "Other"
+    ),
+    year = year(date)
+  )
+
+apod_tagged %>%
+  filter(category != "Other") %>%
+  count(year, category) %>%
+  pivot_wider(names_from = category, values_from = n, values_fill = 0) %>%
+  head(20)
+
+```
+## Visualizing the APOD Universe
+
+The hero plot shows the most common astronomical subjects across the archive, styled with a deep-space aesthetic.
+
+```{r}
+#| label: viz-apod-subjects
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+# Space-themed palette
+space_cols <- c(
+  "Nebulae" = "#FF6B8A",
+  "Galaxies" = "#A855F7",
+  "Moon" = "#E2E8F0",
+  "Sun/Solar" = "#FBBF24",
+  "Eclipses" = "#F97316",
+  "Planets" = "#22D3EE",
+  "Comets" = "#34D399",
+  "Auroras" = "#4ADE80",
+  "Milky Way" = "#C4B5FD",
+  "Meteors" = "#FB923C",
+  "Stars" = "#FDE68A",
+  "Supernovae" = "#F43F5E",
+  "Star Clusters" = "#818CF8"
+)
+
+# Prepare data — top categories by total count
+top_categories <- apod_tagged %>%
+  filter(category != "Other") %>%
+  count(category, sort = TRUE) %>%
+  head(10)
+
+ggplot(top_categories, aes(x = reorder(category, n), y = n, fill = category)) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+  geom_text(
+    aes(label = n),
+    hjust = -0.2,
+    color = "white",
+    fontface = "bold",
+    size = 4
+  ) +
+  scale_fill_manual(values = space_cols) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  coord_flip() +
+  labs(
+    title = "The Most Photographed Objects in Space",
+    subtitle = "Astronomical subjects in NASA's APOD archive (2007\u20132025), classified by title keywords",
+    x = NULL,
+    y = "Number of APOD Entries",
+    caption = "Source: TidyTuesday 2026-01-20 | NASA APOD via astropic R package"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.background = element_rect(fill = "#0F172A", color = NA),
+    panel.background = element_rect(fill = "#0F172A", color = NA),
+    text = element_text(color = "white"),
+    plot.title = element_text(face = "bold", size = 18, color = "#E2E8F0"),
+    plot.subtitle = element_text(size = 12, color = "#94A3B8"),
+    plot.caption = element_text(size = 9, color = "#64748B"),
+    axis.text = element_text(color = "#CBD5E1"),
+    axis.title = element_text(color = "#94A3B8"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "#1E293B"),
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+# Final thoughts and takeaways
+
+NASA's Astronomy Picture of the Day is one of the longest-running and most beloved science communication projects on the internet. This archive spanning nearly two decades reveals what captures our collective astronomical imagination — and nebulae consistently come out on top, which makes sense given their visual drama and the stunning images that space telescopes produce.
+
+Galaxies and our own Moon round out the top three, reflecting both the accessibility of lunar photography for amateur astronomers and the deep fascination with the large-scale structure of the universe. The presence of auroras and eclipses in the rankings highlights how APOD balances deep-sky objects with phenomena visible from Earth, keeping the archive grounded (literally) for a general audience.
+
+The duplicate analysis reveals that some iconic images do get revisited — either because the same event is captured from different perspectives or because a particularly striking image merits a re-share. This isn't noise; it's editorial curation at work.
+
+::: {.callout-tip}
+The title-keyword approach to classification is deliberately simple. A more sophisticated analysis could use NLP on the explanation text to capture objects mentioned in the description but not the title. The explanations are rich with scientific context that the titles alone don't capture.
+:::

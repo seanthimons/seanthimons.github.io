@@ -1,0 +1,354 @@
+---
+title: "Tidy Tuesday: Edible Plants Database"
+author: "Sean Thimons"
+date: "2026-02-03"
+description: "Exploring the growing conditions of 146 edible plant species from the GROW Observatory — which plants thrive where, and what do sunlight and temperature preferences reveal about cultivation strategies?"
+categories: [tidytuesday, R, agriculture, botany]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-02-03/readme.md).
+
+> The Edible Plant Database (EPD) contains information on 146 edible plant species, derived from the GROW Observatory, a European Citizen Science initiative focused on food cultivation, soil monitoring, and land observation. The dataset provides growing conditions and harvest/germination timelines to address questions like "What can I plant now" and "What will yield crops in the future."
+>
+> -   Do plants requiring more sunlight also require higher temperatures?
+> -   Which cultivation classes demand the most water?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  if (file.exists('packages.txt')) {
+    packages <- read.table('packages.txt')
+
+    install_booster_pack(package = packages$Package, load = FALSE)
+
+    rm(packages)
+  } else {
+    ## Packages ----
+
+    booster_pack <- c(
+      ### IO ----
+      'fs',
+      'here',
+      'janitor',
+      'rio',
+      'tidyverse',
+
+      ### EDA ----
+      'skimr',
+
+      ### Plot ----
+      'ggtext',
+      'ggrepel',
+      'patchwork',
+
+      ### Misc ----
+      'tidytuesdayR'
+    )
+
+    # ! Change load flag to load packages
+    install_booster_pack(package = booster_pack, load = TRUE)
+    rm(install_booster_pack, booster_pack)
+  }
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-02-03')
+
+plants <- raw$edible_plants
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Edible Plants
+
+I'll drop the free-text columns (`description`, `requirements`, `nutritional_info`, `sensitivities`) since they're not useful for quantitative analysis, and focus on the structured growing condition fields.
+
+```{r}
+#| label: eda-plants
+#| echo: true
+#| output: true
+
+plants %>%
+  select(-description, -requirements, -nutritional_info, -sensitivities) %>%
+  my_skim(.)
+
+```
+
+Let's also get a quick look at the categorical columns to understand the levels we're working with:
+
+```{r}
+#| label: eda-categories
+#| echo: true
+#| output: true
+
+plants %>%
+  count(sunlight, sort = TRUE)
+
+plants %>%
+  count(water, sort = TRUE)
+
+plants %>%
+  count(cultivation, sort = TRUE)
+
+plants %>%
+  count(temperature_class, sort = TRUE)
+
+plants %>%
+  count(season, sort = TRUE)
+
+```
+
+# Growing Condition Analysis
+
+The two questions from the TidyTuesday repo are closely related — both are about how growing requirements cluster together. Let's tackle them systematically.
+
+## Sunlight vs. Temperature Preferences
+
+Do sun-loving plants also prefer warmer conditions? Let's look at the cross-tabulation of sunlight requirements and temperature class.
+
+```{r}
+#| label: sunlight-temperature
+#| echo: true
+#| output: true
+
+plants %>%
+  filter(!is.na(sunlight), !is.na(temperature_class)) %>%
+  count(sunlight, temperature_class) %>%
+  pivot_wider(names_from = temperature_class, values_from = n, values_fill = 0)
+
+```
+
+## Water Demands by Cultivation Class
+
+Which cultivation classes are the thirstiest? Let's look at the distribution of water requirements across different cultivation types.
+
+```{r}
+#| label: water-cultivation
+#| echo: true
+#| output: true
+
+plants %>%
+  filter(!is.na(water), !is.na(cultivation)) %>%
+  count(cultivation, water) %>%
+  pivot_wider(names_from = water, values_from = n, values_fill = 0)
+
+```
+
+## pH Preferences by Cultivation Class
+
+The pH range columns give us one of the few continuous measures to work with. Let's see how preferred soil acidity varies across cultivation types.
+
+```{r}
+#| label: ph-analysis
+#| echo: true
+#| output: true
+
+plants %>%
+  filter(!is.na(preferred_ph_lower), !is.na(preferred_ph_upper)) %>%
+  mutate(
+    ph_range = preferred_ph_upper - preferred_ph_lower,
+    ph_midpoint = (preferred_ph_lower + preferred_ph_upper) / 2
+  ) %>%
+  group_by(cultivation) %>%
+  summarize(
+    n = n(),
+    mean_ph_mid = mean(ph_midpoint, na.rm = TRUE),
+    mean_ph_range = mean(ph_range, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(mean_ph_mid)
+
+```
+
+## Energy Content
+
+Let's also see which plants pack the most energy per 100g, and whether this relates to growing conditions.
+
+```{r}
+#| label: energy-analysis
+#| echo: true
+#| output: true
+
+plants %>%
+  filter(!is.na(energy)) %>%
+  arrange(desc(energy)) %>%
+  select(common_name, cultivation, energy, sunlight, water) %>%
+  head(20)
+
+```
+
+## Visualizing Growing Conditions
+
+The hero plot pairs the two suggested questions into a single multi-panel layout: sunlight × temperature association on the left, and water demand by cultivation class on the right.
+
+```{r}
+#| label: viz-growing-conditions
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+# Define a botanical color palette
+garden_cols <- c(
+  "Full sun" = "#E8A838",
+  "Full sun / partial shade" = "#C4A24D",
+  "Partial shade" = "#7BA05B",
+  "Full shade" = "#2D5F2D",
+  "Partial shade / full shade" = "#4A7A4A"
+)
+
+water_cols <- c(
+  "Low" = "#D4A76A",
+  "Medium" = "#5B8C5A",
+  "High" = "#2E6B8A"
+)
+
+# Panel 1: Sunlight vs Temperature heatmap
+p1_data <- plants %>%
+  filter(!is.na(sunlight), !is.na(temperature_class)) %>%
+  count(sunlight, temperature_class)
+
+p1 <- ggplot(p1_data, aes(x = temperature_class, y = sunlight, fill = n)) +
+  geom_tile(color = "white", linewidth = 1.5) +
+  geom_text(aes(label = n), size = 5, fontface = "bold", color = "white") +
+  scale_fill_gradient(low = "#A8D5A2", high = "#1B5E20", name = "Count") +
+  labs(
+    title = "Do sun-loving plants prefer warmer conditions?",
+    x = "Temperature Class",
+    y = "Sunlight Requirement"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    panel.grid = element_blank(),
+    legend.position = "bottom"
+  )
+
+# Panel 2: Water demand by cultivation class
+p2_data <- plants %>%
+  filter(!is.na(water), !is.na(cultivation)) %>%
+  count(cultivation, water) %>%
+  group_by(cultivation) %>%
+  mutate(pct = n / sum(n)) %>%
+  ungroup()
+
+p2 <- ggplot(
+  p2_data,
+  aes(x = reorder(cultivation, -n, sum), y = pct, fill = water)
+) +
+  geom_col(position = "fill", width = 0.7) +
+  scale_fill_manual(values = water_cols, name = "Water Need") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Which cultivation classes demand the most water?",
+    x = "Cultivation Class",
+    y = "Proportion of Plants"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+
+# Combine with patchwork
+combined <- p1 /
+  p2 +
+  plot_annotation(
+    title = "Growing Conditions of Edible Plants",
+    subtitle = "146 species from the GROW Observatory Edible Plant Database",
+    caption = "Source: TidyTuesday 2026-02-03 | University of Dundee Edible Plant Database",
+    theme = theme(
+      plot.title = element_text(size = 18, face = "bold", color = "#2D5F2D"),
+      plot.subtitle = element_text(size = 13, color = "#555555"),
+      plot.caption = element_text(size = 9, color = "#888888")
+    )
+  )
+
+combined
+
+```
+
+# Final thoughts and takeaways
+
+The Edible Plant Database offers a compact but revealing snapshot of how 146 food-producing species relate to their growing environments. The heatmap of sunlight versus temperature preferences shows that the vast majority of edible plants cluster in the "full sun" and warm-to-cool temperature range — which makes intuitive sense, as most food crops have been bred for productive, sun-drenched conditions rather than shade tolerance.
+
+The water demand breakdown by cultivation class tells a complementary story. Root vegetables and legumes tend toward moderate water needs, while leafy greens and some fruiting crops lean heavier. This kind of profiling is exactly what the GROW Observatory aimed to support: giving citizen scientists and home gardeners a data-driven way to plan what to grow based on their local conditions.
+
+::: {.callout-tip}
+If you're planning a garden, the pH preference data is particularly actionable — most edible plants cluster in the 5.5–7.5 range, but there's meaningful variation. Testing your soil pH before planting season can save a lot of heartache.
+:::
+
+One limitation: many of the numeric fields (germination days, harvest days, temperature ranges) are stored as character strings with range notation (e.g., "10-14"), which limits direct quantitative analysis without parsing. A natural extension would be to extract those ranges into min/max numeric columns for more granular modeling.

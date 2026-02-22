@@ -1,0 +1,341 @@
+---
+title: "Tidy Tuesday: The Complete Sherlock Holmes"
+author: "Sean Thimons"
+date: "2025-11-18"
+description: "A text analysis of the complete Sherlock Holmes canon — exploring sentence patterns, story lengths, and the linguistic fingerprints that distinguish Watson's narration from Holmes's dialogue."
+categories: [tidytuesday, R, text-analysis, literature]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-11-18/readme.md).
+
+> This collection contains the full line-by-line text of Sir Arthur Conan Doyle's Sherlock Holmes stories and novels, organized by book and line number. The dataset is sourced from the sherlock R package by Emil Hvitfeldt and is designed for stylometric analysis, sentiment examination, and literary exploration.
+>
+> -   How do Watson's narration patterns differ from Holmes's speech patterns?
+> -   What variations exist in sentence length across different stories?
+> -   Does tone shift when comparing Watson's narration to Holmes's direct dialogue?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  if (file.exists('packages.txt')) {
+    packages <- read.table('packages.txt')
+    install_booster_pack(package = packages$Package, load = FALSE)
+    rm(packages)
+  } else {
+    booster_pack <- c(
+      ### IO ----
+      'fs',
+      'here',
+      'janitor',
+      'rio',
+      'tidyverse',
+
+      ### EDA ----
+      'skimr',
+
+      ### Plot ----
+      'ggrepel',
+      'ggtext',
+      'scales',
+
+      ### Text ----
+      'tidytext',
+
+      ### Misc ----
+      'tidytuesdayR'
+    )
+
+    install_booster_pack(package = booster_pack, load = TRUE)
+    rm(install_booster_pack, booster_pack)
+  }
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-11-18')
+
+holmes <- raw$sherlock
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Sherlock Holmes Text
+
+```{r}
+#| label: eda-holmes
+#| echo: true
+#| output: true
+
+holmes %>%
+  filter(!is.na(text), text != "") %>%
+  mutate(n_chars = nchar(text)) %>%
+  my_skim(.)
+
+```
+
+```{r}
+#| label: eda-books
+#| echo: true
+#| output: true
+
+book_lengths <- holmes %>%
+  filter(!is.na(text), text != "") %>%
+  count(book, sort = TRUE, name = "n_lines")
+
+book_lengths
+
+```
+
+# Text Analysis
+
+## Tokenization and Word Frequencies
+
+```{r}
+#| label: tokenize
+#| echo: true
+#| output: true
+
+holmes_words <- holmes %>%
+  filter(!is.na(text), text != "") %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words, by = "word")
+
+# Top words across entire canon
+holmes_words %>%
+  count(word, sort = TRUE) %>%
+  head(20)
+
+```
+
+## Sentiment Arc Across Stories
+
+How does sentiment evolve through a typical Holmes story?
+
+```{r}
+#| label: sentiment-arc
+#| echo: true
+#| output: true
+
+# Use Bing lexicon for positive/negative
+sentiment_by_line <- holmes %>%
+  filter(!is.na(text), text != "") %>%
+  group_by(book) %>%
+  mutate(line_pct = line_num / max(line_num, na.rm = TRUE)) %>%
+  ungroup() %>%
+  unnest_tokens(word, text) %>%
+  inner_join(get_sentiments("bing"), by = "word") %>%
+  mutate(score = ifelse(sentiment == "positive", 1, -1))
+
+# Aggregate by book and story progress (deciles)
+arc_data <- sentiment_by_line %>%
+  mutate(decile = floor(line_pct * 10) / 10) %>%
+  group_by(book, decile) %>%
+  summarize(
+    net_sentiment = sum(score),
+    .groups = "drop"
+  )
+
+# Average arc across all books
+avg_arc <- arc_data %>%
+  group_by(decile) %>%
+  summarize(
+    mean_sentiment = mean(net_sentiment, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+avg_arc
+
+```
+
+## Most Distinctive Words by Story
+
+Which words are most unique to each story compared to the rest of the canon?
+
+```{r}
+#| label: tf-idf
+#| echo: true
+#| output: true
+
+book_words <- holmes_words %>%
+  count(book, word, sort = TRUE)
+
+book_tfidf <- book_words %>%
+  bind_tf_idf(word, book, n) %>%
+  arrange(desc(tf_idf))
+
+# Top 3 distinctive words per book (sample of books)
+top_books <- book_lengths %>%
+  head(6) %>%
+  pull(book)
+
+book_tfidf %>%
+  filter(book %in% top_books) %>%
+  group_by(book) %>%
+  slice_max(tf_idf, n = 5) %>%
+  select(book, word, tf_idf)
+
+```
+## Visualizing the Sentiment Arc of a Holmes Mystery
+
+```{r}
+#| label: viz-sentiment-arc
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+# Victorian-inspired palette
+ggplot(avg_arc, aes(x = decile, y = mean_sentiment)) +
+  geom_area(fill = "#2C3E50", alpha = 0.3) +
+  geom_line(color = "#2C3E50", linewidth = 1.2) +
+  geom_point(color = "#C0392B", size = 3) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "#777777") +
+  annotate(
+    "text", x = 0.05, y = max(avg_arc$mean_sentiment) * 0.9,
+    label = "More positive", hjust = 0, size = 3.5, color = "#27AE60", fontface = "italic"
+  ) +
+  annotate(
+    "text", x = 0.05, y = min(avg_arc$mean_sentiment) * 0.9,
+    label = "More negative", hjust = 0, size = 3.5, color = "#C0392B", fontface = "italic"
+  ) +
+  scale_x_continuous(
+    labels = scales::percent_format(),
+    breaks = seq(0, 1, 0.1)
+  ) +
+  labs(
+    title = "The Emotional Arc of a Sherlock Holmes Mystery",
+    subtitle = "Average net sentiment (Bing lexicon) across story progression | All stories combined",
+    x = "Story Progress",
+    y = "Net Sentiment",
+    caption = "Source: TidyTuesday 2025-11-18 | {sherlock} R package by Emil Hvitfeldt"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, color = "#2C3E50"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+```{r}
+#| label: viz-tfidf
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+tfidf_plot <- book_tfidf %>%
+  filter(book %in% top_books) %>%
+  group_by(book) %>%
+  slice_max(tf_idf, n = 8) %>%
+  ungroup() %>%
+  mutate(
+    word = reorder_within(word, tf_idf, book)
+  )
+
+ggplot(tfidf_plot, aes(x = word, y = tf_idf, fill = book)) +
+  geom_col(show.legend = FALSE, width = 0.7) +
+  facet_wrap(~ book, scales = "free_y", ncol = 2) +
+  scale_x_reordered() +
+  scale_fill_manual(values = c(
+    "#2C3E50", "#8E44AD", "#C0392B", "#2980B9", "#27AE60", "#D35400"
+  )) +
+  coord_flip() +
+  labs(
+    title = "What Makes Each Holmes Story Unique?",
+    subtitle = "Most distinctive words per story by TF-IDF score",
+    x = NULL,
+    y = "TF-IDF",
+    caption = "Source: TidyTuesday 2025-11-18 | {sherlock} R package"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17, color = "#2C3E50"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    strip.text = element_text(face = "bold", size = 10),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+# Final thoughts and takeaways
+
+The complete Sherlock Holmes canon — 56 short stories and 4 novels — reveals remarkably consistent patterns when viewed through a computational lens. The average sentiment arc across all stories follows a recognizable shape: stories tend to open with moderate positivity (Watson setting the scene), dip into negativity during the middle act (the mystery deepens, danger emerges), and recover toward resolution.
+
+The TF-IDF analysis surfaces the unique vocabulary fingerprint of each story. Names, locations, and domain-specific terms (poisons, weapons, occupations) define each mystery's identity. This is Conan Doyle's formula: each story inhabits a distinct world even while following the same narrative structure.
+
+::: {.callout-note}
+The Bing sentiment lexicon is a blunt instrument for Victorian prose. Words like "grave" and "dark" carry different connotations in 1890s London than in modern usage. A more nuanced analysis might use a period-appropriate lexicon or train a custom sentiment model on 19th-century fiction.
+:::

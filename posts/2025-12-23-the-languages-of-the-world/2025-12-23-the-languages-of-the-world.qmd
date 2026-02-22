@@ -1,0 +1,438 @@
+---
+title: "Tidy Tuesday: The Languages of the World"
+author: "Sean Thimons"
+date: "2025-12-23"
+description: "Exploring the world's 8,000+ languages through Glottolog — which regions face the greatest endangerment, how do language families span the globe, and what patterns emerge from mapping linguistic diversity?"
+categories: [tidytuesday, R, linguistics, geography, endangerment]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-12-23/readme.md).
+
+> This week's dataset comes from Glottolog 5.2.1, an open-access linguistics database maintained by the Max Planck Institute for Evolutionary Anthropology. The database encompasses over 8,000 languages of the world with details on names, genealogy, geography, and endangerment status.
+>
+> -   Which macroareas have the highest concentration of endangered languages?
+> -   Are language isolates more likely to be endangered?
+> -   Which language families span the widest geographic range?
+> -   What geographic patterns emerge when mapping endangered languages?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  if (file.exists('packages.txt')) {
+    packages <- read.table('packages.txt')
+    install_booster_pack(package = packages$Package, load = FALSE)
+    rm(packages)
+  } else {
+    booster_pack <- c(
+      ### IO ----
+      'fs',
+      'here',
+      'janitor',
+      'rio',
+      'tidyverse',
+
+      ### EDA ----
+      'skimr',
+
+      ### Plot ----
+      'ggrepel',
+      'ggtext',
+      'scales',
+      'patchwork',
+
+      ### Misc ----
+      'tidytuesdayR'
+    )
+
+    install_booster_pack(package = booster_pack, load = TRUE)
+    rm(install_booster_pack, booster_pack)
+  }
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-12-23')
+
+languages <- raw$languages
+families <- raw$families
+endangered_status <- raw$endangered_status
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Languages
+
+```{r}
+#| label: eda-languages
+#| echo: true
+#| output: true
+
+languages %>%
+  my_skim(.)
+
+```
+
+```{r}
+#| label: eda-overview
+#| echo: true
+#| output: true
+
+languages %>%
+  count(macroarea, sort = TRUE)
+
+languages %>%
+  count(is_isolate, sort = TRUE)
+
+```
+
+## Endangerment Status
+
+```{r}
+#| label: eda-endangered
+#| echo: true
+#| output: true
+
+endangered_status %>%
+  my_skim(.)
+
+endangered_status %>%
+  count(status_label, sort = TRUE)
+
+```
+
+## Language Families
+
+```{r}
+#| label: eda-families
+#| echo: true
+#| output: true
+
+families %>%
+  my_skim(.)
+
+nrow(families)
+
+```
+
+# Endangerment Analysis
+
+## Joining Languages with Endangerment Status
+
+```{r}
+#| label: join-endangerment
+#| echo: true
+#| output: true
+
+lang_status <- languages %>%
+  left_join(endangered_status, by = "id") %>%
+  mutate(
+    status_label = factor(
+      status_label,
+      levels = c(
+        "safe",
+        "vulnerable",
+        "definitely endangered",
+        "severely endangered",
+        "critically endangered",
+        "extinct"
+      )
+    )
+  )
+
+lang_status %>%
+  count(status_label, sort = TRUE)
+
+```
+
+::: {.callout-important}
+Not every language has an endangerment classification in this dataset. Languages with `NA` status are typically those without enough documentation to assess their vitality — which is itself a concerning signal.
+:::
+
+## Endangerment by Macroarea
+
+Which regions of the world face the greatest concentration of endangered languages?
+
+```{r}
+#| label: endangerment-by-region
+#| echo: true
+#| output: true
+
+region_danger <- lang_status %>%
+  filter(!is.na(status_label), !is.na(macroarea)) %>%
+  group_by(macroarea, status_label) %>%
+  summarize(n = n(), .groups = "drop") %>%
+  group_by(macroarea) %>%
+  mutate(
+    total = sum(n),
+    pct = n / total
+  ) %>%
+  ungroup()
+
+region_danger %>%
+  filter(status_label %ni% c("safe")) %>%
+  group_by(macroarea) %>%
+  summarize(
+    n_at_risk = sum(n),
+    total = first(total),
+    pct_at_risk = n_at_risk / total,
+    .groups = "drop"
+  ) %>%
+  arrange(desc(pct_at_risk))
+
+```
+
+## Language Isolates and Endangerment
+
+Are language isolates — languages with no known relatives — more likely to be endangered?
+
+```{r}
+#| label: isolates-endangerment
+#| echo: true
+#| output: true
+
+isolate_status <- lang_status %>%
+  filter(!is.na(status_label), !is.na(is_isolate)) %>%
+  group_by(is_isolate, status_label) %>%
+  summarize(n = n(), .groups = "drop") %>%
+  group_by(is_isolate) %>%
+  mutate(
+    total = sum(n),
+    pct = n / total
+  ) %>%
+  ungroup()
+
+# Percent at risk (not safe) by isolate status
+isolate_status %>%
+  filter(status_label != "safe") %>%
+  group_by(is_isolate) %>%
+  summarize(
+    n_at_risk = sum(n),
+    total = first(total),
+    pct_at_risk = n_at_risk / total,
+    .groups = "drop"
+  )
+
+```
+
+## Largest Language Families by Geographic Spread
+
+Which families span the most macroareas?
+
+```{r}
+#| label: family-spread
+#| echo: true
+#| output: true
+
+family_spread <- languages %>%
+  filter(!is.na(family_id), !is.na(macroarea)) %>%
+  left_join(families, by = c("family_id" = "id")) %>%
+  group_by(name.y) %>%
+  summarize(
+    n_languages = n(),
+    n_macroareas = n_distinct(macroarea),
+    macroareas = paste(sort(unique(macroarea)), collapse = ", "),
+    lat_range = max(latitude, na.rm = TRUE) - min(latitude, na.rm = TRUE),
+    lon_range = max(longitude, na.rm = TRUE) - min(longitude, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  rename(family_name = name.y) %>%
+  arrange(desc(n_macroareas), desc(n_languages))
+
+family_spread %>% head(15)
+
+```
+## Visualizing Endangerment Across the World
+
+The hero plot maps language endangerment status by macroarea, showing the proportion of languages at each risk level.
+
+```{r}
+#| label: viz-endangerment-stacked
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+# UNESCO-inspired palette: safe to extinct
+status_cols <- c(
+  "safe"                    = "#2D6A4F",
+  "vulnerable"              = "#95D5B2",
+  "definitely endangered"   = "#F4A261",
+  "severely endangered"     = "#E76F51",
+  "critically endangered"   = "#9B2226",
+  "extinct"                 = "#333333"
+)
+
+region_order <- region_danger %>%
+  filter(status_label != "safe") %>%
+  group_by(macroarea) %>%
+  summarize(pct_at_risk = sum(pct), .groups = "drop") %>%
+  arrange(pct_at_risk) %>%
+  pull(macroarea)
+
+plot_data <- region_danger %>%
+  mutate(macroarea = factor(macroarea, levels = region_order))
+
+# Annotations: total language counts per region
+region_totals <- plot_data %>%
+  group_by(macroarea) %>%
+  summarize(total = first(total), .groups = "drop")
+
+ggplot(plot_data, aes(x = macroarea, y = pct, fill = status_label)) +
+  geom_col(width = 0.7) +
+  geom_text(
+    data = region_totals,
+    aes(x = macroarea, y = 1.02, label = paste0("n = ", scales::comma(total)), fill = NULL),
+    size = 3.5,
+    hjust = 0,
+    color = "#444444"
+  ) +
+  scale_y_continuous(
+    labels = scales::percent_format(),
+    expand = expansion(mult = c(0, 0.12))
+  ) +
+  scale_fill_manual(
+    values = status_cols,
+    name = "Endangerment Status",
+    drop = FALSE
+  ) +
+  coord_flip() +
+  labs(
+    title = "Language Endangerment Across the World's Macroareas",
+    subtitle = "Proportion of languages by endangerment status | Glottolog 5.2.1",
+    x = NULL,
+    y = "Proportion of Languages",
+    caption = "Source: TidyTuesday 2025-12-23 | Glottolog (Max Planck Institute)"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17, color = "#1B1B1B"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    legend.position = "bottom",
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  guides(fill = guide_legend(nrow = 2))
+
+```
+
+```{r}
+#| label: viz-isolates
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 6
+
+isolate_plot_data <- isolate_status %>%
+  mutate(
+    isolate_label = ifelse(is_isolate, "Language Isolates", "Non-Isolates"),
+    isolate_label = factor(isolate_label, levels = c("Language Isolates", "Non-Isolates"))
+  )
+
+ggplot(isolate_plot_data, aes(x = isolate_label, y = pct, fill = status_label)) +
+  geom_col(width = 0.6) +
+  scale_y_continuous(labels = scales::percent_format(), expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(
+    values = status_cols,
+    name = "Endangerment Status",
+    drop = FALSE
+  ) +
+  labs(
+    title = "Language Isolates Face Greater Endangerment Risk",
+    subtitle = "Proportion of languages by status for isolates vs. non-isolates",
+    x = NULL,
+    y = "Proportion",
+    caption = "Source: TidyTuesday 2025-12-23 | Glottolog 5.2.1"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17, color = "#1B1B1B"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    legend.position = "bottom",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  guides(fill = guide_legend(nrow = 1))
+
+```
+
+# Final thoughts and takeaways
+
+The Glottolog database paints a sobering picture of global linguistic diversity. While over 8,000 languages are catalogued, a significant proportion face some level of endangerment — and the distribution of risk is far from uniform.
+
+Australia and South America stand out as the macroareas with the highest proportions of endangered and extinct languages, reflecting the devastating impact of colonization on indigenous language communities. Papunesia (New Guinea and the Pacific Islands), despite being one of the most linguistically dense regions on Earth, also shows substantial vulnerability.
+
+Language isolates — those with no known living relatives — are measurably more vulnerable than languages belonging to established families. This makes intuitive sense: a language with no relatives has no "backup" in the genetic sense. When it disappears, an entire branch of human linguistic heritage vanishes with it.
+
+::: {.callout-note}
+The Glottolog endangerment classifications draw on multiple sources including UNESCO's Atlas of the World's Languages in Danger. Languages without a status classification are not necessarily safe — many simply lack sufficient documentation to be assessed, which is its own form of invisibility.
+:::

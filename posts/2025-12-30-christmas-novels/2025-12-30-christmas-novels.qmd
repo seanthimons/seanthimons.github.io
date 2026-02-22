@@ -1,0 +1,332 @@
+---
+title: "Tidy Tuesday: Christmas Novels"
+author: "Sean Thimons"
+date: "2025-12-30"
+description: "Text mining Christmas novels from Project Gutenberg — how sentiment arcs through holiday fiction, and whether 'spirit' or 'santa' wins the word count battle."
+categories: [tidytuesday, R, text-analysis, literature]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-12-30/readme.md).
+
+> This dataset contains "Christmas" novels from Project Gutenberg, curated via the R `gutenbergr` package. The data includes novel metadata, author information, and full text content for analysis.
+>
+> -   How does the frequency of "spirit" compare to "santa" across these novels?
+> -   What does the overall sentiment look like per novel?
+> -   How does sentiment change across each novel's progression?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  if (file.exists('packages.txt')) {
+    packages <- read.table('packages.txt')
+    install_booster_pack(package = packages$Package, load = FALSE)
+    rm(packages)
+  } else {
+    booster_pack <- c(
+      ### IO ----
+      'fs',
+      'here',
+      'janitor',
+      'rio',
+      'tidyverse',
+
+      ### EDA ----
+      'skimr',
+
+      ### Text ----
+      'tidytext',
+
+      ### Plot ----
+      'ggrepel',
+      'scales',
+
+      ### Misc ----
+      'tidytuesdayR'
+    )
+
+    install_booster_pack(package = booster_pack, load = TRUE)
+    rm(install_booster_pack, booster_pack)
+  }
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-12-30')
+
+novels <- raw$christmas_novels
+authors <- raw$christmas_novel_authors
+novel_text <- raw$christmas_novel_text
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Novel Metadata
+
+```{r}
+#| label: eda-novels
+#| echo: true
+#| output: true
+
+novels %>%
+  my_skim(.)
+
+nrow(novels)
+
+```
+
+```{r}
+#| label: eda-authors
+#| echo: true
+#| output: true
+
+authors %>%
+  my_skim(.)
+
+# How many novels per author?
+novels %>%
+  left_join(authors, by = "gutenberg_author_id") %>%
+  count(author, sort = TRUE) %>%
+  head(10)
+
+```
+
+## Text Overview
+
+```{r}
+#| label: eda-text
+#| echo: true
+#| output: true
+
+# Lines per novel
+novel_text %>%
+  filter(!is.na(text)) %>%
+  count(gutenberg_id, sort = TRUE) %>%
+  left_join(novels, by = "gutenberg_id") %>%
+  select(title, n) %>%
+  head(10)
+
+```
+
+# Text Analysis
+
+## Spirit vs. Santa
+
+The repo asks: how does the frequency of "spirit" compare to "santa"?
+
+```{r}
+#| label: spirit-vs-santa
+#| echo: true
+#| output: true
+
+spirit_santa <- novel_text %>%
+  filter(!is.na(text)) %>%
+  mutate(text_lower = str_to_lower(text)) %>%
+  group_by(gutenberg_id) %>%
+  summarize(
+    spirit_count = sum(str_count(text_lower, "\\bspirit\\b")),
+    santa_count = sum(str_count(text_lower, "\\bsanta\\b")),
+    .groups = "drop"
+  ) %>%
+  left_join(novels, by = "gutenberg_id")
+
+spirit_santa %>%
+  summarize(
+    total_spirit = sum(spirit_count),
+    total_santa = sum(santa_count)
+  )
+
+spirit_santa %>%
+  select(title, spirit_count, santa_count) %>%
+  arrange(desc(spirit_count + santa_count)) %>%
+  head(10)
+
+```
+
+## Sentiment Analysis
+
+Using the Bing sentiment lexicon to get positive/negative sentiment per novel.
+
+```{r}
+#| label: sentiment-overall
+#| echo: true
+#| output: true
+
+# Tokenize and join sentiment
+novel_sentiment <- novel_text %>%
+  filter(!is.na(text)) %>%
+  unnest_tokens(word, text) %>%
+  inner_join(get_sentiments("bing"), by = "word") %>%
+  count(gutenberg_id, sentiment) %>%
+  pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) %>%
+  mutate(net_sentiment = positive - negative) %>%
+  left_join(novels, by = "gutenberg_id")
+
+novel_sentiment %>%
+  select(title, positive, negative, net_sentiment) %>%
+  arrange(desc(net_sentiment)) %>%
+  head(10)
+
+```
+
+## Sentiment Arcs
+
+How does sentiment change across each novel's progression? We'll divide each novel into 10 equal sections and track the sentiment trajectory.
+
+```{r}
+#| label: sentiment-arcs
+#| echo: true
+#| output: true
+
+# Add line numbers within each novel for position tracking
+sentiment_arcs <- novel_text %>%
+  filter(!is.na(text)) %>%
+  group_by(gutenberg_id) %>%
+  mutate(line_num = row_number(),
+         total_lines = n(),
+         section = ceiling(line_num / total_lines * 10)) %>%
+  ungroup() %>%
+  unnest_tokens(word, text) %>%
+  inner_join(get_sentiments("bing"), by = "word") %>%
+  count(gutenberg_id, section, sentiment) %>%
+  pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) %>%
+  mutate(net_sentiment = positive - negative) %>%
+  left_join(novels, by = "gutenberg_id")
+
+```
+## Visualizing Christmas Sentiment
+
+The hero plot shows sentiment arcs for the top novels, styled with a festive holiday palette.
+
+```{r}
+#| label: viz-sentiment-arcs
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+# Holiday palette
+holiday_cols <- c(
+  "#C41E3A",  # christmas red
+  "#1B4332",  # evergreen
+  "#D4AF37",  # gold
+  "#8B0000",  # dark red
+  "#228B22",  # forest green
+  "#B8860B"   # dark gold
+)
+
+# Pick the top 6 novels by total text volume
+top_novel_ids <- novel_text %>%
+  filter(!is.na(text)) %>%
+  count(gutenberg_id, sort = TRUE) %>%
+  head(6) %>%
+  pull(gutenberg_id)
+
+arc_data <- sentiment_arcs %>%
+  filter(gutenberg_id %in% top_novel_ids) %>%
+  mutate(
+    short_title = str_trunc(title, 35)
+  )
+
+ggplot(arc_data, aes(x = section, y = net_sentiment, color = short_title)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50", linewidth = 0.5) +
+  scale_color_manual(values = holiday_cols, name = NULL) +
+  scale_x_continuous(breaks = 1:10, labels = paste0(seq(10, 100, 10), "%")) +
+  facet_wrap(~short_title, ncol = 2, scales = "free_y") +
+  labs(
+    title = "The Emotional Arc of Christmas Fiction",
+    subtitle = "Net sentiment (positive \u2212 negative words) across 10 equal sections of each novel",
+    x = "Novel Progression",
+    y = "Net Sentiment",
+    caption = "Source: TidyTuesday 2025-12-30 | Project Gutenberg via gutenbergr"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, color = "#C41E3A"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    legend.position = "none",
+    strip.text = element_text(face = "bold", size = 10),
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+# Final thoughts and takeaways
+
+The text analysis of Christmas novels from Project Gutenberg reveals some delightful patterns. First, the "spirit vs. santa" question has a clear winner: **spirit** dominates overwhelmingly. This makes sense when you consider the era these novels were written — most are Victorian or early 20th century, when the "Christmas spirit" as a moral and philosophical concept was far more central to the genre than Santa Claus as a character.
+
+The sentiment arcs are particularly revealing. Many of these novels follow a recognizable emotional pattern: they begin with relatively neutral or mixed sentiment, dip into darker territory in the middle (the protagonist's hardship or moral failing), and then rise toward a positive resolution — the classic redemptive arc that Dickens popularized with *A Christmas Carol*.
+
+::: {.callout-note}
+Bag-of-words sentiment analysis with the Bing lexicon is a blunt instrument. It catches broad emotional contours but misses irony, sarcasm, and context-dependent meaning. A sentence like "the cold, dark night gave way to warm, generous light" would score as mixed, despite being entirely positive in narrative context. More sophisticated approaches like sentence-level transformers would capture these nuances better.
+:::

@@ -1,0 +1,438 @@
+---
+title: "Where the Federal Workforce Lives"
+author: "Sean Thimons"
+date: "2025-03-10"
+description: "Mapping which counties have the highest share of federal employees using ACS 1-year estimates"
+categories: [R, census, geospatial, federal-workforce]
+image: hero.png
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    code-fold: true
+    code-tools: true
+---
+
+```{=html}
+<style>
+  /* Chemist's Bench: Mineral Earth (warm, grounded, ancient) */
+  /* Iron oxides, ochres, sienna, umber — 40,000 years of pigment */
+
+  /* --- CSS Custom Properties --- */
+  #quarto-document-content {
+    --cb-primary:     #8B4513;
+    --cb-secondary:   #CC7722;
+    --cb-accent:      #722F37;
+    --cb-background:  #FAF8F5;
+    --cb-surface:     #F5F0E6;
+    --cb-text:        #3D2914;
+    --cb-text-muted:  #7A6855;
+    --cb-heading:     #8B4513;
+    --cb-link:        #8B4513;
+    --cb-link-hover:  #CC7722;
+    --cb-code-bg:     #3D2914;
+    --cb-code-text:   #F5DEB3;
+    --cb-border:      #D4C4A8;
+    --cb-gradient:    linear-gradient(135deg, #CC7722, #8B4513, #6F4E37);
+  }
+
+  /* === ARTICLE BODY === */
+  #quarto-document-content {
+    background-color: var(--cb-background);
+    color: var(--cb-text);
+  }
+
+  /* Headings — override global $headings-color */
+  #quarto-document-content h1,
+  #quarto-document-content h2,
+  #quarto-document-content h3,
+  #quarto-document-content h4,
+  #quarto-document-content h5,
+  #quarto-document-content h6 {
+    color: var(--cb-heading);
+  }
+
+  /* Links */
+  #quarto-document-content a {
+    color: var(--cb-link);
+  }
+  #quarto-document-content a:hover {
+    color: var(--cb-link-hover);
+  }
+
+  /* Muted text */
+  #quarto-document-content .text-muted,
+  #quarto-document-content .subtitle,
+  #quarto-document-content figcaption {
+    color: var(--cb-text-muted);
+  }
+
+  /* Code blocks */
+  #quarto-document-content pre,
+  #quarto-document-content div.sourceCode {
+    background-color: var(--cb-code-bg);
+    border: 1px solid var(--cb-border);
+  }
+  #quarto-document-content code {
+    color: var(--cb-code-text);
+  }
+  #quarto-document-content pre > code.sourceCode {
+    background-color: transparent;
+  }
+
+  /* Callouts */
+  #quarto-document-content .callout {
+    border-left-color: var(--cb-accent);
+    background-color: var(--cb-surface);
+    color: var(--cb-text);
+  }
+
+  /* Blockquotes */
+  #quarto-document-content blockquote {
+    border-left-color: var(--cb-accent);
+    color: var(--cb-text-muted);
+  }
+
+  /* Tables */
+  #quarto-document-content table {
+    border-color: var(--cb-border);
+  }
+  #quarto-document-content th {
+    background-color: var(--cb-surface);
+    color: var(--cb-heading);
+    border-color: var(--cb-border);
+  }
+  #quarto-document-content td {
+    border-color: var(--cb-border);
+  }
+
+  /* Horizontal rules */
+  #quarto-document-content hr {
+    border-color: var(--cb-border);
+  }
+
+  /* Title block */
+  .quarto-title-block {
+    border-top: 4px solid var(--cb-primary);
+    padding-top: 0.5rem;
+  }
+  #quarto-document-content .quarto-title {
+    color: var(--cb-heading);
+  }
+  #quarto-document-content .description {
+    color: var(--cb-text-muted);
+  }
+
+  /* Category badges */
+  .quarto-title-block .quarto-category {
+    background-color: var(--cb-surface);
+    color: var(--cb-primary);
+    border-color: var(--cb-border);
+  }
+</style>
+```
+
+# Preface
+
+Where do federal government employees (excluding military personnel and USPS workers) make up the largest share of the 18+ labor force? Using the American Community Survey 1-year estimates for 2023, I pulled county-level data on federal employment and mapped the results.
+
+The ACS variables used:
+
+- **B01003_001**: Total population
+- **B24080_009**: Male federal government workers (civilian)
+- **B24080_019**: Female federal government workers (civilian)
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Use Posit Package Manager for pre-built Linux binaries
+  if (Sys.info()[["sysname"]] == "Linux") {
+    distro <- system("lsb_release -cs", intern = TRUE)
+    options(repos = c(CRAN = paste0(
+      "https://packagemanager.posit.co/cran/__linux__/", distro, "/latest"
+    )))
+  }
+
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',
+    'ggtext',
+    'ggrepel',
+    'gghighlight',
+    'ggforce',
+    'geomtextpath',
+
+    ### Geospatial ----
+    'tidycensus',
+    'tigris',
+    'sf',
+
+    ### Table ----
+    'ggpubr',
+    'patchwork'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load data from ACS
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+#| cache: true
+
+raw <-
+  get_acs(
+    geography = "county",
+    variables = c("B01003_001", "B24080_009", "B24080_019"),
+    year = 2023,
+    survey = "acs1",
+    output = "wide",
+    geometry = FALSE
+  )
+
+states <- tigris::states(year = 2023, cb = TRUE) %>%
+  filter(STUSPS %in% state.abb) %>%
+  shift_geometry()
+
+counties <- tigris::counties(year = 2023, cb = TRUE) %>%
+  filter(STATEFP %in% states$STATEFP) %>%
+  shift_geometry()
+```
+
+# Exploratory Data Analysis
+
+## Dataset Structure
+
+```{r}
+#| label: eda-structure
+#| echo: true
+
+cleaned <- raw %>%
+  group_by(GEOID) %>%
+  summarize(
+    percentage = sum(B24080_009E, B24080_019E) / B01003_001E,
+    pop_fed = sum(B24080_009E, B24080_019E),
+    total = B01003_001E
+  )
+
+cat("Counties with ACS 1-yr data:", nrow(cleaned), "\n")
+cat("Counties with federal employees:", sum(cleaned$pop_fed > 0, na.rm = TRUE), "\n")
+cat("Total federal employees captured:", scales::comma(sum(cleaned$pop_fed, na.rm = TRUE)), "\n")
+
+my_skim(cleaned %>% select(percentage, pop_fed, total))
+```
+
+::: {.callout-note}
+## ACS 1-Year Coverage
+
+The ACS 1-year estimates only cover geographies with populations of 65,000+. This means smaller rural counties — some of which host significant federal installations — are excluded. The map will show gaps where data isn't available, not where federal employees don't exist.
+:::
+
+## Top Counties by Federal Workforce Share
+
+```{r}
+#| label: eda-top-counties
+#| echo: true
+
+cleaned_geo <- counties %>%
+  left_join(cleaned, join_by(GEOID))
+
+cleaned_geo %>%
+  sf::st_drop_geometry() %>%
+  select(STATE_NAME, NAME, percentage, pop_fed, total) %>%
+  filter(!is.na(percentage)) %>%
+  arrange(desc(percentage)) %>%
+  head(15) %>%
+  mutate(percentage = scales::percent(percentage, accuracy = 0.1)) %>%
+  knitr::kable(
+    col.names = c("State", "County", "Fed %", "Fed Employees", "Total Pop"),
+    format.args = list(big.mark = ",")
+  )
+```
+
+## Top States by Federal Workforce Share
+
+```{r}
+#| label: eda-top-states
+#| echo: true
+
+cleaned_geo %>%
+  sf::st_drop_geometry() %>%
+  filter(!is.na(percentage)) %>%
+  group_by(STATE_NAME) %>%
+  summarize(
+    st_percent = sum(pop_fed, na.rm = TRUE) / sum(total, na.rm = TRUE),
+    total_fed = sum(pop_fed, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(st_percent)) %>%
+  head(10) %>%
+  mutate(st_percent = scales::percent(st_percent, accuracy = 0.1)) %>%
+  knitr::kable(
+    col.names = c("State", "Fed %", "Total Fed Employees"),
+    format.args = list(big.mark = ",")
+  )
+```
+
+::: {.callout-important}
+## The Beltway Effect
+
+The D.C. metro area dominates, but the geographic spread beyond that tells the more interesting story — military-adjacent counties, land management hubs, and research corridors all show elevated federal presence. The federal workforce isn't just a Beltway phenomenon.
+:::
+
+# Visualization
+
+```{r}
+#| label: viz-fed-map
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 8
+
+hero <- ggplot() +
+  geom_sf(
+    data = counties,
+    fill = "grey95",
+    color = "grey80",
+    linewidth = 0.1
+  ) +
+  geom_sf(
+    data = cleaned_geo,
+    mapping = aes(fill = percentage),
+    color = NA
+  ) +
+  geom_sf(
+    data = states,
+    fill = NA,
+    color = "grey40",
+    linewidth = 0.3
+  ) +
+  scale_fill_viridis_b(
+    name = NULL,
+    option = 'magma',
+    na.value = "white",
+    n.breaks = 6,
+    direction = -1,
+    labels = scales::label_percent()
+  ) +
+  labs(
+    title = "Federal Civilian Employees as Share of County Population",
+    subtitle = "ACS 1-Year Estimates, 2023 | Excludes military and USPS",
+    caption = "Data: U.S. Census Bureau ACS 2023 (B01003, B24080) | Geometry: {tigris}"
+  ) +
+  theme_void(base_size = 13, base_family = "sans") +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, margin = margin(b = 5)),
+    plot.subtitle = element_text(size = 13, color = "gray30", margin = margin(b = 15)),
+    plot.caption = element_text(color = "gray50", hjust = 0, margin = margin(t = 10)),
+    legend.position = "bottom",
+    legend.key.width = unit(2, "cm"),
+    plot.margin = margin(15, 15, 15, 15)
+  )
+```
+
+```{r}
+#| label: save-hero
+#| echo: false
+#| output: false
+
+ggsave(
+  here::here("posts", "2025-03-10-where-the-federal-workforce-lives", "hero.png"),
+  plot = hero,
+  width = 12, height = 10, units = "in", dpi = 320,
+  bg = "white"
+)
+
+```
+
+![](hero.png)
+
+## Interpretation
+
+The map reveals a few distinct clusters of federal employment:
+
+**The Beltway corridor** — counties surrounding Washington, D.C. predictably show the highest concentrations. This is the administrative core of the federal government.
+
+**Military-adjacent communities** — counties near major bases and installations show elevated federal civilian employment. These workers support defense infrastructure without being uniformed military themselves.
+
+**Land management and research hubs** — western counties with large BLM, Forest Service, or DOE facilities show up as pockets of federal presence in otherwise low-density areas.
+
+**State capitals and regional offices** — scattered mid-range counties often correspond to federal regional offices, courthouses, and agency field stations.
+
+# Final thoughts
+
+The ACS 1-year limitation to counties with 65,000+ population means this map underrepresents the federal footprint in rural America — exactly the places where a single federal facility can be the dominant employer. The 5-year estimates would fill in those gaps at the cost of temporal precision.
+
+The geographic distribution of federal civilian workers tells a story about where the government actually *operates*, not just where it makes policy. The Beltway gets the attention, but the federal workforce extends into every corner of the country through land management, defense support, research, and regional administration.

@@ -1,0 +1,308 @@
+---
+title: "Tidy Tuesday: Languages of Africa"
+author: "Sean Thimons"
+date: "2026-01-13"
+description: "Mapping the linguistic diversity of Africa — which language families dominate, which countries are most multilingual, and how many speakers do they represent?"
+categories: [tidytuesday, R, linguistics, africa]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-01-13/readme.md).
+
+> This dataset explores popular languages spoken across the African continent, sourced from the Wikipedia page "Languages of Africa." The collection captures linguistic diversity with estimates of between 1,250 and 3,000+ languages natively spoken in Africa, depending on how language versus dialect distinctions are made.
+>
+> -   Which African country has the largest number of spoken languages?
+> -   Which language family demonstrates the highest speaker density?
+> -   Do any languages span multiple countries?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  if (file.exists('packages.txt')) {
+    packages <- read.table('packages.txt')
+    install_booster_pack(package = packages$Package, load = FALSE)
+    rm(packages)
+  } else {
+    booster_pack <- c(
+      ### IO ----
+      'fs',
+      'here',
+      'janitor',
+      'rio',
+      'tidyverse',
+
+      ### EDA ----
+      'skimr',
+
+      ### Plot ----
+      'ggrepel',
+      'ggtext',
+      'scales',
+
+      ### Misc ----
+      'tidytuesdayR'
+    )
+
+    install_booster_pack(package = booster_pack, load = TRUE)
+    rm(install_booster_pack, booster_pack)
+  }
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-01-13')
+
+africa <- raw$africa
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## African Languages
+
+```{r}
+#| label: eda-africa
+#| echo: true
+#| output: true
+
+africa %>%
+  my_skim(.)
+
+```
+
+```{r}
+#| label: eda-families
+#| echo: true
+#| output: true
+
+africa %>%
+  count(family, sort = TRUE)
+
+africa %>%
+  count(country, sort = TRUE) %>%
+  head(15)
+
+```
+
+# Linguistic Diversity Analysis
+
+## Most Multilingual Countries
+
+Which countries host the largest number of distinct languages in this dataset?
+
+```{r}
+#| label: multilingual-countries
+#| echo: true
+#| output: true
+
+country_diversity <- africa %>%
+  group_by(country) %>%
+  summarize(
+    n_languages = n_distinct(language),
+    n_families = n_distinct(family),
+    total_speakers = sum(native_speakers, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(n_languages))
+
+country_diversity %>% head(15)
+
+```
+
+## Language Families by Speaker Count
+
+Which language families have the most total native speakers?
+
+```{r}
+#| label: family-speakers
+#| echo: true
+#| output: true
+
+family_stats <- africa %>%
+  group_by(family) %>%
+  summarize(
+    n_languages = n_distinct(language),
+    total_speakers = sum(native_speakers, na.rm = TRUE),
+    median_speakers = median(native_speakers, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_speakers))
+
+family_stats
+
+```
+
+## Cross-Border Languages
+
+Do any languages span multiple countries?
+
+```{r}
+#| label: cross-border
+#| echo: true
+#| output: true
+
+cross_border <- africa %>%
+  group_by(language) %>%
+  summarize(
+    n_countries = n_distinct(country),
+    countries = paste(unique(country), collapse = ", "),
+    total_speakers = sum(native_speakers, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(n_countries > 1) %>%
+  arrange(desc(n_countries))
+
+cross_border
+
+```
+## Visualizing Linguistic Diversity
+
+The hero plot shows the top languages by native speakers, colored by language family, with annotations for cross-border languages.
+
+```{r}
+#| label: viz-languages
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+# Warm, earthy African-inspired palette for language families
+family_cols <- c(
+  "#D4A373",  # warm sand
+  "#588157",  # savanna green
+  "#BC6C25",  # terracotta
+  "#344E41",  # deep forest
+  "#DDA15E",  # golden
+  "#606C38",  # olive
+  "#9B2226",  # deep red
+  "#005F73",  # teal
+  "#AE2012",  # rust
+  "#CA6702"   # amber
+)
+
+# Get top 20 languages by native speakers
+top_langs <- africa %>%
+  group_by(language, family) %>%
+  summarize(
+    total_speakers = sum(native_speakers, na.rm = TRUE),
+    n_countries = n_distinct(country),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_speakers)) %>%
+  head(20)
+
+# Mark cross-border languages
+top_langs <- top_langs %>%
+  mutate(cross_border = ifelse(n_countries > 1, paste0(n_countries, " countries"), ""))
+
+ggplot(top_langs, aes(x = reorder(language, total_speakers), y = total_speakers, fill = family)) +
+  geom_col(width = 0.7) +
+  geom_text(
+    aes(label = ifelse(cross_border != "",
+                       paste0(scales::comma(total_speakers), "\n(", cross_border, ")"),
+                       scales::comma(total_speakers))),
+    hjust = -0.05,
+    size = 3.2,
+    lineheight = 0.85
+  ) +
+  scale_y_continuous(
+    labels = scales::label_number(scale_cut = scales::cut_short_scale()),
+    expand = expansion(mult = c(0, 0.25))
+  ) +
+  scale_fill_manual(values = family_cols, name = "Language Family") +
+  coord_flip() +
+  labs(
+    title = "Most Spoken Languages of Africa",
+    subtitle = "Top 20 languages by native speakers, with cross-border reach annotated",
+    x = NULL,
+    y = "Native Speakers",
+    caption = "Source: TidyTuesday 2026-01-13 | Wikipedia Languages of Africa"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, color = "#344E41"),
+    plot.subtitle = element_text(size = 12, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    legend.position = "bottom",
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  guides(fill = guide_legend(nrow = 2))
+
+```
+
+# Final thoughts and takeaways
+
+Africa is the most linguistically diverse continent on Earth, and this dataset — even as a curated subset of the most popular languages — showcases that richness. The dominance of the Niger-Congo and Afro-Asiatic families in terms of both language count and total speakers reflects deep historical patterns of migration and cultural development across the continent.
+
+The cross-border language data is particularly revealing. Languages like Arabic, Swahili, and Hausa don't respect national boundaries drawn by colonial powers in the 19th and 20th centuries. These lingua francas serve as vital connectors for trade, culture, and communication across regions where dozens of local languages coexist.
+
+::: {.callout-note}
+This dataset captures only "popular" languages — the full linguistic picture of Africa is far richer. Many languages with fewer speakers are endangered, and the ongoing tension between lingua francas (which enable economic participation) and local languages (which carry cultural heritage) is one of the defining sociolinguistic challenges of the continent.
+:::

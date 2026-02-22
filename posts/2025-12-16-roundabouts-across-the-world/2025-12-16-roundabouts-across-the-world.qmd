@@ -1,0 +1,332 @@
+---
+title: "Tidy Tuesday: Roundabouts Across the World"
+author: "Sean Thimons"
+date: "2025-12-16"
+description: "Exploring the global spread of roundabouts — how has construction evolved over time, which countries lead adoption, and what types of intersections are being replaced?"
+categories: [tidytuesday, R, infrastructure, geography]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-12-16/readme.md).
+
+> This dataset comes from the `{roundabouts}` R package by Emil Hvitfeldt, which accesses the Kittelson & Associates roundabouts database. The database includes over 20,000 records documenting roundabout locations, configurations, and construction details worldwide.
+>
+> -   How has roundabout construction evolved over time, and are certain regions adopting them faster than others?
+> -   What intersection types are most commonly converted to roundabouts?
+> -   Which roundabouts feature the most unusual configurations?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  if (file.exists('packages.txt')) {
+    packages <- read.table('packages.txt')
+    install_booster_pack(package = packages$Package, load = FALSE)
+    rm(packages)
+  } else {
+    booster_pack <- c(
+      ### IO ----
+      'fs',
+      'here',
+      'janitor',
+      'rio',
+      'tidyverse',
+
+      ### EDA ----
+      'skimr',
+
+      ### Plot ----
+      'ggrepel',
+      'ggtext',
+      'scales',
+
+      ### Misc ----
+      'tidytuesdayR'
+    )
+
+    install_booster_pack(package = booster_pack, load = TRUE)
+    rm(install_booster_pack, booster_pack)
+  }
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-12-16')
+
+roundabouts <- raw$roundabouts_clean
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Roundabouts
+
+```{r}
+#| label: eda-roundabouts
+#| echo: true
+#| output: true
+
+roundabouts %>%
+  my_skim(.)
+
+```
+
+```{r}
+#| label: eda-counts
+#| echo: true
+#| output: true
+
+roundabouts %>%
+  count(country, sort = TRUE) %>%
+  head(15)
+
+roundabouts %>%
+  count(type, sort = TRUE)
+
+roundabouts %>%
+  count(status, sort = TRUE)
+
+roundabouts %>%
+  count(previous_control_type, sort = TRUE) %>%
+  head(10)
+
+```
+
+# Roundabout Adoption Over Time
+
+## Construction Timeline
+
+How has roundabout construction evolved over the decades?
+
+```{r}
+#| label: construction-timeline
+#| echo: true
+#| output: true
+
+yearly_builds <- roundabouts %>%
+  filter(!is.na(year_completed), year_completed >= 1950, year_completed <= 2025) %>%
+  count(year_completed, name = "n_built")
+
+yearly_builds %>%
+  arrange(desc(n_built)) %>%
+  head(10)
+
+```
+
+## Top Countries Over Time
+
+Which countries have been building the most roundabouts, and how does their adoption curve differ?
+
+```{r}
+#| label: country-adoption
+#| echo: true
+#| output: true
+
+top_countries <- roundabouts %>%
+  count(country, sort = TRUE) %>%
+  head(6) %>%
+  pull(country)
+
+country_timeline <- roundabouts %>%
+  filter(
+    country %in% top_countries,
+    !is.na(year_completed),
+    year_completed >= 1990,
+    year_completed <= 2025
+  ) %>%
+  count(country, year_completed, name = "n_built") %>%
+  group_by(country) %>%
+  mutate(cumulative = cumsum(n_built)) %>%
+  ungroup()
+
+country_timeline %>%
+  group_by(country) %>%
+  slice_max(year_completed, n = 1) %>%
+  arrange(desc(cumulative))
+
+```
+
+## What Gets Replaced?
+
+What types of intersections are most commonly converted to roundabouts?
+
+```{r}
+#| label: previous-control
+#| echo: true
+#| output: true
+
+conversions <- roundabouts %>%
+  filter(!is.na(previous_control_type), previous_control_type != "unknown") %>%
+  count(previous_control_type, sort = TRUE) %>%
+  mutate(pct = n / sum(n))
+
+conversions
+
+```
+## Visualizing the Rise of the Roundabout
+
+```{r}
+#| label: viz-timeline
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+# Infrastructure-inspired palette
+country_cols <- c(
+  "#264653",  # deep teal
+  "#2A9D8F",  # muted teal
+  "#E9C46A",  # warm yellow
+  "#F4A261",  # sandy orange
+  "#E76F51",  # burnt sienna
+  "#6A4C93"   # muted purple
+)
+
+ggplot(country_timeline, aes(x = year_completed, y = cumulative, color = country)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(
+    data = country_timeline %>%
+      group_by(country) %>%
+      slice_max(year_completed, n = 1),
+    size = 2.5
+  ) +
+  geom_text_repel(
+    data = country_timeline %>%
+      group_by(country) %>%
+      slice_max(year_completed, n = 1),
+    aes(label = country),
+    nudge_x = 1,
+    size = 3.8,
+    fontface = "bold",
+    direction = "y",
+    segment.color = "#AAAAAA"
+  ) +
+  scale_x_continuous(breaks = seq(1990, 2025, 5)) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_color_manual(values = country_cols) +
+  labs(
+    title = "The Rise of the Roundabout",
+    subtitle = "Cumulative roundabout construction in the top 6 countries (1990–2025)",
+    x = "Year Completed",
+    y = "Cumulative Roundabouts Built",
+    caption = "Source: TidyTuesday 2025-12-16 | Kittelson & Associates via {roundabouts}"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, color = "#1B1B1B"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    legend.position = "none",
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+```{r}
+#| label: viz-conversions
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 6
+
+conversions_plot <- conversions %>%
+  filter(n >= 10) %>%
+  mutate(previous_control_type = fct_reorder(previous_control_type, n))
+
+ggplot(conversions_plot, aes(x = previous_control_type, y = n)) +
+  geom_col(fill = "#2A9D8F", width = 0.7) +
+  geom_text(aes(label = scales::comma(n)), hjust = -0.1, size = 3.5, color = "#333333") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  coord_flip() +
+  labs(
+    title = "What Did Roundabouts Replace?",
+    subtitle = "Previous intersection control type before roundabout conversion",
+    x = NULL,
+    y = "Number of Roundabouts",
+    caption = "Source: TidyTuesday 2025-12-16 | Kittelson & Associates"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17, color = "#1B1B1B"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+# Final thoughts and takeaways
+
+The global adoption of roundabouts tells a fascinating story of traffic engineering evolution. The United States — long a holdout in the roundabout revolution — has undergone a dramatic shift, with construction accelerating sharply from the mid-2000s onward. This tracks with mounting safety research showing roundabouts reduce fatal and injury crashes by 78-82% compared to traditional signalized intersections.
+
+The "what did they replace?" analysis reveals that stop signs and traffic signals are the most common predecessors, suggesting that planners are targeting existing problem intersections rather than building roundabouts into greenfield developments. This is a retrofit story — cities learning from crash data and choosing a safer geometry.
+
+::: {.callout-note}
+The Kittelson database, while extensive, has known biases in its coverage. English-speaking countries are overrepresented relative to continental Europe, where roundabouts have been commonplace for decades. France alone has an estimated 30,000+ roundabouts — far more than appear in this database.
+:::

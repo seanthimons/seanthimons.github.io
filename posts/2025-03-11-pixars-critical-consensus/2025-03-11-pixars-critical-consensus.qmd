@@ -1,0 +1,467 @@
+---
+title: "Tidy Tuesday: Pixar's Critical Consensus"
+author: "Sean Thimons"
+date: "2025-03-11"
+description: "Exploring how different rating systems evaluate Pixar's 27-film catalog, from Toy Story to Elemental"
+categories: [tidytuesday, R, film-analysis, data-visualization]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/master/data/2025/2025-03-11).
+
+> This week's data explores Pixar films and public reception. The datasets come from the {pixarfilms} R package by Eric Leung, which provides information about Pixar's film catalog, including production details and critical/audience scores.
+>
+> **Suggested Questions:**
+> 1. Why are certain values missing across datasets?
+> 2. Which films receive the highest scores in each rating system, and do different rating sources diverge significantly?
+> 3. How do box office figures correlate with critical ratings and audience scores?
+> 4. Are there patterns between domestic versus worldwide box office performance and critical reception?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  if (file.exists('packages.txt')) {
+    packages <- read.table('packages.txt')
+
+    install_booster_pack(package = packages$Package, load = FALSE)
+
+    rm(packages)
+  } else {
+    ## Packages ----
+
+    booster_pack <- c(
+      ### IO ----
+      'fs',
+      'here',
+      'janitor',
+      'rio',
+      'tidyverse',
+
+      ### EDA ----
+      'skimr',
+
+      ### Plot ----
+      'paletteer',         # Color palette collection
+      'patchwork',         # Multi-panel layouts
+      'ggtext',            # Rich text in ggplot
+      'ggrepel',           # Non-overlapping labels
+
+      ### Misc ----
+      'tidytuesdayR'
+    )
+
+    # ! Change load flag to load packages
+    install_booster_pack(package = booster_pack, load = TRUE)
+    rm(install_booster_pack, booster_pack)
+  }
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-03-11')
+
+pixar_films <- raw$pixar_films
+public_response <- raw$public_response
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Pixar Films Dataset
+
+```{r}
+#| label: eda-pixar-films
+#| echo: true
+#| output: true
+
+my_skim(pixar_films)
+
+```
+
+The `pixar_films` dataset contains 27 films spanning from 1995 (Toy Story) to 2023 (Elemental). Runtime is remarkably consistent — the median runtime is 100 minutes with most films falling between 95-106 minutes. Only two films are missing runtime data. Most films are rated G or PG, with a handful rated "Not Rated" or showing "N/A" (likely for recent releases where ratings weren't finalized at data collection time).
+
+One film title is missing entirely, which we'll need to investigate when joining with the public response data.
+
+## Public Response Dataset
+
+```{r}
+#| label: eda-public-response
+#| echo: true
+#| output: true
+
+public_response %>%
+  select(-film, -cinema_score) %>%
+  my_skim()
+
+```
+
+The `public_response` dataset contains critical scores from three professional rating aggregators: Rotten Tomatoes, Metacritic, and Critics' Choice Awards. All three show Pixar films performing exceptionally well:
+
+- **Rotten Tomatoes**: Mean of 89.2, with most films in the 84-97.5 range
+- **Metacritic**: Mean of 80.0, slightly more critical with a 71-90 range
+- **Critics' Choice**: Mean of 87.1, most consistent with a tight 81-93 range
+
+The `cinema_score` variable contains audience grades (all A+, A, or A-), reflecting strong public reception across the board.
+
+::: {.callout-note}
+## Missing Data Patterns
+
+The public response dataset contains 24 films compared to 27 in the production data. Additionally, one film in each dataset is missing a Rotten Tomatoes score, one is missing a Metacritic score, and three are missing Critics' Choice scores. This likely reflects:
+
+1. **Recent releases** — Turning Red (2022) and Lightyear (2022) may have been excluded from critical aggregation due to direct-to-streaming releases or data collection timing
+2. **Incomplete critical coverage** — Some films didn't receive Critics' Choice Awards consideration in their release year
+:::
+
+## Data Integration
+
+Let's join the two datasets and create some useful derived variables:
+
+```{r}
+#| label: data-join
+#| echo: true
+
+pixar_combined <- pixar_films %>%
+  left_join(public_response, by = 'film') %>%
+  mutate(
+    year = lubridate::year(release_date),
+    decade = paste0(floor(year / 10) * 10, 's'),
+    # Flag franchise films
+    is_cars = str_detect(film, "^Cars"),
+    is_toy_story = str_detect(film, "^Toy Story"),
+    is_finding = str_detect(film, "^Finding"),
+    is_incredibles = str_detect(film, "^The Incredibles"),
+    # Categorize as franchise or standalone
+    franchise = case_when(
+      is_cars ~ "Cars",
+      is_toy_story ~ "Toy Story",
+      is_finding ~ "Finding Nemo/Dory",
+      is_incredibles ~ "The Incredibles",
+      TRUE ~ "Standalone"
+    )
+  )
+
+# Quick check on missing films
+cat("Films missing from public_response data:\n")
+pixar_combined %>%
+  filter(is.na(rotten_tomatoes) & is.na(metacritic)) %>%
+  select(film, release_date) %>%
+  print()
+
+```
+
+# Rating System Convergence Analysis
+
+Now we can address one of the core questions: **Do different rating sources diverge significantly in their evaluation of Pixar films?**
+
+## Correlation Between Rating Systems
+
+```{r}
+#| label: rating-correlation
+#| echo: true
+
+cor_matrix <- pixar_combined %>%
+  select(rotten_tomatoes, metacritic, critics_choice) %>%
+  cor(use = 'pairwise.complete.obs')
+
+cat("Correlation matrix:\n")
+print(round(cor_matrix, 3))
+
+```
+
+The three rating systems show **strong positive correlation** (r = 0.80-0.87), indicating substantial agreement on which Pixar films are exceptional and which fall short. However, the correlations aren't perfect, suggesting some interesting divergences worth exploring.
+
+## Variance Across Rating Systems
+
+```{r}
+#| label: rating-variance
+#| echo: true
+
+pixar_combined %>%
+  select(film, rotten_tomatoes, metacritic, critics_choice) %>%
+  filter(!is.na(rotten_tomatoes)) %>%
+  pivot_longer(cols = c(rotten_tomatoes, metacritic, critics_choice),
+               names_to = 'source', values_to = 'score') %>%
+  filter(!is.na(score)) %>%
+  group_by(source) %>%
+  summarise(
+    mean = round(mean(score), 1),
+    sd = round(sd(score), 1),
+    min = min(score),
+    max = max(score),
+    range = max - min
+  ) %>%
+  arrange(desc(range))
+
+```
+
+::: {.callout-important}
+## Rating System Characteristics
+
+- **Rotten Tomatoes** has the widest range (60 points from 40 to 100), making it the most discriminating system for Pixar films
+- **Metacritic** occupies the middle ground with a 39-point range and lowest mean (80.0), suggesting slightly more critical standards
+- **Critics' Choice** shows the tightest distribution (34-point range), rarely deviating far from its 87.1 mean — the most "generous" or consistent rating source
+:::
+
+## Best and Worst Performers
+
+```{r}
+#| label: extremes
+#| echo: true
+
+cat("Top 3 films by Rotten Tomatoes:\n")
+pixar_combined %>%
+  filter(!is.na(rotten_tomatoes)) %>%
+  select(film, year, rotten_tomatoes) %>%
+  arrange(desc(rotten_tomatoes)) %>%
+  head(3) %>%
+  print()
+
+cat("\nBottom 3 films by Rotten Tomatoes:\n")
+pixar_combined %>%
+  filter(!is.na(rotten_tomatoes)) %>%
+  select(film, year, rotten_tomatoes) %>%
+  arrange(rotten_tomatoes) %>%
+  head(3) %>%
+  print()
+
+```
+
+The **Toy Story** franchise and **Finding Nemo** dominate the top spots, while the **Cars** franchise occupies all three bottom positions. This pattern holds across rating systems — the Cars films consistently underperform relative to Pixar's overall critical standing.
+
+# Visualization: Rating System Agreement
+
+Now let's visualize how the three rating systems compare. I'll create a scatter plot matrix showing pairwise comparisons, with films color-coded by franchise and labeled for outliers.
+
+```{r}
+#| label: hero-viz-rating-agreement
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 8
+
+# Prepare data for plotting
+plot_data <- pixar_combined %>%
+  filter(!is.na(rotten_tomatoes) | !is.na(metacritic) | !is.na(critics_choice)) %>%
+  select(film, year, franchise, rotten_tomatoes, metacritic, critics_choice) %>%
+  mutate(
+    # Label only outliers and top performers
+    label = case_when(
+      franchise == "Cars" ~ film,
+      film %in% c("Toy Story", "Toy Story 2", "WALL-E", "Ratatouille",
+                  "Finding Nemo", "Inside Out") ~ film,
+      TRUE ~ ""
+    ),
+    # Color by franchise
+    franchise_color = case_when(
+      franchise == "Cars" ~ "Cars",
+      franchise == "Toy Story" ~ "Toy Story",
+      franchise %in% c("Finding Nemo/Dory", "The Incredibles") ~ "Other Franchise",
+      TRUE ~ "Standalone"
+    )
+  )
+
+# Create three scatter plots
+p1 <- plot_data %>%
+  ggplot(aes(x = rotten_tomatoes, y = metacritic)) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed",
+              color = "gray50", linewidth = 0.5, alpha = 0.6) +
+  geom_point(aes(color = franchise_color), size = 3, alpha = 0.8) +
+  geom_text_repel(aes(label = label, color = franchise_color),
+                  size = 3, max.overlaps = 20,
+                  box.padding = 0.5, force = 2) +
+  scale_color_manual(
+    values = c(
+      "Cars" = "#DC143C",              # Crimson red for underperformers
+      "Toy Story" = "#4169E1",         # Royal blue for top franchise
+      "Other Franchise" = "#32CD32",   # Lime green
+      "Standalone" = "#808080"         # Gray
+    )
+  ) +
+  labs(
+    x = "Rotten Tomatoes Score",
+    y = "Metacritic Score",
+    color = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position = "none",
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 10, 10, 10)
+  )
+
+p2 <- plot_data %>%
+  ggplot(aes(x = rotten_tomatoes, y = critics_choice)) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed",
+              color = "gray50", linewidth = 0.5, alpha = 0.6) +
+  geom_point(aes(color = franchise_color), size = 3, alpha = 0.8) +
+  geom_text_repel(aes(label = label, color = franchise_color),
+                  size = 3, max.overlaps = 20,
+                  box.padding = 0.5, force = 2) +
+  scale_color_manual(
+    values = c(
+      "Cars" = "#DC143C",
+      "Toy Story" = "#4169E1",
+      "Other Franchise" = "#32CD32",
+      "Standalone" = "#808080"
+    )
+  ) +
+  labs(
+    x = "Rotten Tomatoes Score",
+    y = "Critics' Choice Score",
+    color = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position = "none",
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 10, 10, 10)
+  )
+
+p3 <- plot_data %>%
+  ggplot(aes(x = metacritic, y = critics_choice)) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed",
+              color = "gray50", linewidth = 0.5, alpha = 0.6) +
+  geom_point(aes(color = franchise_color), size = 3, alpha = 0.8) +
+  geom_text_repel(aes(label = label, color = franchise_color),
+                  size = 3, max.overlaps = 20,
+                  box.padding = 0.5, force = 2) +
+  scale_color_manual(
+    values = c(
+      "Cars" = "#DC143C",
+      "Toy Story" = "#4169E1",
+      "Other Franchise" = "#32CD32",
+      "Standalone" = "#808080"
+    ),
+    name = NULL
+  ) +
+  labs(
+    x = "Metacritic Score",
+    y = "Critics' Choice Score",
+    color = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position = "bottom",
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 10, 10, 10)
+  )
+
+# Combine with patchwork
+combined_plot <- (p1 | p2 | p3) +
+  plot_annotation(
+    title = "Pixar's Critical Consensus: High Agreement Across Rating Systems",
+    subtitle = "Despite using different methodologies, Rotten Tomatoes, Metacritic, and Critics' Choice converge on Pixar's best and worst films.\nThe Cars franchise consistently underperforms, while Toy Story and early 2000s classics dominate the top tier.",
+    caption = "Data: {pixarfilms} R package | #TidyTuesday 2025-03-11 | Visualization: @seanthimons",
+    theme = theme(
+      plot.title = element_text(size = 16, face = "bold", hjust = 0),
+      plot.subtitle = element_text(size = 11, hjust = 0, margin = margin(b = 15)),
+      plot.caption = element_text(size = 9, hjust = 1, color = "gray50")
+    )
+  )
+
+combined_plot
+
+```
+
+## Interpretation
+
+The scatter plot matrix reveals several key patterns:
+
+1. **Strong diagonal clustering** — Most films fall near the y=x reference line, confirming the high correlation between rating systems
+
+2. **Cars franchise outlier** — Cars 2 (40% on RT, 57 on Metacritic) sits far below the diagonal across all comparisons, representing Pixar's most universally panned film. Cars and Cars 3 fare better but still underperform the Pixar baseline.
+
+3. **Top-tier consensus** — Toy Story 1 & 2, Finding Nemo, WALL-E, Ratatouille, and Inside Out cluster in the upper-right quadrant across all three panels, receiving consistent acclaim regardless of rating methodology.
+
+4. **Metacritic as "tough grader"** — Notice how the Metacritic vs. Critics' Choice panel shows most films *below* the diagonal — Metacritic systematically assigns lower scores than Critics' Choice for the same films.
+
+5. **Rotten Tomatoes variance** — The RT axis shows the widest spread, particularly in the RT vs. Metacritic panel, where films can differ by 20+ points while still maintaining strong correlation.
+
+# Final thoughts and takeaways
+
+This analysis reveals a **critical consensus** around Pixar's filmography that transcends individual rating methodologies. Despite differences in aggregation techniques, sample composition, and scoring scales, Rotten Tomatoes, Metacritic, and Critics' Choice Awards converge remarkably on which Pixar films represent the studio's creative peaks and valleys.
+
+The **Cars franchise** emerges as Pixar's only sustained critical disappointment, occupying the bottom tier across all three rating systems. This pattern likely reflects critics' perception that these films prioritize merchandise appeal over the narrative sophistication and emotional depth that define Pixar's brand. In contrast, the original **Toy Story trilogy** and early-to-mid 2000s classics like **Finding Nemo**, **WALL-E**, and **Ratatouille** achieve near-universal acclaim.
+
+The tight correlation between rating systems (r ≈ 0.80-0.87) suggests that professional critics largely agree on what makes a Pixar film succeed or fail, even when their scoring scales and methodologies differ. **Metacritic's** lower mean scores reflect its weighted-average methodology that privileges "top critics," while **Critics' Choice** shows the least variance, rarely straying from its 87-point baseline. **Rotten Tomatoes**, with its binary fresh/rotten system aggregated into a percentage, exhibits the widest range and serves as the most discriminating metric for this dataset.
+
+::: {.callout-tip}
+## For Further Analysis
+
+This dataset pairs well with box office data (available in the source {pixarfilms} package). Future analyses could explore:
+
+- Do critical scores predict domestic vs. international box office performance?
+- How do sequels compare to original films in both critical reception and commercial success?
+- Has Pixar's critical standing evolved over its three-decade run?
+:::
+
+**Bottom line**: When critics agree, they *really* agree — and they've consistently agreed that Pixar sets the bar for animated storytelling, with one notable four-wheeled exception.

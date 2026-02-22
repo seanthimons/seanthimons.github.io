@@ -1,0 +1,343 @@
+---
+title: "Tidy Tuesday: WHO TB Burden Data"
+author: "Sean Thimons"
+date: "2025-11-11"
+description: "Tracking the global tuberculosis burden through WHO data — which regions carry the heaviest load, how has mortality shifted over time, and what role does HIV co-infection play?"
+categories: [tidytuesday, R, public-health, epidemiology]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-11-11/readme.md).
+
+> Global tuberculosis burden estimates from the World Health Organization, curated via the getTBinR R package. Tuberculosis remains one of the world's deadliest infectious diseases — WHO estimates that 10.6 million people fell ill with TB in 2021, and 1.6 million died from the disease.
+>
+> -   Are there years showing unusual TB metric spikes or drops globally?
+> -   How does TB mortality differ between HIV-positive and HIV-negative populations?
+> -   Which regions demonstrate consistently high TB burden across multiple years?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  if (file.exists('packages.txt')) {
+    packages <- read.table('packages.txt')
+    install_booster_pack(package = packages$Package, load = FALSE)
+    rm(packages)
+  } else {
+    booster_pack <- c(
+      ### IO ----
+      'fs',
+      'here',
+      'janitor',
+      'rio',
+      'tidyverse',
+
+      ### EDA ----
+      'skimr',
+
+      ### Plot ----
+      'ggrepel',
+      'ggtext',
+      'scales',
+
+      ### Misc ----
+      'tidytuesdayR'
+    )
+
+    install_booster_pack(package = booster_pack, load = TRUE)
+    rm(install_booster_pack, booster_pack)
+  }
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-11-11')
+
+tb <- raw$tb_burden
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## TB Burden
+
+```{r}
+#| label: eda-tb
+#| echo: true
+#| output: true
+
+tb %>%
+  my_skim(.)
+
+```
+
+```{r}
+#| label: eda-overview
+#| echo: true
+#| output: true
+
+tb %>%
+  count(g_whoregion, sort = TRUE)
+
+tb %>%
+  summarize(
+    min_year = min(year),
+    max_year = max(year),
+    n_countries = n_distinct(country)
+  )
+
+```
+
+# Regional TB Burden Over Time
+
+## Incidence Trends by WHO Region
+
+```{r}
+#| label: regional-incidence
+#| echo: true
+#| output: true
+
+regional_trend <- tb %>%
+  filter(!is.na(e_inc_100k)) %>%
+  group_by(g_whoregion, year) %>%
+  summarize(
+    median_incidence = median(e_inc_100k, na.rm = TRUE),
+    total_cases = sum(e_inc_num, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+regional_trend %>%
+  filter(year == max(year)) %>%
+  arrange(desc(median_incidence))
+
+```
+
+## HIV-TB Co-infection: Mortality Breakdown
+
+```{r}
+#| label: hiv-tb-mortality
+#| echo: true
+#| output: true
+
+hiv_tb <- tb %>%
+  filter(!is.na(e_mort_tbhiv_100k), !is.na(e_mort_exc_tbhiv_100k)) %>%
+  group_by(g_whoregion, year) %>%
+  summarize(
+    mort_hiv_pos = sum(e_mort_tbhiv_num, na.rm = TRUE),
+    mort_hiv_neg = sum(e_mort_exc_tbhiv_num, na.rm = TRUE),
+    total_mort = sum(e_mort_num, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(pct_hiv = mort_hiv_pos / total_mort)
+
+hiv_tb %>%
+  filter(year == max(year)) %>%
+  arrange(desc(pct_hiv))
+
+```
+
+::: {.callout-important}
+In the African region, HIV-associated TB mortality accounts for a substantial share of all TB deaths — a dual epidemic that demands integrated treatment programs addressing both diseases simultaneously.
+:::
+
+## Top Burden Countries
+
+```{r}
+#| label: top-countries
+#| echo: true
+#| output: true
+
+latest_year <- max(tb$year, na.rm = TRUE)
+
+top_burden <- tb %>%
+  filter(year == latest_year, !is.na(e_inc_num)) %>%
+  arrange(desc(e_inc_num)) %>%
+  head(10) %>%
+  select(country, g_whoregion, e_inc_num, e_inc_100k, e_mort_100k, c_cdr)
+
+top_burden
+
+```
+## Visualizing the Global TB Burden
+
+```{r}
+#| label: viz-regional-trend
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+# Public health palette — clinical but human
+region_cols <- c(
+  "#9B2226",  # deep red
+  "#AE2012",  # rust
+  "#BB3E03",  # dark orange
+  "#CA6702",  # amber
+  "#005F73",  # deep teal
+  "#0A9396"   # teal
+)
+
+ggplot(regional_trend, aes(x = year, y = median_incidence, color = g_whoregion)) +
+  geom_line(linewidth = 1.1) +
+  geom_point(
+    data = regional_trend %>%
+      group_by(g_whoregion) %>%
+      slice_max(year, n = 1),
+    size = 2.5
+  ) +
+  geom_text_repel(
+    data = regional_trend %>%
+      group_by(g_whoregion) %>%
+      slice_max(year, n = 1),
+    aes(label = g_whoregion),
+    nudge_x = 1.5,
+    size = 3.3,
+    direction = "y",
+    segment.color = "#BBBBBB"
+  ) +
+  scale_color_manual(values = region_cols) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "TB Incidence Remains Stubbornly High in Key Regions",
+    subtitle = "Median estimated TB incidence per 100,000 by WHO region",
+    x = "Year",
+    y = "Median Incidence per 100,000",
+    caption = "Source: TidyTuesday 2025-11-11 | WHO via {getTBinR}"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17, color = "#1B1B1B"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    legend.position = "none",
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+```{r}
+#| label: viz-hiv-tb
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 6
+
+hiv_long <- hiv_tb %>%
+  select(g_whoregion, year, mort_hiv_pos, mort_hiv_neg) %>%
+  pivot_longer(
+    cols = starts_with("mort_"),
+    names_to = "hiv_status",
+    values_to = "deaths"
+  ) %>%
+  mutate(
+    hiv_label = ifelse(hiv_status == "mort_hiv_pos", "HIV-positive", "HIV-negative")
+  )
+
+# Focus on latest year
+hiv_latest <- hiv_long %>%
+  filter(year == max(year)) %>%
+  group_by(g_whoregion) %>%
+  mutate(total = sum(deaths), pct = deaths / total) %>%
+  ungroup() %>%
+  mutate(g_whoregion = fct_reorder(g_whoregion, total))
+
+hiv_cols <- c("HIV-positive" = "#9B2226", "HIV-negative" = "#005F73")
+
+ggplot(hiv_latest, aes(x = g_whoregion, y = deaths, fill = hiv_label)) +
+  geom_col(width = 0.7) +
+  scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
+  scale_fill_manual(values = hiv_cols, name = "HIV Status") +
+  coord_flip() +
+  labs(
+    title = "The HIV-TB Dual Epidemic",
+    subtitle = paste0("TB deaths by HIV co-infection status and WHO region (", max(hiv_tb$year), ")"),
+    x = NULL,
+    y = "TB Deaths",
+    caption = "Source: TidyTuesday 2025-11-11 | WHO via {getTBinR}"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17, color = "#1B1B1B"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    legend.position = "bottom",
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+# Final thoughts and takeaways
+
+Tuberculosis is a disease of inequality. The data shows that TB burden clusters overwhelmingly in the South-East Asia and African regions, where poverty, overcrowding, and weak health systems create perfect conditions for transmission. Despite being both preventable and curable, TB kills more than 1.5 million people annually — making it the world's deadliest infectious disease alongside COVID-19.
+
+The HIV-TB co-infection story is particularly stark in sub-Saharan Africa, where the two epidemics feed on each other. HIV weakens the immune system, making TB infection more likely to progress to active disease. TB, in turn, accelerates HIV progression. Integrated treatment programs that address both diseases simultaneously have been a critical public health innovation.
+
+::: {.callout-tip}
+The case detection rate (`c_cdr`) is a crucial indicator that often gets overlooked. A country can have high incidence but low detection — meaning people are getting sick but not being diagnosed or treated. This "missing" TB is both a humanitarian crisis and an ongoing transmission risk.
+:::

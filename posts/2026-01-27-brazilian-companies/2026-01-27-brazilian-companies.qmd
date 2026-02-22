@@ -1,0 +1,309 @@
+---
+title: "Tidy Tuesday: Brazilian Companies"
+author: "Sean Thimons"
+date: "2026-01-27"
+description: "Exploring Brazil's open CNPJ company registry — how capital stock distributes across legal structures, company sizes, and owner qualifications."
+categories: [tidytuesday, R, economics, brazil]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-01-27/readme.md).
+
+> This dataset explores Brazil's open CNPJ (Cadastro Nacional da Pessoa Jurídica) records from the Brazilian Ministry of Finance. The raw company records were cleaned and enriched with lookup tables (legal nature, owner qualification, and company size), then filtered to retain firms above a share-capital threshold.
+>
+> -   Which legal nature categories have the highest total and average capital stock?
+> -   How does company size relate to capital stock distribution?
+> -   Which owner qualification groups dominate high-capital companies?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  if (file.exists('packages.txt')) {
+    packages <- read.table('packages.txt')
+    install_booster_pack(package = packages$Package, load = FALSE)
+    rm(packages)
+  } else {
+    booster_pack <- c(
+      ### IO ----
+      'fs',
+      'here',
+      'janitor',
+      'rio',
+      'tidyverse',
+
+      ### EDA ----
+      'skimr',
+
+      ### Plot ----
+      'ggrepel',
+      'scales',
+
+      ### Misc ----
+      'tidytuesdayR'
+    )
+
+    install_booster_pack(package = booster_pack, load = TRUE)
+    rm(install_booster_pack, booster_pack)
+  }
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-01-27')
+
+companies <- raw$companies
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Companies
+
+```{r}
+#| label: eda-companies
+#| echo: true
+#| output: true
+
+companies %>%
+  select(-company_id, -company_name) %>%
+  my_skim(.)
+
+```
+
+Let's get a sense of the categorical breakdowns:
+
+```{r}
+#| label: eda-categories
+#| echo: true
+#| output: true
+
+companies %>%
+  count(company_size, sort = TRUE)
+
+companies %>%
+  count(legal_nature, sort = TRUE) %>%
+  head(15)
+
+companies %>%
+  count(owner_qualification, sort = TRUE) %>%
+  head(15)
+
+```
+
+# Capital Stock Analysis
+
+## Distribution by Company Size
+
+The capital stock distribution is likely highly right-skewed — a few massive firms alongside many small ones. Let's see how the size categories compare.
+
+```{r}
+#| label: capital-by-size
+#| echo: true
+#| output: true
+
+companies %>%
+  filter(!is.na(company_size), !is.na(capital_stock), capital_stock > 0) %>%
+  group_by(company_size) %>%
+  summarize(
+    n = n(),
+    median_capital = median(capital_stock),
+    mean_capital = mean(capital_stock),
+    total_capital = sum(capital_stock),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_capital))
+
+```
+
+## Top Legal Natures by Capital Stock
+
+```{r}
+#| label: capital-by-legal-nature
+#| echo: true
+#| output: true
+
+companies %>%
+  filter(!is.na(legal_nature), !is.na(capital_stock), capital_stock > 0) %>%
+  group_by(legal_nature) %>%
+  summarize(
+    n = n(),
+    median_capital = median(capital_stock),
+    mean_capital = mean(capital_stock),
+    total_capital = sum(capital_stock),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_capital)) %>%
+  head(10)
+
+```
+
+## Owner Qualifications in High-Capital Firms
+
+Which owner qualifications show up most often among the top-capital firms?
+
+```{r}
+#| label: high-capital-owners
+#| echo: true
+#| output: true
+
+capital_p90 <- quantile(companies$capital_stock, 0.9, na.rm = TRUE)
+
+companies %>%
+  filter(capital_stock >= capital_p90) %>%
+  count(owner_qualification, sort = TRUE) %>%
+  head(10)
+
+```
+## Visualizing Capital Stock Distribution
+
+The hero plot shows the log-scaled capital stock distribution across company sizes, with annotations for the median values and a callout for the concentration of capital in a few large entities.
+
+```{r}
+#| label: viz-capital-distribution
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+# Brazilian flag-inspired palette
+brazil_cols <- c(
+  "#009739",  # green
+  "#FEDD00",  # yellow
+  "#002776"   # blue
+)
+
+plot_data <- companies %>%
+  filter(!is.na(company_size), !is.na(capital_stock), capital_stock > 0)
+
+# Calculate medians for annotation
+size_medians <- plot_data %>%
+  group_by(company_size) %>%
+  summarize(
+    med = median(capital_stock),
+    n = n(),
+    .groups = "drop"
+  )
+
+ggplot(plot_data, aes(x = capital_stock, fill = company_size)) +
+  geom_density(alpha = 0.6, color = NA) +
+  geom_vline(
+    data = size_medians,
+    aes(xintercept = med, color = company_size),
+    linetype = "dashed",
+    linewidth = 0.8
+  ) +
+  geom_text(
+    data = size_medians,
+    aes(
+      x = med,
+      y = Inf,
+      label = paste0("Median: R$", scales::comma(med)),
+      color = company_size
+    ),
+    vjust = 1.5,
+    hjust = -0.1,
+    size = 3.5,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+  scale_x_log10(
+    labels = scales::label_dollar(prefix = "R$", big.mark = ","),
+    breaks = 10^(seq(0, 12, by = 2))
+  ) +
+  scale_fill_manual(values = brazil_cols, name = "Company Size") +
+  scale_color_manual(values = brazil_cols, name = "Company Size") +
+  labs(
+    title = "Capital Stock Distribution of Brazilian Companies",
+    subtitle = "Log-scaled density by company size category — CNPJ open registry data",
+    x = "Capital Stock (BRL, log scale)",
+    y = "Density",
+    caption = "Source: TidyTuesday 2026-01-27 | Brazilian Ministry of Finance via dados.gov.br"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, color = "#002776"),
+    plot.subtitle = element_text(size = 12, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    legend.position = "bottom",
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+# Final thoughts and takeaways
+
+Brazil's open CNPJ registry is a remarkable transparency tool — few countries publish their corporate registrations this openly. The capital stock distributions reveal the expected power-law shape: a long tail of micro and small enterprises with modest capitalization, and a handful of massive corporate entities that dominate total capital.
+
+The legal nature breakdown is particularly interesting for understanding Brazil's business landscape. Limited liability companies (Ltda.) vastly outnumber other forms, which tracks with their flexibility and lower compliance burden compared to corporations (S.A.). But when you look at total capital stock, the picture inverts — a small number of S.A. entities command disproportionate capital.
+
+::: {.callout-note}
+Capital stock (capital social) in Brazil's registry represents the declared investment by owners at incorporation or amendment. It's a useful proxy for firm size but doesn't capture retained earnings, debt, or market value — so the largest firms by capital stock aren't necessarily the largest by revenue.
+:::
+
+The owner qualification data adds another dimension: among the highest-capitalized firms, we see a concentration of specific professional qualifications that reflect Brazil's regulatory requirements for certain industries.

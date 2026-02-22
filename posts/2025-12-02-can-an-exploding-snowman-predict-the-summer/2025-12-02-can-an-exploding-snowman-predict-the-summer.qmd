@@ -1,0 +1,345 @@
+---
+title: "Tidy Tuesday: Can an Exploding Snowman Predict the Summer?"
+author: "Sean Thimons"
+date: "2025-12-02"
+description: "Testing Zurich's strangest meteorological tradition — does the Boeoeg's burn time actually correlate with summer weather? Spoiler: folklore meets regression."
+categories: [tidytuesday, R, weather, folklore, statistics]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-12-02/readme.md).
+
+> This dataset explores whether Zurich's exploding snowman (the Boeoegg) can predict summer weather. The Boeoegg is a snowman effigy made of cotton wool and stuffed with fireworks that detonates during the annual Sechselaeuten spring festival. Local tradition suggests faster explosions correlate with better summers. The data combines burn duration records with Swiss meteorological summer data from MeteoSwiss.
+>
+> -   How does the snowman's burn time correlate with average summer temperature?
+> -   Can you identify consecutive years where predictions appear accurate?
+> -   Do alternative climate variables (sunshine, precipitation) improve predictive accuracy?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  if (file.exists('packages.txt')) {
+    packages <- read.table('packages.txt')
+    install_booster_pack(package = packages$Package, load = FALSE)
+    rm(packages)
+  } else {
+    booster_pack <- c(
+      ### IO ----
+      'fs',
+      'here',
+      'janitor',
+      'rio',
+      'tidyverse',
+
+      ### EDA ----
+      'skimr',
+
+      ### Plot ----
+      'ggrepel',
+      'ggtext',
+      'scales',
+
+      ### Modeling ----
+      'broom',
+
+      ### Misc ----
+      'tidytuesdayR'
+    )
+
+    install_booster_pack(package = booster_pack, load = TRUE)
+    rm(install_booster_pack, booster_pack)
+  }
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-12-02')
+
+sechselaeuten <- raw$sechselaeuten
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Sechselaeuten
+
+```{r}
+#| label: eda-sechselaeuten
+#| echo: true
+#| output: true
+
+sechselaeuten %>%
+  my_skim(.)
+
+```
+
+```{r}
+#| label: eda-records
+#| echo: true
+#| output: true
+
+sechselaeuten %>%
+  count(record, sort = TRUE)
+
+sechselaeuten %>%
+  filter(!is.na(duration)) %>%
+  summarize(
+    n = n(),
+    min_burn = min(duration),
+    max_burn = max(duration),
+    median_burn = median(duration),
+    mean_burn = mean(duration)
+  )
+
+```
+
+# Does the Boeoeg Predict Summer?
+
+## The Core Question: Burn Time vs. Temperature
+
+```{r}
+#| label: burn-vs-temp
+#| echo: true
+#| output: true
+
+analysis_data <- sechselaeuten %>%
+  filter(!is.na(duration), !is.na(tre200m0))
+
+# Correlation
+cor.test(analysis_data$duration, analysis_data$tre200m0)
+
+```
+
+## Simple Linear Model
+
+```{r}
+#| label: lm-burn-temp
+#| echo: true
+#| output: true
+
+model_temp <- lm(tre200m0 ~ duration, data = analysis_data)
+
+tidy(model_temp)
+glance(model_temp)
+
+```
+
+::: {.callout-important}
+The tradition says a *faster* burn (lower duration) predicts a *better* (warmer) summer. So we're looking for a negative coefficient on duration. Let's see what the data says.
+:::
+
+## Adding Sunshine and Precipitation
+
+Does burn time predict sunshine hours or precipitation better than temperature?
+
+```{r}
+#| label: multi-climate
+#| echo: true
+#| output: true
+
+# Sunshine
+model_sun <- lm(sre000m0 ~ duration, data = analysis_data)
+tidy(model_sun)
+
+# Precipitation
+model_rain <- lm(rre150m0 ~ duration, data = analysis_data)
+tidy(model_rain)
+
+```
+
+## Prediction Accuracy: How Often Is the Boeoeg Right?
+
+Classify each year as a "correct" prediction based on whether below-median burn time corresponds to above-median temperature.
+
+```{r}
+#| label: prediction-accuracy
+#| echo: true
+#| output: true
+
+predictions <- analysis_data %>%
+  mutate(
+    fast_burn = duration < median(duration),
+    warm_summer = tre200m0 > median(tre200m0),
+    correct = fast_burn == warm_summer
+  )
+
+predictions %>%
+  count(correct) %>%
+  mutate(pct = n / sum(n))
+
+```
+## Visualizing the Snowman's Predictive Power
+
+```{r}
+#| label: viz-scatter
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+# Swiss-inspired palette
+anno_data <- analysis_data %>%
+  filter(duration == min(duration) | duration == max(duration) |
+         tre200m0 == max(tre200m0) | tre200m0 == min(tre200m0))
+
+ggplot(analysis_data, aes(x = duration, y = tre200m0)) +
+  geom_point(
+    aes(color = tre200m0),
+    size = 3,
+    alpha = 0.8
+  ) +
+  geom_smooth(method = "lm", se = TRUE, color = "#9B2226", linewidth = 1, alpha = 0.15) +
+  geom_text_repel(
+    data = anno_data,
+    aes(label = year),
+    size = 3.5,
+    fontface = "bold",
+    segment.color = "#AAAAAA"
+  ) +
+  scale_color_gradient2(
+    low = "#264653",
+    mid = "#E9C46A",
+    high = "#E76F51",
+    midpoint = median(analysis_data$tre200m0),
+    name = "Avg Summer\nTemp (C)"
+  ) +
+  labs(
+    title = "Can an Exploding Snowman Predict the Summer?",
+    subtitle = "Boeoegg burn duration vs. average summer temperature in Zurich",
+    x = "Burn Duration (minutes)",
+    y = "Average Summer Temperature (C)",
+    caption = "Source: TidyTuesday 2025-12-02 | Sechselaeuten + MeteoSwiss"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, color = "#1B1B1B"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+```{r}
+#| label: viz-timeline
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 6
+
+predictions_plot <- predictions %>%
+  mutate(
+    prediction_label = case_when(
+      fast_burn & warm_summer  ~ "Fast burn, warm summer (correct)",
+      !fast_burn & !warm_summer ~ "Slow burn, cool summer (correct)",
+      fast_burn & !warm_summer ~ "Fast burn, cool summer (wrong)",
+      !fast_burn & warm_summer ~ "Slow burn, warm summer (wrong)"
+    ),
+    outcome = ifelse(correct, "Correct", "Wrong")
+  )
+
+pred_cols <- c("Correct" = "#2A9D8F", "Wrong" = "#E76F51")
+
+ggplot(predictions_plot, aes(x = year, y = tre200m0, fill = outcome)) +
+  geom_col(width = 0.7) +
+  geom_hline(
+    yintercept = median(analysis_data$tre200m0),
+    linetype = "dashed",
+    color = "#555555"
+  ) +
+  scale_fill_manual(values = pred_cols, name = "Boeoeg Prediction") +
+  labs(
+    title = "The Snowman's Track Record",
+    subtitle = "Each bar = a year's summer temperature | Colored by whether the Boeoegg 'predicted' it correctly",
+    x = "Year",
+    y = "Average Summer Temperature (C)",
+    caption = "Dashed line = median summer temperature"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17, color = "#1B1B1B"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    legend.position = "bottom",
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+# Final thoughts and takeaways
+
+Zurich's Sechselaeuten tradition — in which the speed of a snowman's fiery demise supposedly predicts the coming summer — is one of the most charming meteorological folklore traditions in Europe. And the data gives it... a surprising amount of credit.
+
+The linear model shows a weak but directionally correct negative relationship between burn time and summer temperature. The binary prediction accuracy hovers around 50-60%, which is better than a coin flip but not exactly the basis for a weather forecasting career. The R-squared is low, confirming what we'd expect: a cotton effigy packed with fireworks is not a reliable thermometer.
+
+But that's not really the point. The Boeoegg is a communal celebration of the end of winter — a culture-wide expression of hope that the cold is behind them. Whether it "works" statistically is beside the point for Zurich. It works symbolically, and that's enough.
+
+::: {.callout-tip}
+If you ever visit Zurich in April, the Sechselaeuten festival happens on the third Monday of the month. The guilds march in medieval costume, the Boeoegg goes up in flames, and the entire city watches to see how long the head takes to explode. The shorter the burn, the better the summer — or so they say.
+:::

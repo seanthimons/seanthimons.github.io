@@ -1,0 +1,345 @@
+---
+title: "Tidy Tuesday: Statistical Performance Indicators"
+author: "Sean Thimons"
+date: "2025-11-25"
+description: "How well do countries manage their statistical systems? Exploring the World Bank's SPI data to see which pillars lag, how income tracks with data quality, and which regions are improving fastest."
+categories: [tidytuesday, R, governance, world-bank]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-11-25/readme.md).
+
+> The World Bank's Statistical Performance Indicators (SPI) monitors how well countries manage their statistical systems across five dimensions: data use, data services, data products, data sources, and data infrastructure. The dataset encompasses 99 percent of the world's population, spanning 2016–2023 with some metrics extending back to 2004.
+>
+> -   How has a country's statistical performance evolved over time?
+> -   Does statistical performance correlate with income level or population size?
+> -   Which performance pillar shows the weakest scores across countries?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  if (file.exists('packages.txt')) {
+    packages <- read.table('packages.txt')
+    install_booster_pack(package = packages$Package, load = FALSE)
+    rm(packages)
+  } else {
+    booster_pack <- c(
+      ### IO ----
+      'fs',
+      'here',
+      'janitor',
+      'rio',
+      'tidyverse',
+
+      ### EDA ----
+      'skimr',
+
+      ### Plot ----
+      'ggrepel',
+      'ggtext',
+      'scales',
+
+      ### Misc ----
+      'tidytuesdayR'
+    )
+
+    install_booster_pack(package = booster_pack, load = TRUE)
+    rm(install_booster_pack, booster_pack)
+  }
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-11-25')
+
+spi <- raw$spi
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Statistical Performance Indicators
+
+```{r}
+#| label: eda-spi
+#| echo: true
+#| output: true
+
+spi %>%
+  my_skim(.)
+
+```
+
+```{r}
+#| label: eda-overview
+#| echo: true
+#| output: true
+
+spi %>%
+  count(income, sort = TRUE)
+
+spi %>%
+  count(region, sort = TRUE)
+
+spi %>%
+  count(year, sort = TRUE)
+
+```
+
+# Income Level and Statistical Capacity
+
+## Overall Score by Income Group
+
+```{r}
+#| label: income-scores
+#| echo: true
+#| output: true
+
+latest_year <- max(spi$year, na.rm = TRUE)
+
+income_summary <- spi %>%
+  filter(year == latest_year, !is.na(income)) %>%
+  group_by(income) %>%
+  summarize(
+    n = n(),
+    median_overall = median(overall_score, na.rm = TRUE),
+    mean_overall = mean(overall_score, na.rm = TRUE),
+    median_use = median(data_use_score, na.rm = TRUE),
+    median_services = median(data_services_score, na.rm = TRUE),
+    median_products = median(data_products_score, na.rm = TRUE),
+    median_sources = median(data_sources_score, na.rm = TRUE),
+    median_infra = median(data_infrastructure_score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(median_overall))
+
+income_summary
+
+```
+
+## Which Pillar Lags Most?
+
+```{r}
+#| label: pillar-comparison
+#| echo: true
+#| output: true
+
+pillar_long <- spi %>%
+  filter(year == latest_year) %>%
+  select(country, income, ends_with("_score")) %>%
+  pivot_longer(
+    cols = ends_with("_score") & !starts_with("overall"),
+    names_to = "pillar",
+    values_to = "score"
+  ) %>%
+  mutate(
+    pillar = str_remove(pillar, "_score") %>%
+      str_replace_all("_", " ") %>%
+      str_to_title()
+  )
+
+pillar_long %>%
+  group_by(pillar) %>%
+  summarize(
+    median_score = median(score, na.rm = TRUE),
+    mean_score = mean(score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(median_score)
+
+```
+
+## Improvement Over Time
+
+Which regions have improved the most?
+
+```{r}
+#| label: regional-trend
+#| echo: true
+#| output: true
+
+regional_trend <- spi %>%
+  filter(!is.na(region), !is.na(overall_score)) %>%
+  group_by(region, year) %>%
+  summarize(
+    median_score = median(overall_score, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+regional_trend %>%
+  group_by(region) %>%
+  filter(year %in% c(min(year), max(year))) %>%
+  arrange(region, year)
+
+```
+## Visualizing Statistical Capacity
+
+```{r}
+#| label: viz-income-pillars
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+income_order <- c("High income", "Upper middle income", "Lower middle income", "Low income")
+
+pillar_by_income <- pillar_long %>%
+  filter(!is.na(income)) %>%
+  mutate(income = factor(income, levels = income_order))
+
+# World Bank institutional palette
+income_cols <- c(
+  "High income"          = "#003F5C",
+  "Upper middle income"  = "#58508D",
+  "Lower middle income"  = "#BC5090",
+  "Low income"           = "#FF6361"
+)
+
+ggplot(pillar_by_income, aes(x = pillar, y = score, fill = income)) +
+  geom_boxplot(
+    alpha = 0.8,
+    outlier.size = 1,
+    outlier.alpha = 0.4,
+    width = 0.7
+  ) +
+  scale_fill_manual(values = income_cols, name = "Income Level") +
+  labs(
+    title = "Statistical Capacity Varies Sharply by Income Level",
+    subtitle = paste0("Distribution of SPI pillar scores by World Bank income group (", latest_year, ")"),
+    x = NULL,
+    y = "Pillar Score",
+    caption = "Source: TidyTuesday 2025-11-25 | World Bank Statistical Performance Indicators"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17, color = "#003F5C"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    legend.position = "bottom",
+    panel.grid.minor = element_blank(),
+    axis.text.x = element_text(angle = 15, hjust = 1)
+  ) +
+  guides(fill = guide_legend(nrow = 1))
+
+```
+
+```{r}
+#| label: viz-regional-trend
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 6
+
+ggplot(regional_trend, aes(x = year, y = median_score, color = region)) +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 2) +
+  geom_text_repel(
+    data = regional_trend %>%
+      group_by(region) %>%
+      slice_max(year, n = 1),
+    aes(label = region),
+    nudge_x = 0.5,
+    size = 3.3,
+    direction = "y",
+    segment.color = "#BBBBBB"
+  ) +
+  scale_x_continuous(breaks = scales::pretty_breaks()) +
+  scale_color_manual(
+    values = c(
+      "#003F5C", "#2F4B7C", "#665191", "#A05195",
+      "#D45087", "#F95D6A", "#FF7C43"
+    )
+  ) +
+  labs(
+    title = "Statistical Performance Over Time by Region",
+    subtitle = "Median SPI overall score by World Bank region",
+    x = "Year",
+    y = "Median Overall Score",
+    caption = "Source: TidyTuesday 2025-11-25 | World Bank SPI"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17, color = "#003F5C"),
+    plot.subtitle = element_text(size = 11, color = "#555555"),
+    plot.caption = element_text(size = 9, color = "#888888"),
+    legend.position = "none",
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+# Final thoughts and takeaways
+
+Statistical infrastructure is invisible until it breaks. Countries that can't count their people, track their diseases, or measure their economies are flying blind — and this dataset makes that gap visible.
+
+The income-pillar relationship is stark but not surprising: wealthy nations invest more in statistical systems, which in turn support better policy decisions, which support further economic development. The virtuous cycle is clear in the data. What's more interesting is *which* pillars lag most for low-income countries — data infrastructure and data sources tend to be the weakest links, suggesting that the fundamental building blocks (surveys, registries, administrative data systems) are where investment is most needed.
+
+::: {.callout-note}
+The World Bank explicitly warns that "small differences between countries should not be highlighted since they can reflect imprecision." This is a ranking-resistant dataset — better suited for understanding broad patterns and structural gaps than declaring winners and losers.
+:::
