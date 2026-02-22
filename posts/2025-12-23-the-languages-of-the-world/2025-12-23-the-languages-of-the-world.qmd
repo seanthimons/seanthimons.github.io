@@ -197,11 +197,11 @@ lang_status <- languages %>%
     status_label = factor(
       status_label,
       levels = c(
-        "safe",
-        "vulnerable",
-        "definitely endangered",
-        "severely endangered",
-        "critically endangered",
+        "not endangered",
+        "threatened",
+        "shifting",
+        "moribund",
+        "nearly extinct",
         "extinct"
       )
     )
@@ -226,7 +226,7 @@ Which regions of the world face the greatest concentration of endangered languag
 #| output: true
 
 region_danger <- lang_status %>%
-  filter(!is.na(status_label), !is.na(macroarea)) %>%
+  filter(!is.na(status_label), !is.na(macroarea), !grepl(";", macroarea)) %>%
   group_by(macroarea, status_label) %>%
   summarize(n = n(), .groups = "drop") %>%
   group_by(macroarea) %>%
@@ -237,7 +237,7 @@ region_danger <- lang_status %>%
   ungroup()
 
 region_danger %>%
-  filter(status_label %ni% c("safe")) %>%
+  filter(status_label %ni% c("not endangered")) %>%
   group_by(macroarea) %>%
   summarize(
     n_at_risk = sum(n),
@@ -271,7 +271,7 @@ isolate_status <- lang_status %>%
 
 # Percent at risk (not safe) by isolate status
 isolate_status %>%
-  filter(status_label != "safe") %>%
+  filter(status_label != "not endangered") %>%
   group_by(is_isolate) %>%
   summarize(
     n_at_risk = sum(n),
@@ -319,18 +319,18 @@ The hero plot maps language endangerment status by macroarea, showing the propor
 #| fig.width: 10
 #| fig.height: 8
 
-# UNESCO-inspired palette: safe to extinct
+# Endangerment palette: not endangered to extinct
 status_cols <- c(
-  "safe"                    = "#2D6A4F",
-  "vulnerable"              = "#95D5B2",
-  "definitely endangered"   = "#F4A261",
-  "severely endangered"     = "#E76F51",
-  "critically endangered"   = "#9B2226",
-  "extinct"                 = "#333333"
+  "not endangered"  = "#2D6A4F",
+  "threatened"      = "#95D5B2",
+  "shifting"        = "#F4A261",
+  "moribund"        = "#E76F51",
+  "nearly extinct"  = "#9B2226",
+  "extinct"         = "#333333"
 )
 
 region_order <- region_danger %>%
-  filter(status_label != "safe") %>%
+  filter(status_label != "not endangered") %>%
   group_by(macroarea) %>%
   summarize(pct_at_risk = sum(pct), .groups = "drop") %>%
   arrange(pct_at_risk) %>%
