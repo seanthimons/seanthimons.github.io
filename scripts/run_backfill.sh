@@ -17,6 +17,8 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 MANIFEST="$PROJECT_DIR/tasks/week_manifest.json"
 POSTS_DIR="$PROJECT_DIR/posts"
 LOG_FILE="$PROJECT_DIR/tasks/backfill-log.txt"
+RSCRIPT="C:\Program Files\R\R-4.5.1\bin\Rscript.exe"
+VALIDATE_SCRIPT="$PROJECT_DIR/scripts/validate_post.R"
 
 DRY_RUN=false
 START_FROM=0
@@ -60,6 +62,7 @@ total=0
 generated=0
 skipped=0
 failed=0
+healed=0
 failed_weeks=""
 commits_since_push=0
 PUSH_BATCH_SIZE=10
@@ -100,6 +103,9 @@ for i in $(seq 0 $((entry_count - 1))); do
   week_date=$(jq -r ".[$i].week_date" "$MANIFEST")
   dataset_name=$(jq -r ".[$i].dataset_name" "$MANIFEST")
   dataset_slug=$(jq -r ".[$i].dataset_slug" "$MANIFEST")
+  # Generate title slug for folder/file naming: lowercase, strip special chars, collapse hyphens
+  title_slug=$(echo "$dataset_name" | tr '[:upper:]' '[:lower:]' | sed "s/[^a-z0-9-]/-/g; s/--*/-/g; s/^-//; s/-$//" | cut -c1-50 | sed 's/-$//')
+  post_slug="${week_date}-${title_slug}"
   year=$(jq -r ".[$i].year" "$MANIFEST")
   week_number=$(jq -r ".[$i].week_number" "$MANIFEST")
   is_byod=$(jq -r ".[$i].is_byod" "$MANIFEST")
@@ -110,7 +116,7 @@ for i in $(seq 0 $((entry_count - 1))); do
   echo "[$((i + 1))/$entry_count] $week_date — $dataset_name  (generated: $generated | skipped: $skipped | failed: $failed)"
 
   # US-003: Rescan posts/ for existing post before each week
-  if ls "$POSTS_DIR"/${week_date}* 1>/dev/null 2>&1; then
+  if ls "$POSTS_DIR"/${week_date}-* 1>/dev/null 2>&1; then
     echo "  Skipping week $week_date — post already exists"
     echo "  SKIP $week_date $dataset_name (already exists)" >> "$LOG_FILE"
     skipped=$((skipped + 1))
@@ -145,8 +151,9 @@ Dataset: "$dataset_name"
 Dataset date for tt_load(): $tt_load_date
 Post date (for the output folder and frontmatter date field): $week_date
 
-The post MUST be created at: posts/$week_date/$week_date.qmd
+The post MUST be created at: posts/$post_slug/$post_slug.qmd
 The frontmatter date field MUST be: "$week_date"
+Title slug for folder/file naming: $title_slug
 
 ${byod_note}
 
@@ -220,13 +227,146 @@ PROMPT
   if [[ $claude_exit -eq 0 ]]; then
 
     # Verify the post was actually created
-    if [[ -f "$POSTS_DIR/$week_date/$week_date.qmd" ]]; then
-      echo "  SUCCESS: Post created at posts/$week_date/$week_date.qmd"
+    if [[ -f "$POSTS_DIR/$post_slug/$post_slug.qmd" ]]; then
+      echo "  Post file created at posts/$post_slug/$post_slug.qmd"
+
+      # US-006: Render validation — verify the post actually builds
+      echo "  Rendering post to validate..."
+      if ! quarto render "$POSTS_DIR/$post_slug/$post_slug.qmd" 2>>"$LOG_FILE"; then
+        echo "  RENDER FAIL: Post created but doesn't render cleanly"
+        echo "  RENDER-FAIL $week_date $dataset_name" >> "$LOG_FILE"
+        failed=$((failed + 1))
+        failed_weeks="$failed_weeks\n  - $week_date: $dataset_name (render failed)"
+        continue
+      fi
+      echo "  RENDER OK"
+
+      # US-007: Data validation — check for empty plots/meaningless data
+      echo "  Validating data integrity..."
+      validation_json=$("$RSCRIPT" "$VALIDATE_SCRIPT" "$post_slug" 2>>"$LOG_FILE" || true)
+      validation_status=$(echo "$validation_json" | jq -r '.status // "error"')
+
+      if [[ "$validation_status" == "fail" ]]; then
+        validation_issues=$(echo "$validation_json" | jq -r '.issues | if type == "array" then .[] else . end')
+        echo "  VALIDATION FAIL: Data integrity issues detected"
+        echo "$validation_issues" | while IFS= read -r issue; do
+          echo "    - $issue"
+        done
+        echo "  VALIDATE-FAIL $week_date $dataset_name" >> "$LOG_FILE"
+        echo "  Issues: $validation_issues" >> "$LOG_FILE"
+
+        # --- Self-healing: retry once with diagnostic context ---
+        echo "  HEALING: Retrying with diagnostic context..."
+        echo "  HEAL-START $week_date $dataset_name" >> "$LOG_FILE"
+
+        # Delete the bad post directory and freeze so the retry starts clean
+        rm -rf "$POSTS_DIR/$post_slug"
+        rm -rf "$PROJECT_DIR/_freeze/posts/$post_slug"
+
+        # Build healing prompt with the specific issues
+        heal_prompt=$(cat <<HEAL
+/tidy-tuesday
+
+Run in autonomous mode (hands-off, unattended).
+
+Dataset: "$dataset_name"
+Dataset date for tt_load(): $tt_load_date
+Post date (for the output folder and frontmatter date field): $week_date
+
+The post MUST be created at: posts/$post_slug/$post_slug.qmd
+The frontmatter date field MUST be: "$week_date"
+Title slug for folder/file naming: $title_slug
+
+${byod_note}
+
+Do NOT use Sys.Date() for the post date — use exactly "$week_date" as the post date.
+The dataset date for tt_load() is "$tt_load_date".
+
+IMPORTANT — PREVIOUS ATTEMPT FAILED DATA VALIDATION. You must fix these issues:
+
+$validation_issues
+
+The most common cause is filtering on assumed category labels that don't match
+the actual data (e.g., "Female"/"Male" when the data uses "woman"/"man", or
+"White" when the data uses "White British"). Before any filter() call, run
+count() on the column to see the actual values, then use those exact strings.
+
+After every filter/join that feeds a ggplot, print nrow() and stopifnot() that
+it's > 0. If any computed proportion column has identical values for all rows,
+the grouping logic is wrong — fix it.
+
+Generate the full Tidy Tuesday analysis: EDA, domain analysis, visualizations, and narrative.
+HEAL
+)
+
+        heal_start_ts=$(date +%s)
+        echo "  Invoking healing retry... (started $(date +%H:%M:%S))"
+
+        # Run healing attempt (reuse same claude invocation pattern)
+        if CLAUDECODE= claude -p \
+          --dangerously-skip-permissions \
+          --model sonnet \
+          --allowedTools "Bash Edit Read Write Glob Grep Skill WebFetch WebSearch" \
+          --max-budget-usd 1.50 \
+          "$heal_prompt" \
+          2>>"$LOG_FILE" 1>/dev/null; then
+          heal_claude_exit=0
+        else
+          heal_claude_exit=$?
+        fi
+
+        heal_elapsed=$(( $(date +%s) - heal_start_ts ))
+        echo "  Healing attempt finished in $((heal_elapsed / 60))m $((heal_elapsed % 60))s (exit $heal_claude_exit)"
+
+        # Validate the healed post
+        if [[ $heal_claude_exit -eq 0 ]] && [[ -f "$POSTS_DIR/$post_slug/$post_slug.qmd" ]]; then
+          echo "  Re-rendering healed post..."
+          if quarto render "$POSTS_DIR/$post_slug/$post_slug.qmd" 2>>"$LOG_FILE"; then
+            heal_json=$("$RSCRIPT" "$VALIDATE_SCRIPT" "$post_slug" 2>>"$LOG_FILE" || true)
+            heal_status=$(echo "$heal_json" | jq -r '.status // "error"')
+
+            if [[ "$heal_status" == "pass" ]]; then
+              echo "  HEAL OK: Retry produced a valid post"
+              echo "  HEAL-OK $week_date $dataset_name" >> "$LOG_FILE"
+              healed=$((healed + 1))
+              # Fall through to the success path below
+            else
+              echo "  HEAL FAIL: Retry still has validation issues"
+              heal_issues=$(echo "$heal_json" | jq -r '.issues | if type == "array" then .[] else . end')
+              echo "  $heal_issues"
+              echo "  HEAL-FAIL $week_date $dataset_name (still invalid after retry)" >> "$LOG_FILE"
+              failed=$((failed + 1))
+              failed_weeks="$failed_weeks\n  - $week_date: $dataset_name (heal failed — still invalid)"
+              continue
+            fi
+          else
+            echo "  HEAL FAIL: Healed post doesn't render"
+            echo "  HEAL-FAIL $week_date $dataset_name (render failed)" >> "$LOG_FILE"
+            failed=$((failed + 1))
+            failed_weeks="$failed_weeks\n  - $week_date: $dataset_name (heal failed — render error)"
+            continue
+          fi
+        else
+          echo "  HEAL FAIL: Healing attempt didn't produce a post file"
+          echo "  HEAL-FAIL $week_date $dataset_name (no post created)" >> "$LOG_FILE"
+          failed=$((failed + 1))
+          failed_weeks="$failed_weeks\n  - $week_date: $dataset_name (heal failed — no file)"
+          continue
+        fi
+
+      elif [[ "$validation_status" == "error" ]]; then
+        echo "  VALIDATION WARN: Validator couldn't run (continuing anyway)"
+        echo "  VALIDATE-WARN $week_date $dataset_name" >> "$LOG_FILE"
+      else
+        echo "  VALIDATION OK"
+      fi
+
+      echo "  SUCCESS: Post created, renders, and passes validation"
       echo "  OK $week_date $dataset_name" >> "$LOG_FILE"
       generated=$((generated + 1))
 
-      # US-004: Stage and commit only this post's directory
-      if git -C "$PROJECT_DIR" add "posts/$week_date/" && \
+      # US-004: Stage post directory and its freeze output
+      if git -C "$PROJECT_DIR" add "posts/$post_slug/" "_freeze/posts/$post_slug/" && \
          git -C "$PROJECT_DIR" commit -m "Add Tidy Tuesday post: $week_date $dataset_name" 2>>"$LOG_FILE"; then
         echo "  COMMITTED: Add Tidy Tuesday post: $week_date $dataset_name"
         echo "  COMMIT $week_date $dataset_name" >> "$LOG_FILE"
@@ -249,7 +389,7 @@ PROMPT
         echo "  COMMIT-FAIL $week_date $dataset_name" >> "$LOG_FILE"
       fi
     else
-      echo "  WARN: Claude exited 0 but post file not found at posts/$week_date/$week_date.qmd"
+      echo "  WARN: Claude exited 0 but post file not found at posts/$post_slug/$post_slug.qmd"
       echo "  FAIL $week_date $dataset_name (post file not created)" >> "$LOG_FILE"
       failed=$((failed + 1))
       failed_weeks="$failed_weeks\n  - $week_date: $dataset_name (post file not created)"
@@ -290,6 +430,7 @@ echo "Backfill Run Summary"
 echo "=========================================="
 echo "Total weeks processed: $total"
 echo "Posts generated:       $generated"
+echo "Posts healed:          $healed"
 echo "Posts skipped:         $skipped"
 echo "Posts failed:          $failed"
 if [[ -n "$failed_weeks" ]]; then
@@ -304,7 +445,7 @@ echo "=========================================="
   echo ""
   echo "=========================================="
   echo "Run completed: $(date -Iseconds)"
-  echo "Total: $total | Generated: $generated | Skipped: $skipped | Failed: $failed"
+  echo "Total: $total | Generated: $generated | Healed: $healed | Skipped: $skipped | Failed: $failed"
   if [[ -n "$failed_weeks" ]]; then
     echo "Failed weeks:"
     echo -e "$failed_weeks"
