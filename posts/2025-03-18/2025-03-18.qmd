@@ -84,7 +84,7 @@ My handy booster pack that allows me to install (if needed) and load my usual an
       'ggtext',            # Rich text in ggplot
       'ggrepel',           # Non-overlapping labels
       'ggdist',            # Distribution visualizations
-      'ggstatsplot'        # Stats + viz combined
+      'ggstatsplot',        # Stats + viz combined
 
       ### Modeling ----
       # 'tidymodels',        # Modeling framework

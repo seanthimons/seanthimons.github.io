@@ -7,6 +7,8 @@
 #   ./scripts/run_backfill.sh                  # run all weeks
 #   ./scripts/run_backfill.sh --dry-run        # preview what would run
 #   ./scripts/run_backfill.sh --start-from N   # skip first N entries (0-indexed)
+#   ./scripts/run_backfill.sh --batch N        # stop after N posts generated
+#   ./scripts/run_backfill.sh --verbose        # show Claude output in real time
 #
 set -euo pipefail
 
@@ -18,6 +20,8 @@ LOG_FILE="$PROJECT_DIR/tasks/backfill-log.txt"
 
 DRY_RUN=false
 START_FROM=0
+BATCH_SIZE=0
+VERBOSE=false
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -29,6 +33,14 @@ while [[ $# -gt 0 ]]; do
     --start-from)
       START_FROM="$2"
       shift 2
+      ;;
+    --batch)
+      BATCH_SIZE="$2"
+      shift 2
+      ;;
+    --verbose|-v)
+      VERBOSE=true
+      shift
       ;;
     *)
       echo "Unknown argument: $1"
@@ -62,7 +74,9 @@ echo "Manifest:    $MANIFEST"
 echo "Entries:     $entry_count"
 echo "Posts dir:   $POSTS_DIR"
 echo "Start from:  $START_FROM"
+echo "Batch size:  ${BATCH_SIZE:-all}"
 echo "Dry run:     $DRY_RUN"
+echo "Verbose:     $VERBOSE"
 echo "Log file:    $LOG_FILE"
 echo "=========================================="
 echo ""
@@ -92,7 +106,8 @@ for i in $(seq 0 $((entry_count - 1))); do
   sub_year=$(jq -r ".[$i].substituted_from.year // empty" "$MANIFEST")
   sub_date=$(jq -r ".[$i].substituted_from.date // empty" "$MANIFEST")
 
-  echo "[$((i + 1))/$entry_count] $week_date — $dataset_name"
+  echo "---"
+  echo "[$((i + 1))/$entry_count] $week_date — $dataset_name  (generated: $generated | skipped: $skipped | failed: $failed)"
 
   # US-003: Rescan posts/ for existing post before each week
   if ls "$POSTS_DIR"/${week_date}* 1>/dev/null 2>&1; then
@@ -142,16 +157,67 @@ Generate the full Tidy Tuesday analysis: EDA, domain analysis, visualizations, a
 PROMPT
 )
 
-  echo "  Invoking /tidy-tuesday skill..."
+  start_ts=$(date +%s)
+  echo "  Invoking /tidy-tuesday skill... (started $(date +%H:%M:%S))"
+
+  # Background heartbeat: prints elapsed time every 30s so the terminal looks alive
+  (
+    while true; do
+      sleep 30
+      elapsed_hb=$(( $(date +%s) - start_ts ))
+      printf "  ... still working (%dm %ds elapsed)\n" $((elapsed_hb / 60)) $((elapsed_hb % 60))
+    done
+  ) &
+  heartbeat_pid=$!
+  trap "kill $heartbeat_pid 2>/dev/null" EXIT
 
   # Run claude in print mode with permissions bypassed for automation
-  if CLAUDECODE= claude -p \
-    --dangerously-skip-permissions \
-    --model sonnet \
-    --allowedTools "Bash Edit Read Write Glob Grep Skill WebFetch WebSearch" \
-    --max-budget-usd 1.50 \
-    "$prompt" \
-    2>>"$LOG_FILE"; then
+  # In verbose mode, stream JSON events and extract tool-use progress;
+  # otherwise capture quietly (heartbeat provides liveness)
+  if [[ "$VERBOSE" == "true" ]]; then
+    echo "  ---- Claude trace ----"
+    # Stream JSON events and extract a readable progress trace
+    CLAUDECODE= claude -p \
+      --dangerously-skip-permissions \
+      --model sonnet \
+      --output-format stream-json \
+      --allowedTools "Bash Edit Read Write Glob Grep Skill WebFetch WebSearch" \
+      --max-budget-usd 1.50 \
+      "$prompt" \
+      2>>"$LOG_FILE" \
+    | stdbuf -oL jq -r --unbuffered '
+        if .type == "assistant" and .subtype == "tool_use" then
+          "  [tool] \(.tool_name // "unknown"): \(.tool_input_preview // .tool_input.command // .tool_input.pattern // .tool_input.file_path // "" | tostring | .[0:120])"
+        elif .type == "result" then
+          "  [done] cost=$\(.cost_usd // "?") duration=\(.duration_ms // "?")"
+        else empty end
+      ' 2>/dev/null \
+    | tee -a "$LOG_FILE"
+    claude_exit=${PIPESTATUS[0]}
+    echo "  ---- end Claude trace ----"
+  else
+    if CLAUDECODE= claude -p \
+      --dangerously-skip-permissions \
+      --model sonnet \
+      --allowedTools "Bash Edit Read Write Glob Grep Skill WebFetch WebSearch" \
+      --max-budget-usd 1.50 \
+      "$prompt" \
+      2>>"$LOG_FILE" 1>/dev/null; then
+      claude_exit=0
+    else
+      claude_exit=$?
+    fi
+  fi
+
+  # Stop the heartbeat
+  kill $heartbeat_pid 2>/dev/null
+  wait $heartbeat_pid 2>/dev/null
+
+  elapsed=$(( $(date +%s) - start_ts ))
+  elapsed_fmt="$(( elapsed / 60 ))m $(( elapsed % 60 ))s"
+  echo "  Finished in $elapsed_fmt (exit code $claude_exit)"
+
+  if [[ $claude_exit -eq 0 ]]; then
 
     # Verify the post was actually created
     if [[ -f "$POSTS_DIR/$week_date/$week_date.qmd" ]]; then
@@ -160,23 +226,27 @@ PROMPT
       generated=$((generated + 1))
 
       # US-004: Stage and commit only this post's directory
-      git -C "$PROJECT_DIR" add "posts/$week_date/"
-      git -C "$PROJECT_DIR" commit -m "Add Tidy Tuesday post: $week_date $dataset_name"
-      echo "  COMMITTED: Add Tidy Tuesday post: $week_date $dataset_name"
-      echo "  COMMIT $week_date $dataset_name" >> "$LOG_FILE"
-      commits_since_push=$((commits_since_push + 1))
+      if git -C "$PROJECT_DIR" add "posts/$week_date/" && \
+         git -C "$PROJECT_DIR" commit -m "Add Tidy Tuesday post: $week_date $dataset_name" 2>>"$LOG_FILE"; then
+        echo "  COMMITTED: Add Tidy Tuesday post: $week_date $dataset_name"
+        echo "  COMMIT $week_date $dataset_name" >> "$LOG_FILE"
+        commits_since_push=$((commits_since_push + 1))
 
-      # US-005: Batch push to remote every PUSH_BATCH_SIZE commits
-      if [[ $commits_since_push -ge $PUSH_BATCH_SIZE ]]; then
-        echo "  Pushing batch of $commits_since_push commits to remote..."
-        if git -C "$PROJECT_DIR" push 2>>"$LOG_FILE"; then
-          echo "  PUSHED $commits_since_push commits" >> "$LOG_FILE"
-          echo "  PUSH OK: $commits_since_push commits pushed to remote"
-          commits_since_push=0
-        else
-          echo "  PUSH FAIL: Push failed, will retry after next batch" >> "$LOG_FILE"
-          echo "  WARN: Push to remote failed — will retry after next batch"
+        # US-005: Batch push to remote every PUSH_BATCH_SIZE commits
+        if [[ $commits_since_push -ge $PUSH_BATCH_SIZE ]]; then
+          echo "  Pushing batch of $commits_since_push commits to remote..."
+          if git -C "$PROJECT_DIR" push 2>>"$LOG_FILE"; then
+            echo "  PUSHED $commits_since_push commits" >> "$LOG_FILE"
+            echo "  PUSH OK: $commits_since_push commits pushed to remote"
+            commits_since_push=0
+          else
+            echo "  PUSH FAIL: Push failed, will retry after next batch" >> "$LOG_FILE"
+            echo "  WARN: Push to remote failed — will retry after next batch"
+          fi
         fi
+      else
+        echo "  WARN: git commit failed for $week_date"
+        echo "  COMMIT-FAIL $week_date $dataset_name" >> "$LOG_FILE"
       fi
     else
       echo "  WARN: Claude exited 0 but post file not found at posts/$week_date/$week_date.qmd"
@@ -189,6 +259,13 @@ PROMPT
     echo "  FAIL $week_date $dataset_name (claude error)" >> "$LOG_FILE"
     failed=$((failed + 1))
     failed_weeks="$failed_weeks\n  - $week_date: $dataset_name (claude error)"
+  fi
+
+  # Batch size limit: stop after N posts generated
+  if [[ $BATCH_SIZE -gt 0 && $generated -ge $BATCH_SIZE ]]; then
+    echo "Batch limit reached ($BATCH_SIZE posts generated). Stopping."
+    echo "  BATCH-STOP after $generated posts" >> "$LOG_FILE"
+    break
   fi
 
   echo ""

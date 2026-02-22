@@ -59,3 +59,319 @@ Run completed: 2026-02-20T09:20:43-05:00
 Total: 52 | Generated: 0 | Skipped: 1 | Failed: 0
 ==========================================
 
+==========================================
+Backfill run started: 2026-02-20T09:31:47-05:00
+==========================================
+  OK 2025-02-25 Academic Literature on Racial and Ethnic Disparities in Reproductive Medicine in the US
+==========================================
+Backfill run started: 2026-02-20T09:42:04-05:00
+==========================================
+  SKIP 2025-02-25 Academic Literature on Racial and Ethnic Disparities in Reproductive Medicine in the US (already exists)
+  OK 2025-03-04 Long Beach Animal Shelter
+==========================================
+Backfill run started: 2026-02-20T14:19:31-05:00
+==========================================
+  SKIP 2025-02-25 Academic Literature on Racial and Ethnic Disparities in Reproductive Medicine in the US (already exists)
+  SKIP 2025-03-04 Long Beach Animal Shelter (already exists)
+## ✅ Autonomous Tidy Tuesday Analysis Complete
+
+I've successfully generated a complete Tidy Tuesday analysis for the **Pixar Films** dataset (2025-03-11) in autonomous mode. The post is located at:
+
+**`/home/sean/Documents/seanthimons.github.io/posts/2025-03-11/2025-03-11.qmd`**
+
+---
+
+## 📋 Autonomous Decisions Log
+
+Here are all the decisions I made automatically during this workflow:
+
+### 1. **Dataset Selection**
+- **Decision**: Used the 2025-03-11 Pixar Films dataset as specified
+- **Post date**: 2025-03-11 (from user specification)
+- **Dataset date**: 2025-03-11 (for `tt_load()`)
+- **Datasets found**: `pixar_films` (27 films) and `public_response` (24 films with critical scores)
+
+### 2. **Package Selection**
+Based on the dataset structure (categorical ratings, multiple scoring systems, need for labeling):
+- ✅ **`ggtext`** - Rich text formatting for plot annotations
+- ✅ **`ggrepel`** - Non-overlapping labels for film names
+- ✅ **`patchwork`** - Multi-panel layout for three-way comparison
+- ✅ **`paletteer`** - Access to curated color palettes
+
+**Rationale**: Dataset contains multiple categorical rating systems that needed comparison visualization with clear film labeling.
+
+### 3. **Analytical Direction**
+**Chosen approach**: "Rating System Convergence and Divergence Analysis"
+
+**Why this angle**:
+- Strong correlation (0.80-0.87) between three rating systems indicates consensus
+- Different variance patterns (RT range: 60 pts, Metacritic: 39 pts, Critics' Choice: 34 pts)
+- Clear outliers (Cars franchise consistently underperforms)
+- Directly addresses TidyTuesday question #2: "Do different rating sources diverge significantly?"
+
+**Alternatives considered** (but not pursued):
+- Time series evolution of Pixar quality over decades
+- Runtime vs. rating correlation analysis
+- Franchise performance comparison
+
+### 4. **Visualization Approach**
+
+**Chart type**: Scatter plot matrix (3 panels)
+- Panel 1: Rotten Tomatoes vs. Metacritic
+- Panel 2: Rotten Tomatoes vs. Critics' Choice
+- Panel 3: Metacritic vs. Critics' Choice
+
+**Rationale**: Pairwise comparisons reveal rating system relationships and allow readers to see agreement/divergence across all three combinations.
+
+**Encoding choices**:
+- **Position**: Rating scores on x/y axes
+- **Color**: Franchise category (Cars = red, Toy Story = blue, Other Franchise = green, Standalone = gray)
+- **Labels**: Selective labeling for outliers (Cars franchise) and top performers (Toy Story, WALL-E, etc.)
+- **Reference line**: y=x diagonal to show perfect agreement
+
+### 5. **Aesthetic Direction**
+**Style**: Editorial / Data Journalism
+
+**Implementation**:
+- **Bold, narrative title**: "Pixar's Critical Consensus: High Agreement Across Rating Systems"
+- **Detailed subtitle**: Explains the finding upfront rather than making readers decode the viz
+- **Franchise color coding**: 
+  - Cars = Crimson red (draws attention to underperformers)
+  - Toy Story = Royal blue (premium, trustworthy)
+  - Other franchises = Lime green (distinct but secondary)
+  - Standalone = Gray (recedes into background)
+- **Minimal gridlines**: Reduces chart junk, emphasizes data
+- **Strategic labeling**: Only annotate films that tell the story (outliers + top performers)
+
+### 6. **Domain Analysis & Narrative**
+
+**Key findings highlighted**:
+1. **Strong consensus** across rating systems (correlations ~0.80-0.87)
+2. **Cars franchise** as persistent outlier across all metrics
+3. **Rating system personalities**:
+   - Rotten Tomatoes: Widest variance, most discriminating
+   - Metacritic: Lowest mean, "tough grader"
+   - Critics' Choice: Tightest distribution, most generous
+4. **Top tier consensus**: Toy Story trilogy, Finding Nemo, WALL-E, Ratatouille, Inside Out
+
+**Narrative structure**:
+- Preface: Dataset context and TidyTuesday questions
+- EDA: Profile each dataset, explain missingness patterns
+- Analysis: Rating correlation, variance comparison, best/worst performers
+- Visualization: Three-panel scatter matrix with franchise encoding
+- Takeaways: Synthesis connecting findings to broader Pixar reputation
+
+### 7. **Missing Data Handling**
+**Identified issues**:
+- 3 films missing from `public_response` (Turning Red, Lightyear, Luca)
+- 1 film with missing title in `pixar_films` 
+- Sparse Critics' Choice coverage (3 missing scores)
+
+**Approach**: Documented in callout block, explained likely reasons (recent streaming releases, data collection timing), used `filter(!is.na())` to exclude from correlation analysis.
+
+### 8. **Code Validation**
+- ✅ Successfully extracted and executed all R code chunks
+- ✅ Data joins work correctly (24 films in combined dataset)
+- ✅ Correlation matrix calculated properly
+- ✅ Visualization code executes without errors
+- ⚠️ Camcorder output not generated in test run (expected — requires full Quarto render)
+
+---
+
+## 📝 Post Summary
+
+**Title**: "Pixar's Critical Consensus: Exploring Rating System Agreement"
+
+**Main finding**: Despite different methodologies, Rotten Tomatoes, Metacritic, and Critics' Choice Awards converge remarkably on Pixar's best (Toy Story, Finding Nemo, WALL-E) and worst (Cars franchise) films, with correlations around 0.80-0.87.
+
+**Hero visualization**: Three-panel scatter plot matrix showing pairwise rating comparisons, color-coded by franchise, with strategic labeling of outliers and top performers.
+
+**Categories**: `tidytuesday`, `R`, `film-analysis`, `data-visualization`
+
+---
+
+## ⚠️ Next Steps for User
+
+Since Quarto CLI isn't available in this Linux environment, you'll need to:
+
+1. **Render locally** on your Windows machine:
+   ```powershell
+   cd /home/sean/Documents/seanthimons.github.io
+   quarto render posts/2025-03-11/2025-03-11.qmd
+   ```
+
+2. **Verify the visualization** renders correctly and camcorder saves the output
+
+3. **Commit and push** to populate the `_freeze/` directory for CI:
+   ```bash
+   git add posts/2025-03-11/
+   git commit -m "feat: Tidy Tuesday 2025-03-11 - Pixar Films critical consensus analysis"
+   git push origin master
+   ```
+
+The analysis is complete and ready for publication! 🎬✨
+  OK 2025-03-11 Pixar Films
+  COMMIT 2025-03-11 Pixar Films
+Perfect! Let me provide a summary of the completed work:
+
+---
+
+## ✓ Tidy Tuesday Analysis Complete: Palm Trees (2025-03-18)
+
+### **Autonomous Execution Summary**
+
+I've successfully generated a complete Tidy Tuesday analysis in **autonomous mode** for the Palm Trees dataset (2025-03-18).
+
+### **Output Location**
+- **File**: `posts/2025-03-18/2025-03-18.qmd`
+- **Status**: Ready to render ✓
+
+### **Decisions Made (Autonomous Mode)**
+
+1. **Dataset**: Palm Trees from TidyTuesday 2025-03-18 (PalmTraits 1.0 database)
+   - 2,557 species across 5 subfamilies
+   - 29 variables covering taxonomy, morphology, and functional traits
+
+2. **Analytical Direction**: Size variation across subfamilies (suggested question #1)
+   - Focus: Vertical stratification patterns in stem height
+   - Key finding: Subfamilies occupy distinct height niches from groundcover to 170m canopy
+
+3. **Smart Package Selection**:
+   - **Activated**: `ggtext` (rich text), `ggrepel` (labels), `ggdist` (distributions), `paletteer` (colors), `patchwork` (layouts)
+   - **Excluded**: `gghalves` (R 4.5 compatibility issue - replaced with standard violin + boxplot)
+
+4. **Visualization Approach**:
+   - **Chart type**: Violin + boxplot overlay (distribution + summary stats)
+   - **Style**: Editorial/data journalism
+   - **Palette**: Earth tones inspired by palm habitats (forest floor browns, canopy greens, mountain grays)
+   - **Annotations**: Stratification zones (understory/midstory/canopy), tallest species per subfamily
+
+5. **Statistical Testing**: Kruskal-Wallis + pairwise Wilcoxon tests (p < 2e-16, highly significant differences)
+
+### **Key Findings**
+
+- **Calamoideae** (climbing palms): Tallest median height (15m), max 170m (*Calamus manan*)
+- **Arecoideae**: Shortest median (5m), 48% understory specialists despite being most species-rich
+- **Ceroxyloideae**: Thick-stemmed canopy palms (median diameter 29cm)
+- **Coryphoideae**: Mid-sized fan palms (median 6.5m)
+- **Nypoideae**: Single acaulescent mangrove species (0m stem)
+
+### **Document Structure**
+
+✓ YAML frontmatter with correct date (2025-03-18)  
+✓ Preface with TidyTuesday context and suggested questions  
+✓ Booster pack with smart package selection  
+✓ Data ingestion via `tt_load('2025-03-18')`  
+✓ EDA with `my_skim()` profiling  
+✓ Domain analysis (height summaries, stratification patterns)  
+✓ Statistical testing (Kruskal-Wallis, pairwise comparisons)  
+✓ Camcorder setup for iteration  
+✓ Hero visualization (violin + boxplot with annotations)  
+✓ Narrative wrap-up with ecological context and caveats  
+
+### **Next Steps**
+
+The document is ready to render! When you run `quarto render posts/2025-03-18/2025-03-18.qmd` locally:
+
+1. The booster pack will auto-install any missing packages
+2. Camcorder will save plot iterations to `posts/2025-03-18/output/`
+3. Quarto will generate the HTML output with the freeze directory
+4. **Remember to commit the `_freeze/` directory** so CI doesn't re-execute R code
+
+The visualization code has been tested and renders successfully (120KB PNG output verified).
+  OK 2025-03-18 Palm Trees
+  COMMIT 2025-03-18 Palm Trees
+Excellent! The Tidy Tuesday analysis is complete. Let me provide you with a summary of what was accomplished.
+
+---
+
+## ✅ Autonomous Analysis Complete
+
+I've successfully created a publication-ready Tidy Tuesday analysis for the Amazon Annual Reports dataset at:
+
+**`posts/2025-03-25/2025-03-25.qmd`**
+
+### 📊 Analysis Summary
+
+**Title**: "Amazon's Strategic Evolution Through Language"
+
+**Focus**: Tracking Amazon's transformation from e-commerce company to tech giant through linguistic analysis of 19 years (2005-2023) of annual reports.
+
+**Key Findings**:
+1. **Vocabulary explosion**: 2,225 new words in recent period (2019-2023) vs. 1,056 in early period (2005-2010)
+2. **AWS inflection point**: Cloud terminology exploded 2012-2014 despite AWS launching in 2006
+3. **Sustainability surge**: Climate/sustainability language barely existed before 2019, then spiked dramatically
+4. **Strategic pivots visible**: Language evolution mirrors business transformation from retail to cloud infrastructure provider
+
+### 📈 Visualization
+
+Created a stacked area chart showing five strategic dimensions over time:
+- Cloud Computing (AWS, cloud, infrastructure)
+- Consumer Devices (Kindle, Alexa, Echo)
+- Subscription Services (Prime, membership)
+- Digital Content (digital, streaming, content)
+- Sustainability (climate, sustainability, carbon)
+
+**Style**: Editorial/data journalism approach with:
+- Amazon-inspired color palette (orange, blue, dark, green)
+- Annotated milestone markers (AWS launch 2006, Alexa debut 2014, Climate Pledge 2019)
+- Clear narrative arc across three eras
+
+---
+
+## 🤖 Autonomous Decisions Log
+
+Since you requested autonomous mode, here are all the decisions made automatically:
+
+1. **Dataset validation**: Confirmed dataset date (2025-03-25) and post date (2025-03-25) per user instructions
+
+2. **Package selection**: 
+   - Activated: `tidytext`, `ggtext`, `ggrepel`, `ggforce`, `gghighlight`, `geomtextpath`, `paletteer`
+   - Reasoning: Text-heavy dataset with time-series structure requiring rich text formatting and selective highlighting
+
+3. **Analytical direction**: "The Evolution of Amazon's Strategic Language: From E-commerce to Tech Giant"
+   - Chose buzzword tracking over sentiment analysis or word co-occurrence
+   - Reasoning: Buzzword emergence tells clearest strategic story and leverages the temporal dimension
+
+4. **Chart type**: Stacked area chart
+   - Reasoning: Best shows both absolute growth and relative composition changes across five strategic categories over 19 years
+
+5. **Visual style**: Editorial/data journalism
+   - Bold title with explanatory subtitle
+   - Domain-inspired colors (Amazon orange/blue + sustainability green)
+   - Annotated milestone markers
+   - Strong contrast and clear category separation
+
+6. **Narrative arc**: Three-era framework
+   - 2005-2011: E-commerce foundations
+   - 2012-2018: Cloud awakening
+   - 2019-2023: Sustainability imperative
+
+---
+
+## ✅ Code Validation
+
+All R code chunks tested successfully:
+- Dataset loads correctly (411,626 rows, 7,723 unique words)
+- Strategic word tracking functions properly
+- Analysis generates expected insights
+
+**Note**: The document needs to be rendered with Quarto to generate the final HTML output and populate the `_freeze/` directory. You can render it locally with:
+
+```bash
+quarto render posts/2025-03-25/2025-03-25.qmd
+```
+
+The analysis is complete and ready for your review! 🎉
+  OK 2025-03-25 Text Data From Amazon's Annual Reports
+  COMMIT 2025-03-25 Text Data From Amazon's Annual Reports
+  BATCH-STOP after 3 posts
+To https://github.com/seanthimons/seanthimons.github.io.git
+   e6f06d6..5b0671a  master -> master
+  PUSHED final 3 commits
+
+==========================================
+Run completed: 2026-02-20T14:40:08-05:00
+Total: 5 | Generated: 3 | Skipped: 2 | Failed: 0
+==========================================
+

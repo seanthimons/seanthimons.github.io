@@ -1,0 +1,1156 @@
+{
+  "name": "The Chemist's Bench",
+  "version": "1.0.0",
+  "description": "A scientifically meaningful color palette derived from pigment chemistry, spectral emissions, minerals, and biological compounds.",
+  "author": "Sean Thimons",
+  "source": "Wikipedia research on pigments, flame tests, spectral lines, and historical colors",
+  "core": {
+    "_comment": "Primary site palette - Phthalo Waters theme",
+    "phthalo_deep": {
+      "hex": "#0D5C63",
+      "rgb": [
+        13,
+        92,
+        99
+      ],
+      "name": "Phthalo Deep",
+      "formula": "C₃₂H₁₆CuN₈",
+      "description": "Phthalocyanine blue-green pigment",
+      "use": [
+        "primary",
+        "links",
+        "buttons",
+        "accent"
+      ]
+    },
+    "aquamarine": {
+      "hex": "#78CDD7",
+      "rgb": [
+        120,
+        205,
+        215
+      ],
+      "name": "Aquamarine",
+      "formula": "Be₃Al₂Si₆O₁₈",
+      "description": "Beryl gemstone, color from trace iron",
+      "use": [
+        "secondary",
+        "hover",
+        "highlights"
+      ]
+    },
+    "prussian_blue": {
+      "hex": "#003153",
+      "rgb": [
+        0,
+        49,
+        83
+      ],
+      "name": "Prussian Blue",
+      "formula": "Fe₄[Fe(CN)₆]₃",
+      "description": "First modern synthetic pigment (1706)",
+      "use": [
+        "code_background",
+        "deep_accent"
+      ]
+    },
+    "dark_slate": {
+      "hex": "#1A2E35",
+      "rgb": [
+        26,
+        46,
+        53
+      ],
+      "name": "Dark Slate",
+      "description": "Metamorphic rock",
+      "use": [
+        "headings",
+        "dark_text"
+      ]
+    },
+    "soft_slate": {
+      "hex": "#3D4F58",
+      "rgb": [
+        61,
+        79,
+        88
+      ],
+      "name": "Soft Slate",
+      "description": "Weathered slate",
+      "use": [
+        "body_text"
+      ]
+    },
+    "light_teal": {
+      "hex": "#F0F5F4",
+      "rgb": [
+        240,
+        245,
+        244
+      ],
+      "name": "Light Teal",
+      "description": "Tinted background",
+      "use": [
+        "background",
+        "cards"
+      ]
+    },
+    "near_white": {
+      "hex": "#FAFBFB",
+      "rgb": [
+        250,
+        251,
+        251
+      ],
+      "name": "Near White",
+      "description": "Page background",
+      "use": [
+        "page_background"
+      ]
+    }
+  },
+  "section_accents": {
+    "_comment": "Distinct colors for different site sections",
+    "oxblood": {
+      "hex": "#6B1C23",
+      "rgb": [
+        107,
+        28,
+        35
+      ],
+      "name": "Oxblood",
+      "description": "Iron-rich hemoglobin oxidation, traditional leather dye",
+      "use": [
+        "blog_section"
+      ]
+    },
+    "tyrian_purple": {
+      "hex": "#5D2E8C",
+      "rgb": [
+        93,
+        46,
+        140
+      ],
+      "name": "Tyrian Purple",
+      "formula": "C₁₆H₈Br₂N₂O₂",
+      "description": "Murex snail mucus, worth more than gold in antiquity",
+      "use": [
+        "work_section",
+        "projects"
+      ]
+    },
+    "amber": {
+      "hex": "#B8860B",
+      "rgb": [
+        184,
+        134,
+        11
+      ],
+      "name": "Amber",
+      "description": "Fossilized tree resin, 30-90 million years old",
+      "use": [
+        "volunteer_section"
+      ]
+    }
+  },
+  "metallic_compounds": {
+    "_comment": "Colors from transition metals and coordination chemistry",
+    "nd_yag_gold": {
+      "hex": "#D4AF37",
+      "rgb": [
+        212,
+        175,
+        55
+      ],
+      "name": "Nd:YAG Gold",
+      "formula": "Nd:Y₃Al₅O₁₂",
+      "wavelength_nm": 1064,
+      "description": "Neodymium laser emission",
+      "use": [
+        "awards",
+        "highlights",
+        "special_callouts"
+      ]
+    },
+    "verdigris": {
+      "hex": "#43B3AE",
+      "rgb": [
+        67,
+        179,
+        174
+      ],
+      "name": "Verdigris",
+      "formula": "Cu(CH₃COO)₂·nCu(OH)₂",
+      "description": "Copper acetate patina, Statue of Liberty green",
+      "use": [
+        "success",
+        "confirmations"
+      ]
+    },
+    "azurite": {
+      "hex": "#4169E1",
+      "rgb": [
+        65,
+        105,
+        225
+      ],
+      "name": "Azurite",
+      "formula": "Cu₃(CO₃)₂(OH)₂",
+      "description": "Copper carbonate, slowly converts to malachite",
+      "use": [
+        "info",
+        "secondary_links"
+      ]
+    },
+    "malachite": {
+      "hex": "#0BDA51",
+      "rgb": [
+        11,
+        218,
+        81
+      ],
+      "name": "Malachite",
+      "formula": "Cu₂CO₃(OH)₂",
+      "description": "Copper carbonate hydroxide, ancient eyeshadow",
+      "use": [
+        "success_bright",
+        "growth"
+      ]
+    },
+    "cobalt_blue": {
+      "hex": "#0047AB",
+      "rgb": [
+        0,
+        71,
+        171
+      ],
+      "name": "Cobalt Blue",
+      "formula": "CoAl₂O₄",
+      "description": "Cobalt aluminate, PB28, exceptionally stable",
+      "use": [
+        "accent_blue"
+      ]
+    },
+    "egyptian_blue": {
+      "hex": "#26619C",
+      "rgb": [
+        38,
+        97,
+        156
+      ],
+      "name": "Egyptian Blue",
+      "formula": "CaCuSi₄O₁₀",
+      "description": "First synthetic pigment (~3000 BCE)",
+      "use": [
+        "historical_accent"
+      ]
+    },
+    "ultramarine": {
+      "hex": "#002FA7",
+      "rgb": [
+        0,
+        47,
+        167
+      ],
+      "name": "Ultramarine",
+      "formula": "Na₈Al₆Si₆O₂₄S₂",
+      "description": "From lapis lazuli, once more expensive than gold",
+      "use": [
+        "deep_blue_accent"
+      ]
+    },
+    "yinmn_blue": {
+      "hex": "#0093AF",
+      "rgb": [
+        0,
+        147,
+        175
+      ],
+      "name": "YInMn Blue",
+      "formula": "YIn₁₋ₓMnₓO₃",
+      "description": "First new blue in 200 years (2009)",
+      "use": [
+        "modern_accent"
+      ]
+    }
+  },
+  "minerals": {
+    "_comment": "Natural mineral pigments - iron oxides, clays, crystalline structures",
+    "yellow_ochre": {
+      "hex": "#CC7722",
+      "rgb": [
+        204,
+        119,
+        34
+      ],
+      "name": "Yellow Ochre",
+      "formula": "Fe₂O₃·H₂O",
+      "description": "Hydrated iron oxide, 40,000+ years of use",
+      "use": [
+        "earth_tones",
+        "warm_accent"
+      ]
+    },
+    "raw_sienna": {
+      "hex": "#8B4513",
+      "rgb": [
+        139,
+        69,
+        19
+      ],
+      "name": "Raw Sienna",
+      "formula": "Fe₂O₃ + MnO₂ + Al₂O₃",
+      "description": "From Siena, Italy, limonite clay",
+      "use": [
+        "earth_tones"
+      ]
+    },
+    "raw_umber": {
+      "hex": "#6F4E37",
+      "rgb": [
+        111,
+        78,
+        55
+      ],
+      "name": "Raw Umber",
+      "formula": "Fe₂O₃ + MnO₂ + SiO₂",
+      "description": "From Umbria, cooler than sienna",
+      "use": [
+        "earth_tones",
+        "neutral_brown"
+      ]
+    },
+    "caput_mortuum": {
+      "hex": "#722F37",
+      "rgb": [
+        114,
+        47,
+        55
+      ],
+      "name": "Caput Mortuum",
+      "formula": "Fe₂O₃",
+      "description": "Purple-brown hematite, Mars Violet",
+      "use": [
+        "deep_accent"
+      ]
+    },
+    "cinnabar": {
+      "hex": "#E34234",
+      "rgb": [
+        227,
+        66,
+        52
+      ],
+      "name": "Cinnabar",
+      "formula": "HgS",
+      "description": "Mercury sulfide, dragon's blood in alchemy",
+      "use": [
+        "error",
+        "danger",
+        "critical_warning"
+      ]
+    },
+    "fluorite": {
+      "hex": "#7B68EE",
+      "rgb": [
+        123,
+        104,
+        238
+      ],
+      "name": "Fluorite",
+      "formula": "CaF₂",
+      "description": "Origin of the word fluorescence",
+      "use": [
+        "interactive",
+        "hover_states"
+      ]
+    },
+    "turquoise": {
+      "hex": "#40E0D0",
+      "rgb": [
+        64,
+        224,
+        208
+      ],
+      "name": "Turquoise",
+      "formula": "CuAl₆(PO₄)₄(OH)₈·4H₂O",
+      "description": "Copper aluminum phosphate, 6000 years of jewelry",
+      "use": [
+        "accent_cyan"
+      ]
+    },
+    "rhodochrosite": {
+      "hex": "#E9967A",
+      "rgb": [
+        233,
+        150,
+        122
+      ],
+      "name": "Rhodochrosite",
+      "formula": "MnCO₃",
+      "description": "Manganese carbonate, rose stone",
+      "use": [
+        "soft_accent",
+        "feminine"
+      ]
+    }
+  },
+  "flame_test": {
+    "_comment": "Atomic emission colors from heated elements",
+    "sodium_yellow": {
+      "hex": "#FFD700",
+      "rgb": [
+        255,
+        215,
+        0
+      ],
+      "name": "Sodium Yellow",
+      "element": "Na",
+      "wavelength_nm": 589,
+      "description": "D-line doublet, masks other elements",
+      "use": [
+        "bright_yellow",
+        "attention"
+      ]
+    },
+    "lithium_crimson": {
+      "hex": "#DC143C",
+      "rgb": [
+        220,
+        20,
+        60
+      ],
+      "name": "Lithium Crimson",
+      "element": "Li",
+      "wavelength_nm": 670.8,
+      "description": "Element discovered by flame test (1817)",
+      "use": [
+        "vibrant_red"
+      ]
+    },
+    "strontium_red": {
+      "hex": "#FF0000",
+      "rgb": [
+        255,
+        0,
+        0
+      ],
+      "name": "Strontium Red",
+      "element": "Sr",
+      "wavelength_nm": 606,
+      "description": "Road flares, red fireworks",
+      "use": [
+        "pure_red",
+        "alert"
+      ]
+    },
+    "barium_green": {
+      "hex": "#7CFC00",
+      "rgb": [
+        124,
+        252,
+        0
+      ],
+      "name": "Barium Green",
+      "element": "Ba",
+      "wavelength_nm": 524,
+      "description": "Apple green, from Ba⁺ ion",
+      "use": [
+        "bright_green"
+      ]
+    },
+    "potassium_violet": {
+      "hex": "#8B008B",
+      "rgb": [
+        139,
+        0,
+        139
+      ],
+      "name": "Potassium Violet",
+      "element": "K",
+      "wavelength_nm": 766,
+      "description": "Pale lilac flame",
+      "use": [
+        "violet_accent"
+      ]
+    },
+    "copper_blue_green": {
+      "hex": "#00CED1",
+      "rgb": [
+        0,
+        206,
+        209
+      ],
+      "name": "Copper Blue-Green",
+      "element": "Cu",
+      "wavelength_nm": 510,
+      "description": "Green alone, blue with chloride",
+      "use": [
+        "cyan_accent"
+      ]
+    },
+    "calcium_orange": {
+      "hex": "#FF4500",
+      "rgb": [
+        255,
+        69,
+        0
+      ],
+      "name": "Calcium Orange",
+      "element": "Ca",
+      "wavelength_nm": 622,
+      "description": "Orange-red flame",
+      "use": [
+        "orange_accent"
+      ]
+    },
+    "cesium_blue": {
+      "hex": "#4169E1",
+      "rgb": [
+        65,
+        105,
+        225
+      ],
+      "name": "Cesium Blue",
+      "element": "Cs",
+      "wavelength_nm": 455,
+      "description": "First element discovered spectroscopically",
+      "use": [
+        "blue_accent"
+      ]
+    }
+  },
+  "spectral": {
+    "_comment": "Laser lines, hydrogen series, fluorescent tracers",
+    "hene_red": {
+      "hex": "#FF6B6B",
+      "rgb": [
+        255,
+        107,
+        107
+      ],
+      "name": "HeNe Red",
+      "wavelength_nm": 632.8,
+      "description": "Helium-neon laser, barcode scanners",
+      "use": [
+        "soft_alert"
+      ]
+    },
+    "ktp_green": {
+      "hex": "#32CD32",
+      "rgb": [
+        50,
+        205,
+        50
+      ],
+      "name": "KTP Green",
+      "wavelength_nm": 532,
+      "description": "Frequency-doubled Nd:YAG, green laser pointer",
+      "use": [
+        "success",
+        "positive"
+      ]
+    },
+    "argon_blue": {
+      "hex": "#00BFFF",
+      "rgb": [
+        0,
+        191,
+        255
+      ],
+      "name": "Argon Blue",
+      "wavelength_nm": 488,
+      "description": "Argon-ion laser, flow cytometry",
+      "use": [
+        "info",
+        "cool_highlight"
+      ]
+    },
+    "nitrogen_uv": {
+      "hex": "#9370DB",
+      "rgb": [
+        147,
+        112,
+        219
+      ],
+      "name": "Nitrogen UV",
+      "wavelength_nm": 337,
+      "description": "N₂ laser, MALDI mass spec",
+      "use": [
+        "special",
+        "rare"
+      ]
+    },
+    "h_alpha": {
+      "hex": "#DC143C",
+      "rgb": [
+        220,
+        20,
+        60
+      ],
+      "name": "H-alpha",
+      "wavelength_nm": 656.3,
+      "description": "Hydrogen Balmer series, emission nebulae",
+      "use": [
+        "astronomy_red"
+      ]
+    },
+    "h_beta": {
+      "hex": "#00CED1",
+      "rgb": [
+        0,
+        206,
+        209
+      ],
+      "name": "H-beta",
+      "wavelength_nm": 486.1,
+      "description": "Hydrogen blue-green line",
+      "use": [
+        "astronomy_cyan"
+      ]
+    },
+    "rhodamine": {
+      "hex": "#FF1493",
+      "rgb": [
+        255,
+        20,
+        147
+      ],
+      "name": "Rhodamine",
+      "formula": "C₂₈H₃₁ClN₂O₃",
+      "description": "Fluorescent water tracer, EPA hydrology",
+      "use": [
+        "water_tracing",
+        "vibrant_pink"
+      ]
+    },
+    "fluorescein": {
+      "hex": "#ADFF2F",
+      "rgb": [
+        173,
+        255,
+        47
+      ],
+      "name": "Fluorescein",
+      "formula": "C₂₀H₁₂O₅",
+      "description": "Chicago River green, medical imaging",
+      "use": [
+        "tracer",
+        "highlight_green"
+      ]
+    },
+    "ruby_laser": {
+      "hex": "#E0115F",
+      "rgb": [224, 17, 95],
+      "name": "Ruby Laser",
+      "description": "First working laser (1960). Chromium-doped aluminum oxide.",
+      "formula": "694.3nm",
+      "source": "Wikipedia: Ruby laser",
+      "wavelength_nm": 694.3
+    }
+  },
+  "biological": {
+    "_comment": "Living pigments - photosynthesis, blood, autumn leaves",
+    "chlorophyll": {
+      "hex": "#228B22",
+      "rgb": [
+        34,
+        139,
+        34
+      ],
+      "name": "Chlorophyll",
+      "formula": "C₅₅H₇₂MgN₄O₅",
+      "description": "Magnesium porphyrin, powers photosynthesis",
+      "use": [
+        "nature",
+        "environmental",
+        "growth"
+      ]
+    },
+    "beta_carotene": {
+      "hex": "#FF8C00",
+      "rgb": [
+        255,
+        140,
+        0
+      ],
+      "name": "β-Carotene",
+      "formula": "C₄₀H₅₆",
+      "description": "Carrots, autumn leaves, flamingos",
+      "use": [
+        "warm_orange",
+        "energy"
+      ]
+    },
+    "hemoglobin": {
+      "hex": "#C41E3A",
+      "rgb": [
+        196,
+        30,
+        58
+      ],
+      "name": "Hemoglobin",
+      "formula": "C₂₉₅₂H₄₆₆₄N₈₁₂O₈₃₂S₈Fe₄",
+      "description": "Iron porphyrin in blood",
+      "use": [
+        "life",
+        "vital"
+      ]
+    },
+    "bilirubin": {
+      "hex": "#E3A857",
+      "rgb": [
+        227,
+        168,
+        87
+      ],
+      "name": "Bilirubin",
+      "formula": "C₃₃H₃₆N₄O₆",
+      "description": "Heme breakdown, bruise yellow",
+      "use": [
+        "warning_soft"
+      ]
+    },
+    "anthocyanin": {
+      "hex": "#8B0000",
+      "rgb": [
+        139,
+        0,
+        0
+      ],
+      "name": "Anthocyanin",
+      "formula": "C₁₅H₁₁O₆⁺",
+      "description": "pH indicator, blueberries to autumn leaves",
+      "use": [
+        "deep_red"
+      ]
+    },
+    "lycopene": {
+      "hex": "#FF6347",
+      "rgb": [
+        255,
+        99,
+        71
+      ],
+      "name": "Lycopene",
+      "formula": "C₄₀H₅₆",
+      "description": "Tomatoes, watermelon",
+      "use": [
+        "tomato_red"
+      ]
+    },
+    "melanin": {
+      "hex": "#36454F",
+      "rgb": [
+        54,
+        69,
+        79
+      ],
+      "name": "Melanin",
+      "formula": "(C₁₈H₁₀N₂O₄)ₙ",
+      "description": "UV protection in skin, hair, eyes",
+      "use": [
+        "charcoal",
+        "neutral_dark"
+      ]
+    },
+    "lutein": {
+      "hex": "#FFD700",
+      "rgb": [
+        255,
+        215,
+        0
+      ],
+      "name": "Lutein",
+      "formula": "C₄₀H₅₆O₂",
+      "description": "Yellow xanthophyll, eye protection",
+      "use": [
+        "gold_yellow"
+      ]
+    }
+  },
+  "historical": {
+    "_comment": "Pigments with stories - from cave paintings to Renaissance masters",
+    "carmine": {
+      "hex": "#DC143C",
+      "rgb": [
+        220,
+        20,
+        60
+      ],
+      "name": "Carmine",
+      "formula": "C₂₂H₂₀O₁₃",
+      "description": "Cochineal bug, 70,000 bugs per pound",
+      "use": [
+        "rich_red"
+      ]
+    },
+    "indigo": {
+      "hex": "#4B0082",
+      "rgb": [
+        75,
+        0,
+        130
+      ],
+      "name": "Indigo",
+      "formula": "C₁₆H₁₀N₂O₂",
+      "description": "6000 years of denim and rebellion",
+      "use": [
+        "deep_purple",
+        "night_mode"
+      ]
+    },
+    "dragons_blood": {
+      "hex": "#8B0000",
+      "rgb": [
+        139,
+        0,
+        0
+      ],
+      "name": "Dragon's Blood",
+      "description": "Dracaena tree resin, ancient varnish",
+      "use": [
+        "dramatic_red"
+      ]
+    },
+    "mummy_brown": {
+      "hex": "#704214",
+      "rgb": [
+        112,
+        66,
+        20
+      ],
+      "name": "Mummy Brown",
+      "description": "Literally made from Egyptian mummies",
+      "use": [
+        "historical_brown"
+      ]
+    },
+    "indian_yellow": {
+      "hex": "#E6C200",
+      "rgb": [
+        230,
+        194,
+        0
+      ],
+      "name": "Indian Yellow",
+      "description": "Mango-fed cow urine, Turner's favorite",
+      "use": [
+        "bright_yellow"
+      ]
+    },
+    "minium": {
+      "hex": "#FF4D00",
+      "rgb": [
+        255,
+        77,
+        0
+      ],
+      "name": "Minium",
+      "formula": "Pb₃O₄",
+      "description": "Red lead, illuminated manuscripts",
+      "use": [
+        "vermilion_orange"
+      ]
+    }
+  },
+  "fountain_pen_inks": {
+    "_comment": "Classic ink formulations and iron gall chemistry",
+    "iron_gall_blue_black": {
+      "hex": "#1A1A40",
+      "rgb": [
+        26,
+        26,
+        64
+      ],
+      "name": "Iron Gall Blue-Black",
+      "formula": "Fe³⁺ + tannic acid",
+      "description": "1400+ years of use, UK birth certificates",
+      "use": [
+        "archival",
+        "document"
+      ]
+    },
+    "waterman_blue": {
+      "hex": "#0066CC",
+      "rgb": [
+        0,
+        102,
+        204
+      ],
+      "name": "Waterman Blue",
+      "description": "Serenity Blue, gold standard safe ink",
+      "use": [
+        "classic_blue"
+      ]
+    },
+    "pelikan_4001": {
+      "hex": "#003366",
+      "rgb": [
+        0,
+        51,
+        102
+      ],
+      "name": "Pelikan 4001",
+      "description": "Royal Blue, German reliability since 1838",
+      "use": [
+        "office_blue"
+      ]
+    },
+    "rk_scabiosa": {
+      "hex": "#6A5ACD",
+      "rgb": [
+        106,
+        90,
+        205
+      ],
+      "name": "R&K Scabiosa",
+      "description": "Purple-gray iron gall, named for the flower",
+      "use": [
+        "purple_ink"
+      ]
+    },
+    "rk_salix": {
+      "hex": "#4682B4",
+      "rgb": [
+        70,
+        130,
+        180
+      ],
+      "name": "R&K Salix",
+      "description": "Blue-black iron gall, named for willow",
+      "use": [
+        "archival_blue"
+      ]
+    },
+    "diamine_oxblood": {
+      "hex": "#800020",
+      "rgb": [
+        128,
+        0,
+        32
+      ],
+      "name": "Diamine Oxblood",
+      "description": "British ink since 1864, excellent shading",
+      "use": [
+        "red_ink"
+      ]
+    },
+    "parker_quink": {
+      "hex": "#00308F",
+      "rgb": [
+        0,
+        48,
+        143
+      ],
+      "name": "Parker Quink",
+      "description": "Quick-drying ink since 1931",
+      "use": [
+        "practical_blue"
+      ]
+    },
+    "registrars_ink": {
+      "hex": "#191970",
+      "rgb": [
+        25,
+        25,
+        112
+      ],
+      "name": "Registrar's Ink",
+      "description": "UK archival standard for official documents",
+      "use": [
+        "permanent",
+        "legal"
+      ]
+    }
+  },
+  "toxic_beautiful": {
+    "_comment": "Gorgeous colors with murderous histories",
+    "scheeles_green": {
+      "hex": "#50C878",
+      "rgb": [
+        80,
+        200,
+        120
+      ],
+      "name": "Scheele's Green",
+      "formula": "CuHAsO₃",
+      "description": "Copper arsenite, possibly killed Napoleon",
+      "use": [
+        "vintage_green"
+      ],
+      "toxic": true
+    },
+    "paris_green": {
+      "hex": "#00A86B",
+      "rgb": [
+        0,
+        168,
+        107
+      ],
+      "name": "Paris Green",
+      "formula": "Cu(C₂H₃O₂)₂·3Cu(AsO₂)₂",
+      "description": "May have caused Cézanne's diabetes",
+      "use": [
+        "emerald"
+      ],
+      "toxic": true
+    },
+    "orpiment": {
+      "hex": "#E6E200",
+      "rgb": [
+        230,
+        226,
+        0
+      ],
+      "name": "Orpiment",
+      "formula": "As₂S₃",
+      "description": "King's Yellow, arsenic trisulfide",
+      "use": [
+        "bright_yellow_accent"
+      ],
+      "toxic": true
+    },
+    "realgar": {
+      "hex": "#E97451",
+      "rgb": [
+        233,
+        116,
+        81
+      ],
+      "name": "Realgar",
+      "formula": "As₄S₄",
+      "description": "Arsenic sulfide, firework orange",
+      "use": [
+        "warm_orange"
+      ],
+      "toxic": true
+    },
+    "chrome_yellow": {
+      "hex": "#FADA5E",
+      "rgb": [
+        250,
+        218,
+        94
+      ],
+      "name": "Chrome Yellow",
+      "formula": "PbCrO₄",
+      "description": "Van Gogh's sunflowers, school bus yellow",
+      "use": [
+        "sunshine_yellow"
+      ],
+      "toxic": true
+    },
+    "naples_yellow": {
+      "hex": "#F0DC82",
+      "rgb": [
+        240,
+        220,
+        130
+      ],
+      "name": "Naples Yellow",
+      "formula": "Pb₃(SbO₄)₂",
+      "description": "Lead antimonate, oldest synthetic still used",
+      "use": [
+        "soft_yellow"
+      ],
+      "toxic": true
+    },
+    "vermilion": {
+      "hex": "#E34234",
+      "rgb": [
+        227,
+        66,
+        52
+      ],
+      "name": "Vermilion",
+      "formula": "HgS",
+      "description": "Synthetic cinnabar, mercury sulfide",
+      "use": [
+        "classic_red"
+      ],
+      "toxic": true
+    },
+    "lead_white": {
+      "hex": "#FFFAF0",
+      "rgb": [
+        255,
+        250,
+        240
+      ],
+      "name": "Lead White",
+      "formula": "(PbCO₃)₂·Pb(OH)₂",
+      "description": "Cremnitz white, Vermeer & Rembrandt",
+      "use": [
+        "warm_white"
+      ],
+      "toxic": true
+    }
+  },
+  "semantic": {
+    "_comment": "Recommended mappings for UI states",
+    "success": {
+      "default": "#43B3AE",
+      "name": "Verdigris",
+      "alt": "#32CD32"
+    },
+    "warning": {
+      "default": "#F4E04D",
+      "name": "Sulfur",
+      "alt": "#E3A857"
+    },
+    "error": {
+      "default": "#E34234",
+      "name": "Cinnabar",
+      "alt": "#DC143C"
+    },
+    "info": {
+      "default": "#4169E1",
+      "name": "Azurite",
+      "alt": "#00BFFF"
+    },
+    "neutral": {
+      "dark": "#1A2E35",
+      "medium": "#3D4F58",
+      "light": "#F0F5F4"
+    }
+  },
+  "gradients": {
+    "_comment": "Suggested gradient combinations",
+    "phthalo_waters": {
+      "colors": [
+        "#0D5C63",
+        "#003153"
+      ],
+      "css": "linear-gradient(135deg, #0D5C63, #003153)"
+    },
+    "sunset_carotene": {
+      "colors": [
+        "#FF8C00",
+        "#E34234"
+      ],
+      "css": "linear-gradient(135deg, #FF8C00, #E34234)"
+    },
+    "copper_patina": {
+      "colors": [
+        "#43B3AE",
+        "#0BDA51"
+      ],
+      "css": "linear-gradient(135deg, #43B3AE, #0BDA51)"
+    },
+    "tyrian_royal": {
+      "colors": [
+        "#5D2E8C",
+        "#4B0082"
+      ],
+      "css": "linear-gradient(135deg, #5D2E8C, #4B0082)"
+    },
+    "iron_gall": {
+      "colors": [
+        "#1A1A40",
+        "#4682B4"
+      ],
+      "css": "linear-gradient(135deg, #1A1A40, #4682B4)"
+    }
+  }
+}
