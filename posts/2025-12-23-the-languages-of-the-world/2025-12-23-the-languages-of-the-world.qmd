@@ -294,7 +294,7 @@ Which families span the most macroareas?
 family_spread <- languages %>%
   filter(!is.na(family_id), !is.na(macroarea)) %>%
   left_join(families, by = c("family_id" = "id")) %>%
-  group_by(name.y) %>%
+  group_by(family_name = family) %>%
   summarize(
     n_languages = n(),
     n_macroareas = n_distinct(macroarea),
@@ -303,7 +303,6 @@ family_spread <- languages %>%
     lon_range = max(longitude, na.rm = TRUE) - min(longitude, na.rm = TRUE),
     .groups = "drop"
   ) %>%
-  rename(family_name = name.y) %>%
   arrange(desc(n_macroareas), desc(n_languages))
 
 family_spread %>% head(15)

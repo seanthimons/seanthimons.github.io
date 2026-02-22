@@ -118,7 +118,7 @@ My handy booster pack that allows me to install (if needed) and load my usual an
 
 raw <- tidytuesdayR::tt_load('2025-12-09')
 
-cars <- raw$qatar_cars
+cars <- raw$qatarcars
 
 ```
 

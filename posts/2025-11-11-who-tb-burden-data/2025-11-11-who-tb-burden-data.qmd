@@ -116,7 +116,7 @@ My handy booster pack that allows me to install (if needed) and load my usual an
 
 raw <- tidytuesdayR::tt_load('2025-11-11')
 
-tb <- raw$tb_burden
+tb <- raw$who_tb_data
 
 ```
 
@@ -142,7 +142,7 @@ tb %>%
 #| output: true
 
 tb %>%
-  count(g_whoregion, sort = TRUE)
+  dplyr::count(g_whoregion, sort = TRUE)
 
 tb %>%
   summarize(

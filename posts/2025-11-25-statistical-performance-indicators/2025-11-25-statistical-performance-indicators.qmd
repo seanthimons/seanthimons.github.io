@@ -116,7 +116,7 @@ My handy booster pack that allows me to install (if needed) and load my usual an
 
 raw <- tidytuesdayR::tt_load('2025-11-25')
 
-spi <- raw$spi
+spi <- raw$spi_indicators
 
 ```
 
