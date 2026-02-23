@@ -80,8 +80,10 @@ My handy booster pack that allows me to install (if needed) and load my usual an
     ### Spatial ----
     'sf',
     'rnaturalearth',
+    'osmdata',
 
     ### Misc ----
+    'cowplot',
     'tidytuesdayR'
   )
 
@@ -201,28 +203,38 @@ wq <- water_quality %>%
     month = month(date),
     season = case_when(
       month %in% c(12, 1, 2) ~ "Summer",
-      month %in% c(3, 4, 5)  ~ "Autumn",
-      month %in% c(6, 7, 8)  ~ "Winter",
+      month %in% c(3, 4, 5) ~ "Autumn",
+      month %in% c(6, 7, 8) ~ "Winter",
       month %in% c(9, 10, 11) ~ "Spring"
     ),
     season = factor(season, levels = c("Summer", "Autumn", "Winter", "Spring")),
     log_entero = log10(enterococci_cfu_100ml + 1),
     rain_category = case_when(
-      rain_3d == 0            ~ "No rain",
-      rain_3d <= 5            ~ "Light (0-5mm)",
-      rain_3d <= 20           ~ "Moderate (5-20mm)",
-      rain_3d <= 50           ~ "Heavy (20-50mm)",
-      TRUE                    ~ "Extreme (50mm+)"
+      rain_3d == 0 ~ "No rain",
+      rain_3d <= 5 ~ "Light (0-5mm)",
+      rain_3d <= 20 ~ "Moderate (5-20mm)",
+      rain_3d <= 50 ~ "Heavy (20-50mm)",
+      TRUE ~ "Extreme (50mm+)"
     ),
-    rain_category = factor(rain_category, levels = c(
-      "No rain", "Light (0-5mm)", "Moderate (5-20mm)",
-      "Heavy (20-50mm)", "Extreme (50mm+)"
-    ))
+    rain_category = factor(
+      rain_category,
+      levels = c(
+        "No rain",
+        "Light (0-5mm)",
+        "Moderate (5-20mm)",
+        "Heavy (20-50mm)",
+        "Extreme (50mm+)"
+      )
+    )
   )
 
 cat("Joined dataset:", nrow(wq), "rows\n")
 cat("Date range:", as.character(range(wq$date)), "\n")
-cat("Rainfall match rate:", scales::percent(mean(!is.na(wq$precipitation_mm))), "\n")
+cat(
+  "Rainfall match rate:",
+  scales::percent(mean(!is.na(wq$precipitation_mm))),
+  "\n"
+)
 
 ```
 
@@ -249,18 +261,29 @@ site_stats <- wq %>%
   ) %>%
   mutate(
     quality_grade = case_when(
-      geo_mean_entero <= 10 & p90_entero <= 40  ~ "Good",
+      geo_mean_entero <= 10 & p90_entero <= 40 ~ "Good",
       geo_mean_entero <= 20 & p90_entero <= 100 ~ "Fair",
       geo_mean_entero <= 40 & p90_entero <= 200 ~ "Poor",
-      TRUE                                       ~ "Very Poor"
+      TRUE ~ "Very Poor"
     ),
-    quality_grade = factor(quality_grade, levels = c("Good", "Fair", "Poor", "Very Poor"))
+    quality_grade = factor(
+      quality_grade,
+      levels = c("Good", "Fair", "Poor", "Very Poor")
+    )
   )
 
 # Top 10 worst sites by exceedance rate
 site_stats %>%
   arrange(desc(pct_exceedance)) %>%
-  select(region, swim_site, n_samples, median_entero, p90_entero, pct_exceedance, quality_grade) %>%
+  select(
+    region,
+    swim_site,
+    n_samples,
+    median_entero,
+    p90_entero,
+    pct_exceedance,
+    quality_grade
+  ) %>%
   head(10)
 
 ```
@@ -301,8 +324,19 @@ yearly_overall <- wq %>%
   )
 
 cat("Overall geo mean trend:\n")
-cat("  1992:", round(yearly_overall$geo_mean[yearly_overall$year == 1992], 1), "\n")
-cat("  2024:", round(yearly_overall$geo_mean[yearly_overall$year == max(yearly_overall$year)], 1), "\n")
+cat(
+  "  1992:",
+  round(yearly_overall$geo_mean[yearly_overall$year == 1992], 1),
+  "\n"
+)
+cat(
+  "  2024:",
+  round(
+    yearly_overall$geo_mean[yearly_overall$year == max(yearly_overall$year)],
+    1
+  ),
+  "\n"
+)
 
 ```
 
@@ -320,15 +354,34 @@ hiroshige <- paletteer_d("MetBrewer::Hiroshige", n = 10)
 # Pick 5 distinct colors for regions from the Hiroshige palette
 region_colors <- setNames(
   as.character(hiroshige[c(1, 3, 6, 8, 10)]),
-  c("Western Sydney", "Sydney Harbour", "Sydney City", "Northern Sydney", "Southern Sydney")
+  c(
+    "Western Sydney",
+    "Sydney Harbour",
+    "Sydney City",
+    "Northern Sydney",
+    "Southern Sydney"
+  )
 )
 
 p_trend <- ggplot(yearly_trends, aes(x = year, y = geo_mean, color = region)) +
   geom_line(linewidth = 0.8, alpha = 0.7) +
   geom_smooth(se = FALSE, method = "loess", span = 0.3, linewidth = 1.2) +
-  geom_hline(yintercept = 40, linetype = "dashed", color = "grey40", linewidth = 0.5) +
-  annotate("text", x = 1993, y = 45, label = "40 CFU threshold",
-           hjust = 0, vjust = -0.5, size = 3, color = "grey40") +
+  geom_hline(
+    yintercept = 40,
+    linetype = "dashed",
+    color = "grey40",
+    linewidth = 0.5
+  ) +
+  annotate(
+    "text",
+    x = 1993,
+    y = 45,
+    label = "40 CFU threshold",
+    hjust = 0,
+    vjust = -0.5,
+    size = 3,
+    color = "grey40"
+  ) +
   scale_color_manual(values = region_colors) +
   scale_y_log10(labels = scales::comma_format()) +
   labs(
@@ -381,53 +434,132 @@ grade_colors <- setNames(
 coastal_sf <- site_sf %>% filter(region != "Western Sydney")
 western_sf <- site_sf %>% filter(region == "Western Sydney")
 
-# Shared scales and theme for both panels
-map_base <- function(data, xlim, ylim, title) {
-  ggplot() +
-    geom_sf(data = aus, fill = "grey90", color = "grey50", linewidth = 0.3) +
-    geom_sf(data = data, aes(color = quality_grade, size = p90_entero), alpha = 0.75) +
-    coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
-    scale_color_manual(values = grade_colors, drop = FALSE) +
-    scale_size_continuous(
-      range = c(2, 10),
-      trans = "log10",
-      breaks = c(10, 50, 200, 1000),
-      labels = scales::comma_format(),
-      name = "90th Percentile\nEnterococci"
-    ) +
-    labs(title = title, color = "Quality Grade") +
-    theme_minimal(base_size = 11) +
-    theme(
-      plot.title = element_text(face = "bold", size = 12),
-      panel.grid = element_line(color = "grey92"),
-      axis.text = element_text(size = 7)
-    )
-}
-
-# Coastal panel — harbour & ocean beaches
+# -- Coastal panel -- harbour & ocean beaches
 coastal_bbox <- st_bbox(coastal_sf)
-p_coast <- map_base(
-  coastal_sf,
-  xlim = c(as.numeric(coastal_bbox["xmin"]) - 0.02, as.numeric(coastal_bbox["xmax"]) + 0.02),
-  ylim = c(as.numeric(coastal_bbox["ymin"]) - 0.02, as.numeric(coastal_bbox["ymax"]) + 0.02),
-  title = "Coastal & Harbour Sites"
+c_pad <- 0.02
+c_xlim <- c(
+  as.numeric(coastal_bbox["xmin"]) - c_pad,
+  as.numeric(coastal_bbox["xmax"]) + c_pad
+)
+c_ylim <- c(
+  as.numeric(coastal_bbox["ymin"]) - c_pad,
+  as.numeric(coastal_bbox["ymax"]) + c_pad
 )
 
-# Western Sydney panel — river swim sites
-western_bbox <- st_bbox(western_sf)
-p_west <- map_base(
-  western_sf,
-  xlim = c(as.numeric(western_bbox["xmin"]) - 0.03, as.numeric(western_bbox["xmax"]) + 0.03),
-  ylim = c(as.numeric(western_bbox["ymin"]) - 0.03, as.numeric(western_bbox["ymax"]) + 0.03),
-  title = "Western Sydney River Sites"
+# Fetch harbour waterways from OSM (tryCatch for API resilience)
+coast_osm_bbox <- c(c_xlim[1], c_ylim[1], c_xlim[2], c_ylim[2])
+coast_river_lines <- tryCatch(
+  {
+    q <- opq(bbox = coast_osm_bbox, timeout = 60) %>%
+      add_osm_feature(key = "waterway", value = c("river", "canal")) %>%
+      osmdata_sf()
+    q$osm_lines
+  },
+  error = function(e) NULL
 )
 
-# Combine with shared legend
-p_map <- p_coast + p_west +
-  plot_layout(guides = "collect") +
+p_coast <- ggplot() +
+  geom_sf(data = aus, fill = "grey90", color = "grey50", linewidth = 0.3) +
+  {
+    if (!is.null(coast_river_lines) && nrow(coast_river_lines) > 0) {
+      geom_sf(
+        data = coast_river_lines,
+        color = "#4a90b8",
+        linewidth = 0.4,
+        alpha = 0.7
+      )
+    }
+  } +
+  geom_sf(
+    data = coastal_sf,
+    aes(color = quality_grade, size = p90_entero),
+    alpha = 0.75
+  ) +
+  coord_sf(xlim = c_xlim, ylim = c_ylim, expand = FALSE) +
+  scale_color_manual(values = grade_colors, drop = FALSE) +
+  scale_size_continuous(
+    range = c(2, 10),
+    trans = "log10",
+    breaks = c(20, 100, 500),
+    limits = range(site_stats$p90_entero, na.rm = TRUE),
+    labels = scales::comma_format(),
+    name = "90th Percentile\nEnterococci"
+  ) +
+  labs(title = "Coastal & Harbour Sites", color = "Quality Grade") +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", size = 12),
+    panel.background = element_rect(fill = "#d6eaf8", color = NA),
+    panel.grid = element_line(color = "grey85"),
+    axis.text = element_text(size = 7)
+  )
+
+# -- Western Sydney panel -- fetch rivers from OpenStreetMap
+western_bbox_vals <- st_bbox(western_sf)
+w_pad <- 0.05
+w_xlim <- c(
+  as.numeric(western_bbox_vals["xmin"]) - w_pad,
+  as.numeric(western_bbox_vals["xmax"]) + w_pad
+)
+w_ylim <- c(
+  as.numeric(western_bbox_vals["ymin"]) - w_pad,
+  as.numeric(western_bbox_vals["ymax"]) + w_pad
+)
+
+# Query OSM for rivers in the Western Sydney area (named rivers only)
+osm_bbox <- c(w_xlim[1], w_ylim[1], w_xlim[2], w_ylim[2])
+river_lines <- tryCatch(
+  {
+    q <- opq(bbox = osm_bbox, timeout = 60) %>%
+      add_osm_feature(key = "waterway", value = c("river")) %>%
+      osmdata_sf()
+    q$osm_lines %>% filter(!is.na(name))
+  },
+  error = function(e) NULL
+)
+
+p_west <- ggplot() +
+  geom_sf(data = aus, fill = "grey90", color = "grey50", linewidth = 0.3) +
+  {
+    if (!is.null(river_lines) && nrow(river_lines) > 0) {
+      geom_sf(
+        data = river_lines,
+        color = "#4a90b8",
+        linewidth = 0.5,
+        alpha = 0.8
+      )
+    }
+  } +
+  geom_sf(
+    data = western_sf,
+    aes(color = quality_grade, size = p90_entero),
+    alpha = 0.75
+  ) +
+  coord_sf(xlim = w_xlim, ylim = w_ylim, expand = FALSE) +
+  scale_color_manual(values = grade_colors, drop = FALSE) +
+  scale_size_continuous(
+    range = c(2, 10),
+    trans = "log10",
+    breaks = c(20, 100, 500),
+    limits = range(site_stats$p90_entero, na.rm = TRUE),
+    labels = scales::comma_format(),
+    name = "90th Percentile\nEnterococci"
+  ) +
+  labs(title = "Western Sydney River Sites", color = "Quality Grade") +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", size = 12),
+    panel.grid = element_line(color = "grey92"),
+    axis.text = element_text(size = 7)
+  )
+
+# Combine maps — standalone version with legend
+p_map <- p_coast +
+  p_west +
+  plot_layout(widths = c(1.4, 1), guides = "collect") +
   plot_annotation(
     title = "Sydney Swim Site Water Quality Grades",
-    subtitle = "Color = overall quality grade | Size = 90th percentile enterococci",
+    subtitle = "Color = overall quality grade | Size = 90th percentile enterococci (log scale)",
     caption = "Source: NSW Beachwatch via TidyTuesday | Grades based on NHMRC 2008 guidelines",
     theme = theme(
       plot.title = element_text(face = "bold", size = 14),
@@ -450,8 +582,8 @@ The spatial pattern is striking — the "Very Poor" and "Poor" sites cluster alo
 #| echo: true
 #| message: false
 #| warning: false
-#| fig.width: 12
-#| fig.height: 10
+#| fig.width: 14
+#| fig.height: 12
 
 # Identify the 8 worst sites for sparkline panels
 worst_sites <- site_stats %>%
@@ -461,7 +593,11 @@ worst_sites <- site_stats %>%
 
 # Yearly geo mean for the worst sites
 worst_trends <- wq %>%
-  filter(swim_site %in% worst_sites, !is.na(enterococci_cfu_100ml), enterococci_cfu_100ml > 0) %>%
+  filter(
+    swim_site %in% worst_sites,
+    !is.na(enterococci_cfu_100ml),
+    enterococci_cfu_100ml > 0
+  ) %>%
   group_by(swim_site, year) %>%
   summarise(
     geo_mean = geometric_mean(enterococci_cfu_100ml),
@@ -472,10 +608,20 @@ worst_trends <- wq %>%
 # Sparkline panel
 p_spark <- ggplot(worst_trends, aes(x = year, y = geo_mean)) +
   geom_line(color = as.character(hiroshige[8]), linewidth = 0.5) +
-  geom_smooth(se = FALSE, method = "loess", span = 0.4,
-              color = as.character(hiroshige[1]), linewidth = 0.9) +
-  geom_hline(yintercept = 40, linetype = "dotted", color = "grey50", linewidth = 0.3) +
-  facet_wrap(~swim_site, ncol = 2, scales = "free_y") +
+  geom_smooth(
+    se = FALSE,
+    method = "loess",
+    span = 0.4,
+    color = as.character(hiroshige[1]),
+    linewidth = 0.9
+  ) +
+  geom_hline(
+    yintercept = 40,
+    linetype = "dotted",
+    color = "grey50",
+    linewidth = 0.3
+  ) +
+  facet_wrap(~swim_site, ncol = 4, scales = "free_y") +
   scale_y_log10(labels = scales::label_number(accuracy = 1)) +
   labs(
     title = "Trend at the 8 Most Contaminated Sites",
@@ -492,9 +638,16 @@ p_spark <- ggplot(worst_trends, aes(x = year, y = geo_mean)) +
     axis.text = element_text(size = 7)
   )
 
-# Combine map and sparklines with patchwork
-hero <- p_map + p_spark +
-  plot_layout(widths = c(1.2, 1)) +
+# Build legend and legend-stripped maps for hero layout
+hero_legend <- cowplot::get_legend(
+  p_coast + theme(legend.position = "bottom")
+)
+p_map_bare <- (p_coast + p_west + plot_layout(widths = c(1.4, 1))) &
+  theme(legend.position = "none")
+
+# Combine: maps on top, shared legend, sparklines below
+hero <- (p_map_bare / wrap_elements(hero_legend) / p_spark) +
+  plot_layout(heights = c(5, 0.6, 4)) +
   plot_annotation(
     title = "Where Sydney's Beaches Fail the Swim Test",
     subtitle = "34 years of enterococci monitoring across 79 sites — quality grades and trends at the worst offenders",
@@ -515,10 +668,12 @@ hero <- p_map + p_spark +
 #| output: false
 
 ggsave(
-  here::her
-	e("posts", "2025-05-20", "hero.png"),
+  here::here("posts", "2025-05-20-water-quality-at-sydney-beaches", "hero.png"),
   plot = hero,
-  width = 12, height = 10, units = "in", dpi = 320,
+  width = 14,
+  height = 12,
+  units = "in",
+  dpi = 320,
   bg = "white"
 )
 
@@ -550,12 +705,19 @@ new_entry <- data.frame(
   package = "MetBrewer",
   type = "discrete"
 )
-if (!any(palette_log$post_date == new_entry$post_date &
-         palette_log$palette == new_entry$palette)) {
+if (
+  !any(
+    palette_log$post_date == new_entry$post_date &
+      palette_log$palette == new_entry$palette
+  )
+) {
   write.table(
     new_entry,
     palette_log_path,
-    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+    append = TRUE,
+    sep = ",",
+    row.names = FALSE,
+    col.names = FALSE
   )
 }
 

@@ -1,0 +1,265 @@
+---
+title: "A User Guide to Working With Sean"
+author: "Sean Thimons"
+description: "What makes me tick, what ticks me off, and everything in between."
+date: "2026-02-22"
+draft: true
+categories: [essay, management, collaboration]
+image: "hero.png"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+---
+
+```{=html}
+<style>
+  /* Chemist's Bench Theme: Copper Kingdom (rich, oxidized, timeless) */
+
+  /* --- CSS Custom Properties --- */
+  #quarto-document-content {
+    --cb-primary:     #4169E1;
+    --cb-secondary:   #0BDA51;
+    --cb-accent:      #43B3AE;
+    --cb-background:  #F5FAFA;
+    --cb-surface:     #E8F4F4;
+    --cb-text:        #1A3A3A;
+    --cb-text-muted:  #4A6A6A;
+    --cb-heading:     #4169E1;
+    --cb-link:        #4169E1;
+    --cb-link-hover:  #0BDA51;
+    --cb-code-bg:     #1A3A3A;
+    --cb-code-text:   #43B3AE;
+    --cb-border:      #43B3AE;
+    --cb-gradient:    linear-gradient(135deg, #4169E1, #43B3AE, #0BDA51);
+  }
+
+  /* === ARTICLE BODY === */
+  #quarto-document-content {
+    background-color: var(--cb-background);
+    color: var(--cb-text);
+  }
+
+  /* Headings — override global $headings-color */
+  #quarto-document-content h1,
+  #quarto-document-content h2,
+  #quarto-document-content h3,
+  #quarto-document-content h4,
+  #quarto-document-content h5,
+  #quarto-document-content h6 {
+    color: var(--cb-heading);
+  }
+
+  /* Links */
+  #quarto-document-content a {
+    color: var(--cb-link);
+  }
+  #quarto-document-content a:hover {
+    color: var(--cb-link-hover);
+  }
+
+  /* Muted text */
+  #quarto-document-content .text-muted,
+  #quarto-document-content .subtitle,
+  #quarto-document-content figcaption {
+    color: var(--cb-text-muted);
+  }
+
+  /* Code blocks */
+  #quarto-document-content pre,
+  #quarto-document-content div.sourceCode {
+    background-color: var(--cb-code-bg);
+    border: 1px solid var(--cb-border);
+  }
+  #quarto-document-content code {
+    color: var(--cb-code-text);
+  }
+  #quarto-document-content pre > code.sourceCode {
+    background-color: transparent;
+  }
+
+  /* Callouts */
+  #quarto-document-content .callout {
+    border-left-color: var(--cb-accent);
+    background-color: var(--cb-surface);
+    color: var(--cb-text);
+  }
+
+  /* Blockquotes */
+  #quarto-document-content blockquote {
+    border-left-color: var(--cb-accent);
+    color: var(--cb-text-muted);
+  }
+
+  /* Tables */
+  #quarto-document-content table {
+    border-color: var(--cb-border);
+  }
+  #quarto-document-content th {
+    background-color: var(--cb-surface);
+    color: var(--cb-heading);
+    border-color: var(--cb-border);
+  }
+  #quarto-document-content td {
+    border-color: var(--cb-border);
+  }
+
+  /* Horizontal rules */
+  #quarto-document-content hr {
+    border-color: var(--cb-border);
+  }
+
+  /* Title block */
+  .quarto-title-block {
+    border-top: 4px solid var(--cb-primary);
+    padding-top: 0.5rem;
+  }
+  #quarto-document-content .quarto-title {
+    color: var(--cb-heading);
+  }
+  #quarto-document-content .description {
+    color: var(--cb-text-muted);
+  }
+
+  /* Category badges */
+  .quarto-title-block .quarto-category {
+    background-color: var(--cb-surface);
+    color: var(--cb-primary);
+    border-color: var(--cb-border);
+  }
+
+  /* Sidebar TOC */
+  #quarto-margin-sidebar a {
+    color: var(--cb-text-muted);
+  }
+  #quarto-margin-sidebar a:hover,
+  #quarto-margin-sidebar a.active {
+    color: var(--cb-link);
+  }
+</style>
+```
+
+I came across Julie Zhuo's [user guide concept](https://lg.substack.com/p/the-looking-glass-a-user-guide-to) a while back and it stuck with me. The idea is simple: when you buy a new piece of equipment, it comes with a manual explaining what each button does, what the operating conditions are, and what not to do if you want it to keep working. People should come with something similar.
+
+{EXPAND: 1-2 sentences on why you decided to actually write this. What was the moment or pattern that made you think "I should do this"? Was it a miscommunication at work? Starting a new collaboration? A project management insight? Keep it specific — Zhuo's key point is that generic statements ("I value communication") are useless. The stuff that feels slightly uncomfortable to share is the stuff that actually helps people work with you.}
+
+This is mine.
+
+## How I View Success
+
+{EXPAND: This is where your project management philosophy lives. Some questions to consider:
+
+- When a project you're on goes well, what specifically happened that made it "good"? Was it the rigor of the analysis? The clarity of the documentation? That the data pipeline will still make sense to someone in 2 years?
+- Do you weight process or outcomes more heavily? (Zhuo leans toward process — she distrusts good outcomes from bad process. Where do you land, especially in a federal science context where reproducibility matters?)
+- How do you think about "done"? Is a water quality analysis done when the code runs, when the report ships, when the state agency actually uses it?
+- What's your relationship with ambition vs. pragmatism? Do you aim for the comprehensive harmonization or the 80% solution that ships this quarter?
+- What role does learning play? If a project fails but you picked up a new technique or framework, how do you feel about that?}
+
+## How I Communicate
+
+{EXPAND: Be honest about your defaults and your failure modes. Some prompts:
+
+- Are you a "think out loud" person or a "come back with a finished position" person? Do you process by talking or by writing?
+- How do people misread your communication? (Zhuo's team thought she didn't care because her way of showing care — challenging projects and direct feedback — didn't register as care to them. What's your version of this?)
+- How do you handle disagreement? Do you push back in the moment or go away and think about it?
+- What's your preferred medium? You clearly think well in writing (the blog, the R documentation). Is that true in work contexts too? Do you prefer a Slack thread over a meeting?
+- What about async vs. sync? As someone who works on data harmonization across state agencies, you probably deal with a lot of async collaboration. How do you prefer that to work?
+- What should someone do if they think you're being unclear? What's the best way to ask you to clarify?}
+
+## Things I Do That May Annoy You
+
+{EXPAND: This is the vulnerability section — the one Zhuo says makes the whole document work. If you skip the hard parts here, the rest of the guide loses credibility. Some honest prompts:
+
+- Do you over-engineer things? (The Chemist's Bench system, the generative art pipeline, the debate skill — there's a pattern of building beautiful infrastructure. Does that sometimes come at the cost of shipping the simpler thing?)
+- How are you with scope creep — on the giving or receiving end? When you're harmonizing 2,000 designated use categories, is there a point where you keep refining when you should stop?
+- Do you get impatient with people who don't care about data quality or reproducibility as much as you do?
+- Are you the person who silently fixes something rather than teaching someone else how to do it?
+- What about context-switching? With the blog, the generative art, the water quality work, the project management interest — do you spread yourself across too many things?
+- Do you have a tendency to go deep into a rabbit hole (new R package, new algorithm, new framework) when the team needs you on something else?
+- What's your punctuality / meeting behavior like?}
+
+## What Gains and Loses My Trust
+
+{EXPAND: Think about the specific patterns, not just the general principles. Some questions:
+
+- What's the fastest way someone has earned your trust? What did they actually do?
+- Zhuo values "extreme ownership" — people who don't just identify problems but rally others to solve them. What's your version of the behavior you most respect in collaborators?
+- What's a dealbreaker? Is it sloppy data handling? Not documenting assumptions? Taking credit? Saying "that's not my job"?
+- How do you feel about people who ask you for help vs. people who try to figure it out themselves? Is there a balance you prefer?
+- In a federal science context, what does integrity look like day-to-day? (Not the platitude — the specific behavior.)
+- What erodes trust slowly? The kind of thing that doesn't trigger a single confrontation but accumulates?
+- How do you feel about "good enough" work from collaborators? Is there a minimum bar below which you lose respect, and where is it?}
+
+## My Strengths
+
+{EXPAND: Be specific and own them without false modesty. Some framings:
+
+- What would a collaborator say you bring to a project that's hard to replace? (Not "I'm good at R" — more like "I can look at a messy state-agency dataset and see the harmonization path before anyone else can.")
+- Zhuo talks about the Venn diagram of competencies and interests — where your unusual combination of skills makes you distinctly valuable. What's yours? (Federal science + tidyverse + design sensibility + project management frameworks is not a common intersection.)
+- What do people come to you for that they don't go to others for?
+- What can you do quickly that takes other people a long time?
+- What energizes you? When are you at your best?}
+
+## My Growth Areas
+
+{EXPAND: Match the honesty of the strengths section. Some prompts:
+
+- What feedback have you received more than once?
+- What do you know you should do differently but haven't changed yet?
+- Where does the gap between your ambition and your current skill cause friction? (For instance — you're interested in NLP and semantic clustering but came to it from a chemistry/water quality background. Where do you feel that gap?)
+- What's a skill adjacent to your work that you wish you were better at? (Communication up the chain? Stakeholder management? Saying no?)
+- What's your relationship with delegation? Do you hold onto things too long?
+- Is there a pattern in the projects or tasks you avoid?}
+
+## How I Give and Receive Feedback
+
+{EXPAND: Be concrete about the mechanics, not just the philosophy. Consider:
+
+- When you give feedback, what does it look like? Are you direct or do you sandwich it? Do you give it in the moment or schedule a conversation?
+- How do you prefer to receive feedback? In writing? In person? With specific examples or general themes?
+- What kind of feedback actually changes your behavior vs. the kind you hear, agree with, and then don't act on? (Be honest.)
+- Is there a type of feedback you find particularly hard to hear? (About your code? Your communication? Your priorities?)
+- How do you handle it when you disagree with feedback you've received? Do you push back immediately or sit with it?
+- What's the worst way someone could give you feedback? (Public callout? Vague "you need to improve"? Going to your manager instead of you?)}
+
+## What I Expect From Collaborators
+
+{EXPAND: This is especially interesting given your cross-agency water quality work and any open-source collaboration. Think about:
+
+- What does a great collaborator look like on a data harmonization project? What do they do that makes the work better?
+- What's the minimum bar for code and documentation quality you expect from people contributing to shared work?
+- How do you feel about collaborators who move fast and break things vs. ones who move carefully and document everything?
+- What should someone do when they're stuck? Come to you immediately? Try for X hours first? Post in a shared channel?
+- How do you feel about being asked questions vs. being asked to review finished work?
+- Is there a specific behavior that signals to you "this person gets it"?
+- What about responsiveness? Do you expect quick replies or are you fine with async timelines?}
+
+---
+
+```{r}
+#| echo: false
+#| eval: false
+source("hero_generator.R")
+
+generate_hero(
+  algorithm = "reaction_diffusion",
+  palette = list(
+    bg = "#F5FAFA",
+    fg = "#1A3A3A",
+    accent = "#43B3AE",
+    primary = "#4169E1",
+    secondary = "#0BDA51"
+  ),
+  seed = as.integer(as.Date("2026-02-22")),
+  output_path = here::here("posts", "2026-02-22", "hero.png"),
+  width = 10,
+  height = 7
+)
+
+```
+
+![](hero.png)
+
+---
+*Inspired by [Julie Zhuo's user guide framework](https://lg.substack.com/p/the-looking-glass-a-user-guide-to). If you work with people, consider writing your own — the template is [here](https://coda.io/@joulee/meet-julie/a-user-guide-for-your-name-3).*
+
