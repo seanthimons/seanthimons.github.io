@@ -1,0 +1,484 @@
+---
+title: 'Tidy Tuesday: How Likely Is "Likely"?'
+author: "Sean Thimons"
+date: "2026-03-10"
+description: "Mapping the fuzzy space between 'remote chance' and 'will happen' — how 5,000 people assigned numbers to probability words."
+categories: [tidytuesday, R, linguistics, probability, cognitive-science]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-03-10).
+
+> This dataset explores how people interpret common probability phrases through an online quiz created by Adam Kucharski, with over 5,000 participants. Respondents were asked to assign numerical probabilities (0–100) to phrases like "likely," "probable," "remote chance," and "realistic possibility," as well as to make pairwise comparisons between phrases. Three tables capture absolute judgements, pairwise comparisons, and respondent demographics (age, education, English-language background, and country).
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',         # Color palette collection
+    'ggridges',          # Ridge/joy plots for distributions
+    'ggtext',            # Rich text in ggplot (title markdown)
+    'ggrepel',           # Non-overlapping labels
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  # ! Change load flag to load packages
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-03-10')
+
+absolute_judgements  <- raw$absolute_judgements
+pairwise_comparisons <- raw$pairwise_comparisons
+respondent_metadata  <- raw$respondent_metadata
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Absolute judgements
+
+Each of the 5,174 respondents rated all 19 probability phrases, yielding 98,306 rows. We drop `response_id` (a participant key) and `order` (presentation sequence — useful for order-effects analysis but not our primary focus here) before skimming.
+
+```{r}
+#| label: eda-absolute-judgements
+#| echo: true
+#| output: true
+
+absolute_judgements %>%
+  select(term, probability) %>%
+  my_skim()
+```
+
+The `probability` column ranges from 0 to 100 with a median right at 50 — unsurprising given the full spectrum of phrases from "Almost No Chance" to "Will Happen." The real story is in per-phrase variation.
+
+## Term-level statistics
+
+```{r}
+#| label: eda-term-stats
+#| echo: true
+#| output: true
+
+term_stats <- absolute_judgements %>%
+  group_by(term) %>%
+  summarise(
+    n            = n(),
+    mean_prob    = round(mean(probability, na.rm = TRUE), 1),
+    median_prob  = median(probability, na.rm = TRUE),
+    sd_prob      = round(sd(probability, na.rm = TRUE), 1),
+    p10          = quantile(probability, 0.10, na.rm = TRUE),
+    p90          = quantile(probability, 0.90, na.rm = TRUE),
+    .groups      = "drop"
+  ) %>%
+  arrange(median_prob)
+
+print(term_stats, n = 19)
+```
+
+The standout outlier is **"Realistic Possibility"** with a standard deviation of 20.5 — by far the widest spread of any phrase. Its median sits at 60, but the 10th–90th percentile range spans 25–80: a 55-point gulf. That's not a phrase — that's a Rorschach test.
+
+At the other extreme, **"About Even"** has a standard deviation of just 3.7. Everyone agrees it means 50%. Its histogram will look like a spike.
+
+## Respondent metadata
+
+```{r}
+#| label: eda-metadata
+#| echo: true
+#| output: true
+
+respondent_metadata %>%
+  select(-response_id, -timestamp) %>%
+  my_skim()
+
+cat("\nAge distribution:\n")
+count(respondent_metadata, age_band, sort = TRUE)
+
+cat("\nEnglish background:\n")
+count(respondent_metadata, english_background, sort = TRUE)
+
+cat("\nTop countries:\n")
+count(respondent_metadata, country_of_residence, sort = TRUE) %>% head(10)
+```
+
+The sample skews toward English-first-language, UK/US, and highly educated respondents — worth noting when interpreting results. These are people who likely encounter probability language professionally (policy, science, finance). Their intuitions may differ from a general population sample.
+
+# Mapping the probability spectrum
+
+The central question: how does language map onto numbers? And where does it fall apart?
+
+Each phrase was rated by 5,174 respondents. Plotting the full distribution of estimates for each phrase — ordered from lowest to highest median — reveals both the consensus and the disagreement embedded in everyday probability language.
+
+```{r}
+#| label: viz-prep
+#| echo: true
+#| output: false
+
+# Build ordered factor for y-axis
+term_order <- term_stats %>%
+  arrange(median_prob) %>%
+  pull(term)
+
+plot_data <- absolute_judgements %>%
+  mutate(
+    term = factor(term, levels = term_order),
+    median_prob = term_stats$median_prob[match(term, term_stats$term)]
+  )
+
+cat(sprintf("plot_data: %d rows, %d cols\n", nrow(plot_data), ncol(plot_data)))
+stopifnot("Plot data has 0 rows" = nrow(plot_data) > 0)
+
+# Build annotation data: median + SD label per term
+annot_data <- term_stats %>%
+  mutate(
+    term   = factor(term, levels = term_order),
+    label  = sprintf("med=%g, sd=%g", median_prob, sd_prob),
+    # flag the most ambiguous term
+    is_ambiguous = term == "Realistic Possibility"
+  )
+
+cat(sprintf("annot_data: %d rows\n", nrow(annot_data)))
+```
+
+```{r}
+#| label: hero-plot
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 11
+
+p <- ggplot2::ggplot(plot_data,
+       ggplot2::aes(
+         x    = probability,
+         y    = term,
+         fill = ggplot2::after_stat(x)
+       )
+     ) +
+
+  # Ridge plot with gradient fill — each ridge's color encodes the x-value
+  ggridges::geom_density_ridges_gradient(
+    scale         = 2.2,
+    rel_min_height = 0.01,
+    color         = "white",
+    linewidth     = 0.35,
+    show.legend   = FALSE
+  ) +
+
+  # Median tick marks
+  ggplot2::geom_point(
+    data    = annot_data,
+    mapping = ggplot2::aes(x = median_prob, y = term),
+    inherit.aes = FALSE,
+    shape   = 124,       # vertical bar
+    size    = 4,
+    color   = "white",
+    alpha   = 0.85
+  ) +
+
+  # SD annotation — right-aligned labels
+  ggplot2::geom_text(
+    data    = annot_data,
+    mapping = ggplot2::aes(
+      x     = 102,
+      y     = term,
+      label = sprintf("sd = %g", sd_prob),
+      color = is_ambiguous
+    ),
+    inherit.aes = FALSE,
+    hjust   = 0,
+    vjust   = 0.5,
+    size    = 2.8,
+    family  = "mono",
+    fontface = "plain",
+    show.legend = FALSE
+  ) +
+
+  # Highlight "Realistic Possibility" annotation
+  ggplot2::annotate(
+    "text",
+    x     = 102,
+    y     = "Realistic Possibility",
+    label = "← most ambiguous",
+    vjust = -0.8,
+    hjust = 0,
+    size  = 2.6,
+    color = "#E07B54",
+    fontface = "italic"
+  ) +
+
+  # Reference lines at 25 / 50 / 75
+  ggplot2::geom_vline(
+    xintercept = c(25, 50, 75),
+    linetype   = "dashed",
+    color      = "white",
+    alpha      = 0.3,
+    linewidth  = 0.4
+  ) +
+
+  # Gradient fill using scico::lapaz (unused palette — blue-purple to cream)
+  paletteer::scale_fill_paletteer_c("scico::lapaz", direction = -1) +
+
+  # Color for SD label (highlight ambiguous term)
+  ggplot2::scale_color_manual(
+    values = c(`FALSE` = "grey70", `TRUE` = "#E07B54")
+  ) +
+
+  # x-axis labels at reference lines
+  ggplot2::scale_x_continuous(
+    limits = c(0, 130),
+    breaks = c(0, 25, 50, 75, 100),
+    labels = c("0", "25%", "50%", "75%", "100%"),
+    expand = ggplot2::expansion(mult = c(0, 0))
+  ) +
+
+  ggplot2::labs(
+    title    = "**What does \"likely\" actually mean?**",
+    subtitle = "Distribution of numerical probability estimates (0–100) assigned to 19 common phrases by 5,174 respondents.\nVertical bars mark each phrase's median. Labels show standard deviation — a measure of how much people disagree.",
+    x        = "Assigned probability",
+    y        = NULL,
+    caption  = "Source: Adam Kucharski / TidyTuesday 2026-03-10 · Viz: @seanthimons"
+  ) +
+
+  ggplot2::theme_minimal(base_size = 13) +
+  ggplot2::theme(
+    plot.background    = ggplot2::element_rect(fill = "#1a1a2e", color = NA),
+    panel.background   = ggplot2::element_rect(fill = "#1a1a2e", color = NA),
+    panel.grid.major.x = ggplot2::element_blank(),
+    panel.grid.minor   = ggplot2::element_blank(),
+    panel.grid.major.y = ggplot2::element_blank(),
+    axis.text.x        = ggplot2::element_text(color = "grey70", size = 10),
+    axis.text.y        = ggplot2::element_text(color = "white",  size = 10, hjust = 1),
+    axis.title.x       = ggplot2::element_text(color = "grey60", size = 10, margin = ggplot2::margin(t = 8)),
+    plot.title         = ggtext::element_markdown(color = "white", size = 18, face = "bold", margin = ggplot2::margin(b = 4)),
+    plot.subtitle      = ggplot2::element_text(color = "grey65", size = 10, lineheight = 1.4, margin = ggplot2::margin(b = 14)),
+    plot.caption       = ggplot2::element_text(color = "grey50", size = 8,  hjust = 1, margin = ggplot2::margin(t = 10)),
+    plot.margin        = ggplot2::margin(16, 90, 10, 16)
+  )
+
+p
+```
+
+::: {.callout-note}
+**Reading the ridges:** Each mountain represents the full distribution of responses for that phrase. A narrow spike means high agreement (everyone assigns similar numbers). A wide, flat ridge means high disagreement. The white bar inside each ridge marks the median.
+:::
+
+::: {.callout-important}
+**"Realistic Possibility" is the most contested phrase in the dataset.** Its standard deviation of 20.5 is nearly three times that of "Likely" (sd = 10.3) and more than five times that of "About Even" (sd = 3.7). Some respondents read it as ~25%; others as ~80%. Yet intelligence analysts, policy documents, and risk reports use it constantly as if its meaning were self-evident.
+:::
+
+# Consensus vs. ambiguity: a closer look
+
+```{r}
+#| label: analysis-consensus
+#| echo: true
+#| output: true
+
+# Rank terms by ambiguity (SD)
+term_stats %>%
+  select(term, median_prob, sd_prob, p10, p90) %>%
+  mutate(
+    range_80pct = p90 - p10,
+    ambiguity_rank = rank(-sd_prob, ties.method = "min")
+  ) %>%
+  arrange(ambiguity_rank) %>%
+  print(n = 19)
+```
+
+The three "fuzzy middle" phrases — **Could Happen**, **May Happen**, and **Might Happen** — all cluster around 40% with nearly identical distributions (SDs of 18.2, 17.0, and 17.7 respectively). They are, for practical purposes, synonyms in how people interpret them numerically, yet writers and speakers treat them as meaningfully distinct.
+
+The top end of the spectrum is tighter: **Almost Certain** (sd = 5.8) and **Will Happen** (sd = 6.9) leave little room for debate. Certainty turns out to be more legible than near-certainty.
+
+```{r}
+#| label: viz-ambiguity-ranking
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 6
+
+ambig_data <- term_stats %>%
+  mutate(
+    term    = factor(term, levels = term_order),
+    is_high = sd_prob >= 17
+  ) %>%
+  arrange(median_prob)
+
+cat(sprintf("ambig_data: %d rows\n", nrow(ambig_data)))
+stopifnot("ambig_data is empty" = nrow(ambig_data) > 0)
+
+p2 <- ggplot2::ggplot(ambig_data,
+       ggplot2::aes(x = median_prob, y = term, color = sd_prob, size = sd_prob)
+     ) +
+  ggplot2::geom_segment(
+    ggplot2::aes(x = p10, xend = p90, yend = term),
+    linewidth = 1.5, alpha = 0.6
+  ) +
+  ggplot2::geom_point(size = 3) +
+  ggrepel::geom_text_repel(
+    data = ambig_data %>% dplyr::filter(is_high),
+    ggplot2::aes(label = sprintf("sd = %g", sd_prob)),
+    size = 3,
+    color = "#E07B54",
+    nudge_x = 8,
+    segment.color = "grey50",
+    segment.size  = 0.3,
+    min.segment.length = 0
+  ) +
+  paletteer::scale_color_paletteer_c("scico::lapaz", direction = -1,
+                                      name = "Std. dev.") +
+  ggplot2::scale_size_continuous(range = c(2, 5), guide = "none") +
+  ggplot2::scale_x_continuous(
+    limits = c(0, 115),
+    breaks = c(0, 25, 50, 75, 100),
+    labels = c("0", "25%", "50%", "75%", "100%")
+  ) +
+  ggplot2::labs(
+    title    = "Median estimate ± 80% range for each probability phrase",
+    subtitle = "Segments span 10th–90th percentile. Wider = more disagreement.",
+    x        = "Assigned probability",
+    y        = NULL,
+    caption  = "Source: Adam Kucharski / TidyTuesday 2026-03-10"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.background  = ggplot2::element_rect(fill = "#1a1a2e", color = NA),
+    panel.background = ggplot2::element_rect(fill = "#1a1a2e", color = NA),
+    panel.grid.major.x = ggplot2::element_line(color = "#2d2d4e", linewidth = 0.4),
+    panel.grid.major.y = ggplot2::element_blank(),
+    panel.grid.minor   = ggplot2::element_blank(),
+    axis.text          = ggplot2::element_text(color = "grey70"),
+    axis.title.x       = ggplot2::element_text(color = "grey60", margin = ggplot2::margin(t = 8)),
+    plot.title         = ggplot2::element_text(color = "white", face = "bold", size = 14),
+    plot.subtitle      = ggplot2::element_text(color = "grey65", size = 10),
+    plot.caption       = ggplot2::element_text(color = "grey50", size = 8, hjust = 1),
+    legend.text        = ggplot2::element_text(color = "grey70"),
+    legend.title       = ggplot2::element_text(color = "grey70"),
+    plot.margin        = ggplot2::margin(16, 16, 10, 16)
+  )
+
+p2
+```
+
+# Log palette
+
+```{r}
+#| label: palette-log
+#| echo: false
+#| output: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log      <- read.csv(palette_log_path)
+
+new_entry <- data.frame(
+  post_date = "2026-03-10",
+  palette   = "lapaz",
+  package   = "scico",
+  type      = "continuous"
+)
+
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+  )
+}
+```
+
+# Final thoughts and takeaways
+
+Language is imprecise — but we've long known that. What this dataset makes viscerally clear is **which words are imprecise and by how much**.
+
+A few takeaways:
+
+1. **"Realistic Possibility" is a linguistic landmine.** Intelligence reports, policy briefs, and scientific summaries lean on it heavily, but 5,000 respondents couldn't agree within 55 percentage points on what it means. Using it to communicate risk is roughly equivalent to shrugging.
+
+2. **The extremes are remarkably stable.** "Almost Certain" and "Will Happen" show tight distributions (sd ~6–7). When we want to convey near-certainty, our vocabulary is actually quite reliable. The breakdown happens in the middle.
+
+3. **"Could Happen," "May Happen," and "Might Happen" are functionally synonymous** in this dataset — same median, same spread. If you're choosing between them for stylistic variety, know that your reader assigns them the same number.
+
+4. **"About Even" is the Schelling point of probability language.** Everyone knows 50-50 when they see it. Its sd of 3.7 makes it the most precisely communicated phrase in the entire lexicon.
+
+The deeper lesson: if precision matters — in medical communications, intelligence assessments, financial disclosures, or risk reporting — probability words should come with numbers attached. The data shows conclusively that "likely" to you may mean 60%; to your reader, it may mean 80%. In high-stakes contexts, that gap has consequences.
