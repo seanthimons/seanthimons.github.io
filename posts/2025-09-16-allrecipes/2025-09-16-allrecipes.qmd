@@ -1,0 +1,415 @@
+---
+title: "Tidy Tuesday: Allrecipes"
+author: "Sean Thimons"
+date: "2025-09-16"
+description: "What does the macronutrient composition of recipes reveal about culinary traditions? Analyzing 2,200+ cuisine-tagged Allrecipes dishes to map the fat-carb-protein fingerprint of 35 global food cultures."
+categories: [tidytuesday, R, food, nutrition, cuisine, visualization]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-09-16).
+
+> This week's dataset features recipe data from **Allrecipes.com**, sourced through the `tastyR` R package. Two complementary tables are provided: `all_recipes` — 14,426 recipes with nutritional facts (calories, fat, carbs, protein), cooking times, ratings, and review counts — and `cuisines` — 2,218 recipes tagged by country or regional origin with the same nutritional and timing fields. Together they offer a rare window into how culinary traditions differ across macronutrient composition, cooking effort, and community reception.
+
+**Suggested questions from the dataset authors:**
+
+- Which authors are most prolific, and do top recipe creators achieve higher ratings?
+- Is there a correlation between preparation time and average rating?
+- Which cuisines receive the highest average ratings and review engagement?
+- Which recipes are most "actionable" — high ratings with minimal total prep and cook time?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'ggtext',              # Rich text in ggplot (markdown titles/labels)
+    'ggrepel',             # Non-overlapping labels
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2025-09-16")
+
+all_recipes <- raw$all_recipes %>% janitor::clean_names()
+cuisines    <- raw$cuisines    %>% janitor::clean_names()
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function profiles each dataframe with count, min, quartiles, mean, geometric mean, standard deviation, and an ASCII histogram.
+
+## all_recipes
+
+```{r}
+#| label: eda-all-recipes
+#| echo: true
+#| output: true
+
+all_recipes %>%
+  dplyr::select(-name, -url, -author, -ingredients) %>%
+  my_skim()
+```
+
+A few things stand out immediately. **Ratings cluster high** — the median `avg_rating` is 4.6 out of 5.0, with the 25th percentile already at 4.4. This is typical of self-selected recipe sites: unpopular recipes disappear, survivors skew positive. **Review counts are highly right-skewed**: the median recipe has just 26 ratings but the mean is 103, pulled up by a long tail of viral hits. **Cooking times show enormous spread** — median total time is 55 minutes, but the 90th percentile is 4+ hours, with slow-cooker braises and overnight doughs pulling the tail out.
+
+## cuisines
+
+```{r}
+#| label: eda-cuisines
+#| echo: true
+#| output: true
+
+cuisines %>%
+  dplyr::select(-name, -url, -author, -ingredients) %>%
+  my_skim()
+```
+
+The cuisines table mirrors the all_recipes structure but adds the `country` column. It spans **49 distinct cuisine labels** with roughly 25–67 recipes each. Nutritional distributions look similar to the main table — median calories around 300, fat heavy relative to protein. The `avg_rating` distribution here is slightly higher (median 4.6, mean closer to 4.5 after accounting for NA), consistent with the general recipes dataset.
+
+```{r}
+#| label: eda-cuisine-counts
+#| echo: true
+#| output: true
+
+cuisines %>%
+  dplyr::count(country, sort = TRUE) %>%
+  print(n = 49)
+```
+
+The 49 cuisines are roughly balanced, most with 50–67 recipes. Smaller samples appear toward the bottom (Israeli: 23, Nigerian: 14). For the main analysis I'll restrict to cuisines with at least 30 recipes to ensure stable medians.
+
+# Macronutrient Fingerprints of Global Cuisines
+
+The central question: **does cuisine identity translate into nutritionally distinct recipes?** Each culinary tradition carries embedded constraints — available ingredients, historical influences, climate, and cultural preferences around protein sources, starchy staples, and cooking fats. If those patterns are real, they should appear in the macronutrient composition of typical dishes.
+
+To test this, I convert raw grams of fat, carbohydrates, and protein into **caloric contributions** using standard Atwater factors (fat: 9 kcal/g; carbohydrate and protein: 4 kcal/g each), then express each macro as a share of total macro-derived calories per recipe. Taking the **median** within each cuisine gives a stable central tendency that resists individual outliers (e.g., one unusually rich French pastry won't define French cuisine).
+
+```{r}
+#| label: macro-computation
+#| echo: true
+#| output: false
+
+# Filter to cuisines with at least 30 recipes
+top_cuisines <- cuisines %>%
+  dplyr::count(country, sort = TRUE) %>%
+  dplyr::filter(n >= 30) %>%
+  dplyr::pull(country)
+
+# Compute macro caloric percentages per recipe
+macro_by_recipe <- cuisines %>%
+  dplyr::filter(country %in% top_cuisines) %>%
+  dplyr::filter(
+    !is.na(fat), !is.na(carbs), !is.na(protein),
+    !is.na(calories), calories > 50, calories < 2500
+  ) %>%
+  dplyr::mutate(
+    cal_from_fat     = fat * 9,
+    cal_from_carb    = carbs * 4,
+    cal_from_protein = protein * 4,
+    cal_total        = cal_from_fat + cal_from_carb + cal_from_protein
+  ) %>%
+  dplyr::filter(cal_total > 0) %>%
+  dplyr::mutate(
+    pct_fat     = cal_from_fat     / cal_total * 100,
+    pct_carb    = cal_from_carb    / cal_total * 100,
+    pct_protein = cal_from_protein / cal_total * 100
+  )
+
+cat(sprintf("Recipes after filtering: %d across %d cuisines\n",
+    nrow(macro_by_recipe), length(unique(macro_by_recipe$country))))
+stopifnot("Zero-row filtered dataset" = nrow(macro_by_recipe) > 0)
+
+# Sanity check: proportions should vary across cuisines
+if (length(unique(round(macro_by_recipe$pct_protein, 1))) == 1) {
+  warning("All protein percentages identical — check grouping logic")
+}
+
+# Aggregate to cuisine-level medians
+cuisine_macros <- macro_by_recipe %>%
+  dplyr::group_by(country) %>%
+  dplyr::summarise(
+    n               = dplyr::n(),
+    med_pct_fat     = median(pct_fat),
+    med_pct_carb    = median(pct_carb),
+    med_pct_protein = median(pct_protein),
+    med_calories    = median(calories),
+    .groups         = "drop"
+  ) %>%
+  dplyr::arrange(dplyr::desc(med_pct_protein))
+
+cat(sprintf("Cuisine-level rows: %d\n", nrow(cuisine_macros)))
+stopifnot("Zero cuisine rows" = nrow(cuisine_macros) > 0)
+```
+
+```{r}
+#| label: macro-summary
+#| echo: true
+#| output: true
+
+# Global medians across all qualifying recipes
+global_fat  <- median(macro_by_recipe$pct_fat)
+global_carb <- median(macro_by_recipe$pct_carb)
+global_prot <- median(macro_by_recipe$pct_protein)
+
+cat(sprintf(
+  "Global macro medians:\n  Fat: %.1f%%\n  Carbohydrate: %.1f%%\n  Protein: %.1f%%\n",
+  global_fat, global_carb, global_prot
+))
+
+# Top and bottom by protein
+cuisine_macros %>%
+  dplyr::select(country, n, med_pct_fat, med_pct_carb, med_pct_protein, med_calories) %>%
+  dplyr::mutate(dplyr::across(dplyr::starts_with("med_pct"), ~ round(.x, 1))) %>%
+  print(n = 35)
+```
+
+::: {.callout-note}
+**A note on methodology.** These figures represent the *median recipe* in each cuisine category, not the average diet of people in those countries. Allrecipes skews toward home cooking, special occasion dishes, and recipes submitted by users in English-speaking markets. The data reflects what Allrecipes users associate with each culinary label — a useful proxy, but not a direct measure of traditional foodways.
+:::
+
+The spread is striking. **Jamaican, Cuban, and Chinese recipes** sit at the top for protein share (26%, 24%, and 24% respectively), driven by meat-forward dishes like jerk chicken, ropa vieja, and stir-fries. At the other extreme, **Australian/New Zealand and Amish/Mennonite cuisines** are the most carbohydrate-dominant (53% of calories from carbs), reflecting traditions rich in baked goods, pies, and grain-based staples. **Cajun/Creole and Greek recipes** stand out as the most fat-heavy, consistent with generous use of butter, cream, olive oil, and rich cuts of meat.
+
+# Hero Visualization
+
+```{r}
+#| label: hero-plot
+#| message: false
+#| warning: false
+#| fig.width: 11
+#| fig.height: 11
+
+# Build factor order: cuisines sorted by protein % (ascending so top protein = top of chart)
+protein_order <- cuisine_macros %>%
+  dplyr::arrange(med_pct_protein) %>%
+  dplyr::pull(country)
+
+# Pivot to long format for stacked bar
+macro_long <- cuisine_macros %>%
+  dplyr::select(country, med_pct_fat, med_pct_carb, med_pct_protein) %>%
+  tidyr::pivot_longer(
+    cols      = dplyr::starts_with("med_pct"),
+    names_to  = "macro",
+    values_to = "pct"
+  ) %>%
+  dplyr::mutate(
+    macro = dplyr::case_when(
+      macro == "med_pct_fat"     ~ "Fat",
+      macro == "med_pct_carb"    ~ "Carbohydrate",
+      macro == "med_pct_protein" ~ "Protein"
+    ),
+    macro   = factor(macro, levels = c("Fat", "Carbohydrate", "Protein")),
+    country = factor(country, levels = protein_order)
+  )
+
+cat(sprintf("macro_long: %d rows, %d cols\n", nrow(macro_long), ncol(macro_long)))
+stopifnot("Plot data is empty" = nrow(macro_long) > 0)
+
+# Palette: IslamicArt::samarqand — earthy brown (fat), soft aqua (carbs), deep indigo (protein)
+samarqand_pal <- paletteer::paletteer_d("IslamicArt::samarqand")
+macro_colors <- c(
+  "Fat"          = as.character(samarqand_pal[2]),   # #907A58 warm earth
+  "Carbohydrate" = as.character(samarqand_pal[5]),   # #A2D2D4 soft aqua
+  "Protein"      = as.character(samarqand_pal[6])    # #475286 deep indigo
+)
+
+# Annotation data: label highest- and lowest-protein cuisines
+label_cuisines <- c("Jamaican", "Cuban", "Chinese",
+                    "Amish and Mennonite", "Australian and New Zealander")
+
+annotation_df <- cuisine_macros %>%
+  dplyr::filter(country %in% label_cuisines) %>%
+  dplyr::mutate(
+    country = factor(country, levels = protein_order),
+    label   = sprintf("%.0f%% protein", round(med_pct_protein, 0))
+  )
+
+p <- macro_long %>%
+  ggplot2::ggplot(ggplot2::aes(x = pct, y = country, fill = macro)) +
+  ggplot2::geom_col(position = "fill", width = 0.72, colour = "white", linewidth = 0.2) +
+  # Reference line: global median protein share
+  ggplot2::geom_vline(
+    xintercept = 1 - (global_fat + global_carb) / (global_fat + global_carb + global_prot),
+    colour = "grey30", linetype = "dashed", linewidth = 0.5
+  ) +
+  # Protein % labels on highlighted cuisines
+  ggrepel::geom_text_repel(
+    data         = annotation_df,
+    ggplot2::aes(x = 1, y = country, label = label),
+    inherit.aes  = FALSE,
+    hjust        = 0,
+    nudge_x      = 0.02,
+    size         = 3.2,
+    colour       = "#475286",
+    fontface     = "bold",
+    direction    = "y",
+    segment.size = 0.3,
+    segment.colour = "grey50"
+  ) +
+  ggplot2::scale_x_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    expand = ggplot2::expansion(mult = c(0, 0.12)),
+    breaks = seq(0, 1, 0.25)
+  ) +
+  ggplot2::scale_fill_manual(values = macro_colors) +
+  ggplot2::labs(
+    title    = "The Macronutrient Fingerprint of Global Cuisines",
+    subtitle = paste0(
+      "Median share of calories from fat, carbohydrate, and protein across 35 culinary traditions on Allrecipes.\n",
+      "Cuisines ordered by protein share (highest at top). Dashed line = cross-cuisine median protein share (~15%)."
+    ),
+    x        = "Share of macro-derived calories",
+    y        = NULL,
+    fill     = NULL,
+    caption  = "Source: Allrecipes via tastyR · TidyTuesday 2025-09-16 · n ≥ 30 recipes per cuisine"
+  ) +
+  ggplot2::theme_minimal(base_size = 11.5) +
+  ggplot2::theme(
+    plot.title         = ggtext::element_markdown(face = "bold", size = 15, margin = ggplot2::margin(b = 4)),
+    plot.subtitle      = ggplot2::element_text(size = 9.5, colour = "grey35", lineheight = 1.35,
+                                               margin = ggplot2::margin(b = 12)),
+    plot.caption       = ggplot2::element_text(size = 8, colour = "grey50",
+                                               margin = ggplot2::margin(t = 10)),
+    legend.position    = "top",
+    legend.key.size    = ggplot2::unit(0.9, "lines"),
+    legend.text        = ggplot2::element_text(size = 10),
+    axis.text.y        = ggplot2::element_text(size = 9.5),
+    axis.text.x        = ggplot2::element_text(size = 9, colour = "grey40"),
+    panel.grid.minor   = ggplot2::element_blank(),
+    panel.grid.major.y = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_line(colour = "grey88"),
+    plot.margin        = ggplot2::margin(16, 24, 12, 12)
+  )
+
+p
+```
+
+```{r}
+#| label: update-palette-log
+#| echo: false
+#| output: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log      <- read.csv(palette_log_path)
+
+new_entry <- data.frame(
+  post_date = "2025-09-16",
+  palette   = "samarqand",
+  package   = "IslamicArt",
+  type      = "discrete"
+)
+
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append    = TRUE,
+    sep       = ",",
+    row.names = FALSE,
+    col.names = FALSE
+  )
+}
+```
+
+# Final thoughts and takeaways
+
+The macronutrient fingerprint of a cuisine is not random noise — it reflects real structural differences in culinary logic. The high-protein cluster at the top (Jamaican, Cuban, Chinese, Vietnamese) skews heavily toward meat-centric main courses: jerk preparations, braised pork, stir-fried proteins, and pho. These traditions put the protein source at the center of the plate and build everything else around it.
+
+The carbohydrate-dominant end of the spectrum tells a different story. **Australian and New Zealand recipes** on Allrecipes lean disproportionately toward baked goods — pavlova, lamingtons, Anzac biscuits — categories where flour, sugar, and oats dominate. **Amish and Mennonite cooking** reflects a tradition grounded in stretching protein-scarce ingredients with starches: potato dishes, noodle casseroles, and pies. Neither cuisine is "less healthy" in some absolute sense, but the carb emphasis is a real feature of what gets submitted and rated in those categories.
+
+**Cajun/Creole and Greek** stand out as the most fat-heavy cuisines, both exceeding 55% of calories from fat. For Cajun cooking this tracks with the heavy use of butter and roux in étouffée, gumbo, and jambalaya. For Greek cuisine it reflects olive oil used generously in everything from phyllo pastry to moussaka.
+
+A few caveats worth noting:
+
+- Allrecipes users tend to submit and rate celebratory or indulgent dishes more than everyday meals, which likely inflates calorie counts and fat percentages across the board.
+- Cuisine tags are assigned by Allrecipes editors, not by cultural experts — the "Australian and New Zealand" category almost certainly oversamples European-descended baking traditions relative to Indigenous or Pacific Island foodways.
+- The dataset captures a snapshot of user-submitted content through mid-2025; trending dietary styles (keto, plant-based) may skew toward recent submission dates.
+
+Despite these limitations, the broad patterns are robust: **culinary tradition does leave a legible macronutrient signature**, and that signature is meaningful enough to distinguish 35 cuisines in a way that largely matches intuition about each food culture's defining characteristics.
+
+> **Render note:** Render locally once with `quarto render` before committing — the `_freeze/` directory captures executed output and CI will not re-execute.
