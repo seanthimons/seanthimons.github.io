@@ -1,0 +1,505 @@
+---
+title: "Tidy Tuesday: One Million Digits of Pi"
+author: "Sean Thimons"
+date: "2026-03-24"
+description: "Are pi's digits truly random? Exploring digit frequency, uniformity tests, and convergence across one million decimal places."
+categories: [tidytuesday, R, mathematics, statistics]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-03-24).
+
+> This week's dataset contains the first one million digits of pi (π), released in honor of Pi Day (March 14). The data includes each digit's position in the decimal expansion and the digit itself (0–9). A longstanding open question in number theory is whether pi is a **normal number** — meaning every digit (and every finite string of digits) appears with equal frequency in the long run. While this has never been formally proven, empirical evidence from millions of digits strongly suggests it is true.
+>
+> **Suggested questions:** Are all ten digits equally represented? Do digits follow each other uniformly (i.e., is there no "memory" in pi's decimal expansion)? Where in pi's expansion do frequencies stabilize near 10%?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection (includes vapoRwave palettes)
+    'ggrepel',             # Non-overlapping labels
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-03-24")
+
+pi_digits <- raw$pi_digits
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Pi digits
+
+```{r}
+#| label: eda-pi-digits
+#| echo: true
+#| output: true
+
+# Drop digit_position for skim (it's just a row index)
+pi_digits %>%
+  select(digit) %>%
+  my_skim()
+```
+
+The digit column is a single integer (0–9), with a perfectly centered distribution around 4.5. The near-uniform spread from 0 to 9 — and a symmetrically shaped ASCII histogram — is exactly what we'd expect from a normal number. But "looks like a uniform distribution" is a long way from statistical confirmation.
+
+```{r}
+#| label: eda-digit-freq
+#| echo: true
+#| output: true
+
+# Digit frequency table
+freq_table <- pi_digits %>%
+  count(digit) %>%
+  mutate(
+    pct      = n / sum(n) * 100,
+    expected = nrow(pi_digits) / 10,
+    deviation = n - expected
+  )
+
+freq_table
+```
+
+Across one million digits, every digit appears between 99,548 times (digit 6) and 100,359 times (digit 5). The expected count under perfect uniformity is 100,000.1. No digit deviates by more than 360 occurrences — a fraction of a percent.
+
+```{r}
+#| label: eda-chisq
+#| echo: true
+#| output: true
+
+# Chi-square test of uniformity
+chi_result <- chisq.test(freq_table$n, p = rep(0.1, 10))
+chi_result
+```
+
+The chi-square statistic is **X² = 5.51** on 9 degrees of freedom, with **p = 0.787**. We emphatically fail to reject uniformity. One million digits in, the evidence for pi being a "normal number" — where each digit appears in equal proportion — is strong.
+
+::: {.callout-note}
+## What is a normal number?
+
+A **normal number** is one where, in any base, every finite sequence of digits appears with equal frequency. Pi has never been *proven* normal, but decades of computation have found no evidence against it. The first million digits offer a compelling empirical case.
+:::
+
+# Pi's Hidden Uniformity: Digit Frequency and Convergence
+
+## Overall digit frequency
+
+```{r}
+#| label: digit-freq-plot
+#| message: false
+#| warning: false
+#| fig.width: 9
+#| fig.height: 5
+
+pi_palette <- paletteer::paletteer_d("vapoRwave::vapoRwave", n = 10)
+
+p_freq <- freq_table %>%
+  mutate(
+    digit   = factor(digit),
+    label   = sprintf("%+.0f", deviation)
+  ) %>%
+  ggplot2::ggplot(ggplot2::aes(x = digit, y = pct, fill = digit)) +
+  ggplot2::geom_col(width = 0.7, color = "grey15", linewidth = 0.3) +
+  ggplot2::geom_hline(
+    yintercept = 10,
+    linetype = "dashed",
+    color = "white",
+    linewidth = 0.8,
+    alpha = 0.7
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = label, y = pct + 0.08),
+    color = "white",
+    size = 3.2,
+    fontface = "bold"
+  ) +
+  ggplot2::scale_fill_manual(values = pi_palette) +
+  ggplot2::scale_y_continuous(
+    limits = c(0, 11),
+    breaks = c(0, 5, 10),
+    labels = c("0%", "5%", "10%")
+  ) +
+  ggplot2::labs(
+    title    = "All ten digits appear almost exactly 10% of the time",
+    subtitle = "Deviation from expected 100,000 occurrences shown above each bar",
+    x        = "Digit",
+    y        = "Frequency (%)",
+    caption  = "Source: TidyTuesday 2026-03-24 · One Million Digits of Pi"
+  ) +
+  ggplot2::theme_minimal(base_size = 13) +
+  ggplot2::theme(
+    plot.background  = ggplot2::element_rect(fill = "#0d0d1a", color = NA),
+    panel.background = ggplot2::element_rect(fill = "#0d0d1a", color = NA),
+    panel.grid.major.y = ggplot2::element_line(color = "#2a2a4a", linewidth = 0.4),
+    panel.grid.major.x = ggplot2::element_blank(),
+    panel.grid.minor   = ggplot2::element_blank(),
+    text               = ggplot2::element_text(color = "white"),
+    plot.title         = ggplot2::element_text(color = "white", face = "bold", size = 14),
+    plot.subtitle      = ggplot2::element_text(color = "#aaaacc", size = 11),
+    plot.caption       = ggplot2::element_text(color = "#666699", size = 9),
+    axis.text          = ggplot2::element_text(color = "#ccccdd"),
+    axis.title         = ggplot2::element_text(color = "#aaaacc"),
+    legend.position    = "none"
+  )
+
+p_freq
+```
+
+## The convergence story: running digit frequencies
+
+The real drama in pi's digits is the *journey* to uniformity, not just the destination. At position 10, we've only seen a handful of digits — frequencies are wildly variable. But as we march deeper into the decimal expansion, each digit's running frequency inexorably converges toward the 10% mark.
+
+```{r}
+#| label: running-freq-compute
+#| message: false
+#| warning: false
+
+# Compute running cumulative frequency for each digit at evenly-spaced checkpoints.
+# Efficient approach: extract the ordered digit vector, then use cumsum per digit.
+checkpoints <- seq(500, 1000000, by = 500)   # 2,000 checkpoints
+
+digits_vec <- pi_digits %>%
+  arrange(digit_position) %>%
+  pull(digit)
+
+running_freq <- lapply(0:9, function(d) {
+  cum_d <- cumsum(as.integer(digits_vec == d))
+  data.frame(
+    checkpoint  = checkpoints,
+    digit       = factor(d, levels = 0:9),
+    cum_count   = cum_d[checkpoints],
+    running_pct = cum_d[checkpoints] / checkpoints * 100
+  )
+}) %>%
+  bind_rows()
+
+cat(sprintf("running_freq: %d rows, %d cols\n", nrow(running_freq), ncol(running_freq)))
+stopifnot("running_freq has 0 rows" = nrow(running_freq) > 0)
+
+# Sanity check: at position 1,000,000, all digits should be ~10%
+tail_check <- running_freq %>%
+  filter(checkpoint == max(checkpoint))
+cat("Final frequencies at position 1,000,000:\n")
+print(tail_check)
+```
+
+```{r}
+#| label: hero-convergence-plot
+#| message: false
+#| warning: false
+#| fig.width: 11
+#| fig.height: 7
+
+# Endpoint labels for annotation
+endpoints <- running_freq %>%
+  group_by(digit) %>%
+  filter(checkpoint == max(checkpoint)) %>%
+  ungroup()
+
+p_convergence <- running_freq %>%
+  ggplot2::ggplot(ggplot2::aes(
+    x     = checkpoint / 1000,
+    y     = running_pct,
+    color = digit,
+    group = digit
+  )) +
+  # Reference band: +/- 0.5% around 10%
+  ggplot2::annotate(
+    "rect",
+    xmin = -Inf, xmax = Inf,
+    ymin = 9.5, ymax = 10.5,
+    fill = "white", alpha = 0.06
+  ) +
+  # Perfect uniformity line
+  ggplot2::geom_hline(
+    yintercept = 10,
+    linetype = "dashed",
+    color = "white",
+    linewidth = 0.6,
+    alpha = 0.5
+  ) +
+  ggplot2::geom_line(linewidth = 0.65, alpha = 0.9) +
+  # Endpoint dots
+  ggplot2::geom_point(
+    data = endpoints,
+    ggplot2::aes(x = checkpoint / 1000, y = running_pct),
+    size = 2.5
+  ) +
+  # Digit labels at the end
+  ggrepel::geom_text_repel(
+    data = endpoints,
+    ggplot2::aes(
+      x     = checkpoint / 1000,
+      y     = running_pct,
+      label = paste0("π[", digit, "]"),
+      color = digit
+    ),
+    parse         = TRUE,
+    size          = 3.5,
+    fontface      = "bold",
+    direction     = "y",
+    nudge_x       = 15,
+    segment.size  = 0.3,
+    segment.alpha = 0.5,
+    min.segment.length = 0.2,
+    box.padding   = 0.2,
+    max.overlaps  = 20,
+    show.legend   = FALSE
+  ) +
+  ggplot2::scale_color_manual(values = pi_palette) +
+  ggplot2::scale_x_continuous(
+    limits = c(0, 1150),
+    breaks = c(0, 200, 400, 600, 800, 1000),
+    labels = c("0", "200K", "400K", "600K", "800K", "1M")
+  ) +
+  ggplot2::scale_y_continuous(
+    breaks = c(9, 9.5, 10, 10.5, 11),
+    labels = c("9%", "9.5%", "10%", "10.5%", "11%")
+  ) +
+  ggplot2::labs(
+    title    = "π converges to uniformity — one million digits at a time",
+    subtitle = "Running frequency of each digit (0–9) as we move through π's decimal expansion.\nThe dashed line marks perfect uniformity at 10%. All ten digits converge tightly by ~100,000 positions.",
+    x        = "Position in π's decimal expansion",
+    y        = "Running frequency (%)",
+    caption  = "Source: TidyTuesday 2026-03-24 · One Million Digits of Pi"
+  ) +
+  ggplot2::theme_minimal(base_size = 13) +
+  ggplot2::theme(
+    plot.background    = ggplot2::element_rect(fill = "#0d0d1a", color = NA),
+    panel.background   = ggplot2::element_rect(fill = "#0d0d1a", color = NA),
+    panel.grid.major   = ggplot2::element_line(color = "#1e1e38", linewidth = 0.4),
+    panel.grid.minor   = ggplot2::element_blank(),
+    text               = ggplot2::element_text(color = "white"),
+    plot.title         = ggplot2::element_text(
+      color = "white", face = "bold", size = 15, margin = ggplot2::margin(b = 6)
+    ),
+    plot.subtitle      = ggplot2::element_text(
+      color = "#9999bb", size = 10.5, lineheight = 1.4,
+      margin = ggplot2::margin(b = 12)
+    ),
+    plot.caption       = ggplot2::element_text(color = "#555577", size = 8.5),
+    axis.text          = ggplot2::element_text(color = "#aaaacc"),
+    axis.title         = ggplot2::element_text(color = "#8888aa"),
+    legend.position    = "none",
+    plot.margin        = ggplot2::margin(16, 16, 12, 16)
+  )
+
+p_convergence
+```
+
+The wild swings in the early positions give way to a tight cluster hovering within a quarter-percentage-point of 10% by the time we reach the million-digit mark. This is the empirical fingerprint of a normal number.
+
+## Digit transition heatmap: no memory in π
+
+If pi's digits carry any structure or "memory" — if certain digits tend to follow others — we'd see asymmetry in a transition matrix. Let's check.
+
+```{r}
+#| label: transition-matrix
+#| message: false
+#| warning: false
+#| fig.width: 8
+#| fig.height: 7
+
+transition_matrix <- pi_digits %>%
+  arrange(digit_position) %>%
+  mutate(next_digit = lead(digit)) %>%
+  filter(!is.na(next_digit)) %>%
+  count(digit, next_digit) %>%
+  group_by(digit) %>%
+  mutate(pct = n / sum(n) * 100) %>%
+  ungroup() %>%
+  mutate(
+    digit      = factor(digit,      levels = 9:0),
+    next_digit = factor(next_digit, levels = 0:9)
+  )
+
+cat(sprintf("transition_matrix: %d rows, %d cols\n", nrow(transition_matrix), ncol(transition_matrix)))
+stopifnot("Transition matrix has 0 rows" = nrow(transition_matrix) > 0)
+
+# Expected: each cell ~10%. Check for any notable deviation
+cat("Range of transition percentages:", range(transition_matrix$pct), "\n")
+
+p_transition <- transition_matrix %>%
+  ggplot2::ggplot(ggplot2::aes(
+    x    = next_digit,
+    y    = digit,
+    fill = pct
+  )) +
+  ggplot2::geom_tile(color = "#0d0d1a", linewidth = 0.5) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = sprintf("%.1f", pct)),
+    color = "white",
+    size  = 3.5,
+    fontface = "bold"
+  ) +
+  paletteer::scale_fill_paletteer_c(
+    "grDevices::Purple-Green",
+    limits = c(9.0, 11.0),
+    breaks = c(9, 9.5, 10, 10.5, 11),
+    labels = c("9%", "9.5%", "10%", "10.5%", "11%"),
+    guide  = ggplot2::guide_colorbar(
+      title.position = "top",
+      barwidth = 12,
+      barheight = 0.8
+    )
+  ) +
+  ggplot2::labs(
+    title    = "No memory: every digit follows every other digit ~10% of the time",
+    subtitle = "Transition frequencies across all 1,000,000 consecutive digit pairs.\nExpected frequency under independence: 10.0% per cell.",
+    x        = "Following digit",
+    y        = "Preceding digit",
+    fill     = "Transition frequency (%)",
+    caption  = "Source: TidyTuesday 2026-03-24 · One Million Digits of Pi"
+  ) +
+  ggplot2::theme_minimal(base_size = 13) +
+  ggplot2::theme(
+    plot.background    = ggplot2::element_rect(fill = "#0d0d1a", color = NA),
+    panel.background   = ggplot2::element_rect(fill = "#0d0d1a", color = NA),
+    panel.grid         = ggplot2::element_blank(),
+    text               = ggplot2::element_text(color = "white"),
+    plot.title         = ggplot2::element_text(color = "white", face = "bold", size = 14),
+    plot.subtitle      = ggplot2::element_text(color = "#9999bb", size = 10.5, lineheight = 1.4),
+    plot.caption       = ggplot2::element_text(color = "#555577", size = 8.5),
+    axis.text          = ggplot2::element_text(color = "#ccccdd", size = 11),
+    axis.title         = ggplot2::element_text(color = "#8888aa"),
+    legend.position    = "bottom",
+    legend.title       = ggplot2::element_text(color = "#aaaacc", size = 9),
+    legend.text        = ggplot2::element_text(color = "#aaaacc", size = 9),
+    plot.margin        = ggplot2::margin(16, 16, 12, 16)
+  )
+
+p_transition
+```
+
+Every one of the 100 cells in this 10×10 matrix falls within a tight band around 10.0%. The lowest observed transition is around 9.6%, the highest around 10.4%. There is no digit that "likes" to follow another — pi's decimal expansion shows no discernible sequential memory.
+
+## Log palette entry
+
+```{r}
+#| label: palette-log
+#| echo: true
+#| output: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log <- read.csv(palette_log_path)
+new_entry <- data.frame(
+  post_date = "2026-03-24",
+  palette   = "vapoRwave",
+  package   = "vapoRwave",
+  type      = "discrete"
+)
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+  )
+}
+```
+
+# Final thoughts and takeaways
+
+One million digits of pi tells a quiet but profound story: **randomness can emerge from an entirely deterministic object**. Pi is calculated, not drawn from any distribution, yet its decimal expansion is indistinguishable from a fair die rolled a million times.
+
+The key findings:
+
+- **Digit uniformity holds up.** Every digit appears within 0.4% of its expected 10% share. A chi-square test (p = 0.787) finds no evidence of imbalance across the full million digits.
+- **Convergence is fast.** By around 100,000 positions, all ten digit frequencies have settled to within ~0.3% of each other. The chaotic early variability gives way to stability faster than intuition might suggest.
+- **No pairwise memory.** The 10×10 transition matrix shows no pair of consecutive digits that deviates meaningfully from the 10% independence benchmark. Knowing the current digit tells you nothing about the next.
+
+Together, these observations are strong empirical support for pi's normality — even if formal proof remains one of mathematics' most famous open problems. The punchline: if you need a stream of pseudo-random digits and you've memorized enough of pi, it'll serve you just as well as most PRNGs.
+
+::: {.callout-tip}
+## Want to find yourself in pi?
+
+The sequence `031491` (March 14, 1991, a birthday format) appears somewhere in the first million digits of pi. Websites like [piday.org](https://www.piday.org/million/) let you search for any string of digits — a fun reminder that in an infinite (or at least very long) sequence of uniform digits, every birthday is in there somewhere.
+:::
