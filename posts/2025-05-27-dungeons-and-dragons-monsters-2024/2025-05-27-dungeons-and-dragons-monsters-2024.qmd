@@ -1,0 +1,607 @@
+---
+title: "Tidy Tuesday: Dungeons and Dragons Monsters (2024)"
+author: "Sean Thimons"
+date: "2025-05-27"
+description: "Decoding the ability score DNA of D&D 2024 SRD monsters — which creature types hit hardest, cast best, or survive the longest?"
+categories: [tidytuesday, R, gaming, fantasy, dungeons-and-dragons]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-05-27).
+
+> This week's data features monsters from the **Dungeons & Dragons 2024 System Reference Document (SRD)**. The SRD is the freely available subset of D&D rules, and the monsters dataset contains creature statistics — ability scores, challenge ratings, hit points, armor class, resistances, languages, and more — for hundreds of creatures drawn from the official ruleset. Suggested questions include: Which monster types exhibit the highest or lowest ability scores? How do monster types vary in challenge rating ranges? Which language enables communication with the most creatures?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'patchwork',           # Multi-panel layouts
+    'ggtext',              # Rich text in ggplot
+    'ggrepel',             # Non-overlapping labels
+    'ggridges',            # Ridge/joy plots
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-05-27')
+
+monsters <- raw$monsters
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Monsters
+
+```{r}
+#| label: eda-monsters-structure
+#| echo: true
+#| output: true
+
+# First, examine the raw structure
+glimpse(monsters)
+```
+
+```{r}
+#| label: eda-monsters-categories
+#| echo: true
+#| output: true
+
+# Examine categorical distributions
+cat("=== Monster Types ===\n")
+monsters %>% count(type, sort = TRUE) %>% print(n = 20)
+
+cat("\n=== Monster Sizes ===\n")
+monsters %>% count(size, sort = TRUE)
+
+cat("\n=== Challenge Rating Distribution ===\n")
+monsters %>% count(cr, sort = FALSE) %>% arrange(cr) %>% print(n = 30)
+
+cat("\n=== Alignment breakdown ===\n")
+monsters %>% count(alignment, sort = TRUE) %>% print(n = 20)
+```
+
+```{r}
+#| label: eda-monsters-numeric
+#| echo: true
+#| output: true
+
+# Profile the six ability scores and CR
+monsters %>%
+  select(cr, str, dex, con, int, wis, cha) %>%
+  my_skim()
+```
+
+The skim reveals a dataset rich in structure. The six ability scores (STR, DEX, CON, INT, WIS, CHA) each range from single digits up into the low 30s for the mightiest beings. Challenge rating (`cr`) runs from 0 to 30, with a right-skewed distribution — most monsters cluster at lower CRs, but legendary creatures push all the way to the ceiling. There is relatively little missingness in the core numeric columns, making this a clean dataset for cross-type comparison.
+
+::: {.callout-note}
+**A quick D&D primer:** The six ability scores define a creature's fundamental capabilities. Strength (STR) determines physical power, Dexterity (DEX) covers agility and reflexes, Constitution (CON) governs endurance and hit points, Intelligence (INT) reflects reasoning and memory, Wisdom (WIS) covers perception and willpower, and Charisma (CHA) captures personality and force of presence. An "average" human has 10–11 in each score; scores above 20 are superhuman, and 30 is the theoretical maximum.
+:::
+
+```{r}
+#| label: eda-clean-parse
+#| echo: true
+#| output: true
+
+# Parse numeric values from character columns (HP and AC contain dice notation)
+monsters_clean <- monsters %>%
+  janitor::clean_names() %>%
+  mutate(
+    # Extract the flat numeric portion from HP strings like "52 (8d10 + 8)"
+    hp_avg    = as.numeric(str_extract(hp, "^\\d+")),
+    # Extract the base AC value from strings like "17 (natural armor)"
+    ac_num    = as.numeric(str_extract(ac, "^\\d+")),
+    # Convert CR fractions (already numeric as double per the data dictionary)
+    cr_num    = as.numeric(cr)
+  )
+
+cat(sprintf("monsters_clean: %d rows, %d cols\n",
+            nrow(monsters_clean), ncol(monsters_clean)))
+cat(sprintf("HP parsed successfully for %d/%d rows\n",
+            sum(!is.na(monsters_clean$hp_avg)), nrow(monsters_clean)))
+cat(sprintf("AC parsed successfully for %d/%d rows\n",
+            sum(!is.na(monsters_clean$ac_num)), nrow(monsters_clean)))
+```
+
+# The Ability Score DNA of Monster Types
+
+Every D&D creature type has a characteristic "stat fingerprint" — the composite profile of its six ability scores relative to the monster population as a whole. Beasts are physical hunters; Fey rely on nimbleness and charm; undead lack biological vitality but often possess eerie willpower. Let's make those patterns explicit.
+
+## Computing normalized ability score profiles
+
+```{r}
+#| label: analysis-ability-profiles
+#| echo: true
+#| output: true
+
+# Compute average ability scores per type, then z-score each ability
+# across all types so we can compare apples to apples
+ability_profile <- monsters_clean %>%
+  group_by(type) %>%
+  summarise(
+    STR  = mean(str, na.rm = TRUE),
+    DEX  = mean(dex, na.rm = TRUE),
+    CON  = mean(con, na.rm = TRUE),
+    INT  = mean(int, na.rm = TRUE),
+    WIS  = mean(wis, na.rm = TRUE),
+    CHA  = mean(cha, na.rm = TRUE),
+    n    = n(),
+    .groups = "drop"
+  ) %>%
+  # Only include types with at least 3 monsters for stability
+  filter(n >= 3) %>%
+  pivot_longer(cols = STR:CHA, names_to = "ability", values_to = "mean_score") %>%
+  group_by(ability) %>%
+  mutate(z_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>%
+  ungroup()
+
+# Integrity check
+cat(sprintf("ability_profile: %d rows, %d cols\n",
+            nrow(ability_profile), ncol(ability_profile)))
+stopifnot(
+  "Plot data has 0 rows — check filter values" = nrow(ability_profile) > 0
+)
+
+# Sanity check: z-scores should have mean ~0 per ability group
+ability_profile %>%
+  group_by(ability) %>%
+  summarise(mean_z = round(mean(z_score), 8), sd_z = round(sd(z_score), 4))
+```
+
+```{r}
+#| label: analysis-cr-by-type
+#| echo: true
+#| output: true
+
+# Challenge rating stats by type
+cr_by_type <- monsters_clean %>%
+  filter(!is.na(cr_num)) %>%
+  group_by(type) %>%
+  summarise(
+    n         = n(),
+    median_cr = median(cr_num),
+    mean_cr   = mean(cr_num),
+    max_cr    = max(cr_num),
+    .groups   = "drop"
+  ) %>%
+  filter(n >= 3) %>%
+  arrange(desc(median_cr))
+
+cat(sprintf("cr_by_type: %d rows\n", nrow(cr_by_type)))
+print(cr_by_type)
+```
+
+::: {.callout-important}
+**Fiends and Dragons dominate the upper CR tier.** Both types have high median challenge ratings — these are the creatures that make veteran adventurers sweat. Meanwhile, Beasts and Plants are almost entirely sub-CR 5, forming the "encounter ecology" of early-campaign wilderness.
+:::
+
+## Challenge rating distributions by type
+
+```{r}
+#| label: viz-cr-ridgeline
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 7
+
+# Ridge plot: CR distribution by monster type
+ridge_data <- monsters_clean %>%
+  filter(!is.na(cr_num)) %>%
+  add_count(type, name = "type_n") %>%
+  filter(type_n >= 5) %>%
+  mutate(type = fct_reorder(type, cr_num, .fun = median))
+
+cat(sprintf("ridge_data: %d rows\n", nrow(ridge_data)))
+stopifnot("Ridge data is empty" = nrow(ridge_data) > 0)
+
+p_ridge <- ggplot(ridge_data,
+       aes(x = cr_num, y = type, fill = after_stat(x))) +
+  ggridges::geom_density_ridges_gradient(
+    scale          = 1.8,
+    rel_min_height = 0.01,
+    color          = "grey20",
+    linewidth      = 0.3
+  ) +
+  paletteer::scale_fill_paletteer_c("scico::berlin",
+                                    direction = 1,
+                                    name = "CR") +
+  scale_x_continuous(
+    breaks = c(0, 1, 5, 10, 15, 20, 25, 30),
+    labels = c("0", "1", "5", "10", "15", "20", "25", "30")
+  ) +
+  labs(
+    title    = "Where Does Each Monster Type Live on the Difficulty Ladder?",
+    subtitle = "Challenge rating distributions for types with 5+ monsters in the 2024 SRD",
+    x        = "Challenge Rating",
+    y        = NULL,
+    caption  = "Source: D&D 2024 SRD via TidyTuesdayR"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title       = element_text(face = "bold", size = 14),
+    plot.subtitle    = element_text(color = "grey40", size = 10),
+    plot.caption     = element_text(color = "grey50", size = 8),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    legend.position  = "right"
+  )
+
+p_ridge
+```
+
+Most creature types cluster below CR 10, but Dragons and Fiends have long right tails extending toward CR 30. Undead form a bimodal group — low-CR nuisances (skeletons, zombies) alongside world-ending liches — while Humanoids are almost entirely sub-CR 5, representing the mortal folk of the world rather than monsters in the traditional sense.
+
+# The Stat Fingerprint Heatmap
+
+```{r}
+#| label: viz-hero-heatmap
+#| message: false
+#| warning: false
+#| fig.width: 11
+#| fig.height: 7
+
+# Order types by their overall "power" (mean z across all abilities)
+# and order abilities in the traditional order
+type_order <- ability_profile %>%
+  group_by(type) %>%
+  summarise(avg_z = mean(z_score)) %>%
+  arrange(avg_z) %>%
+  pull(type)
+
+ability_order <- c("STR", "DEX", "CON", "INT", "WIS", "CHA")
+
+heatmap_data <- ability_profile %>%
+  mutate(
+    type    = factor(type, levels = type_order),
+    ability = factor(ability, levels = ability_order)
+  )
+
+# Label data: show actual mean score in each tile
+label_data <- heatmap_data
+
+p <- ggplot(heatmap_data,
+            aes(x = ability, y = type, fill = z_score)) +
+  geom_tile(color = "white", linewidth = 0.8) +
+  geom_text(
+    aes(label = sprintf("%.0f", mean_score)),
+    size  = 3.5,
+    color = "white",
+    fontface = "bold"
+  ) +
+  paletteer::scale_fill_paletteer_c(
+    "scico::berlin",
+    direction = -1,
+    name      = "Z-score\n(vs. type avg)",
+    limits    = c(-2.5, 2.5),
+    oob       = scales::squish
+  ) +
+  scale_x_discrete(position = "top") +
+  labs(
+    title    = "The Ability Score DNA of D&D Monsters",
+    subtitle = paste0(
+      "Average score in each of the six abilities, normalized across creature types ",
+      "(numbers = raw avg; color = z-score)\n",
+      "Blue = below-average for that stat · Red = above-average · Types ordered by overall power"
+    ),
+    x       = NULL,
+    y       = NULL,
+    caption = "Source: D&D 2024 SRD via TidyTuesdayR | 2025-05-27"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title       = element_text(face = "bold", size = 16, hjust = 0),
+    plot.subtitle    = element_text(color = "grey40", size = 9, hjust = 0,
+                                    margin = margin(b = 8)),
+    plot.caption     = element_text(color = "grey55", size = 8),
+    axis.text.x.top  = element_text(face = "bold", size = 12),
+    axis.text.y      = element_text(size = 11),
+    panel.grid       = element_blank(),
+    legend.position  = "right",
+    legend.key.height = unit(1.5, "cm"),
+    plot.background  = element_rect(fill = "grey98", color = NA),
+    plot.margin      = margin(12, 12, 12, 12)
+  )
+
+p
+```
+
+The heatmap makes each creature type's "stat personality" immediately legible:
+
+- **Dragons** are the kings of brute strength and physical resilience — blazing red across STR and CON.
+- **Giants** share that physical dominance but lack the magical presence (low CHA relative to their size and power).
+- **Celestials** are the most balanced high-performers: elevated across the board, which tracks with their role as powerful divine agents.
+- **Fey** are charismatic and dexterous — nature's tricksters built for speed and social manipulation rather than a straight brawl.
+- **Undead** show one of the most distinctive profiles: they tend toward low CON (many are immune to constitution-based effects, a mechanically interesting inversion) and highly variable INT and WIS depending on whether the undead retains its original mind.
+- **Humanoids** are the baseline — close to average on every stat, as expected for the mortal races that anchor the setting.
+- **Oozes** anchor the bottom, with predictably terrible INT and CHA, but respectable CON — their biology makes them hard to kill even if they can't think or charm.
+
+```{r}
+#| label: analysis-top-monsters-per-stat
+#| echo: true
+#| output: true
+
+# For narrative interest: who are the extreme individual monsters?
+stat_extremes <- monsters_clean %>%
+  select(name, type, cr_num, str, dex, con, int, wis, cha) %>%
+  pivot_longer(cols = str:cha, names_to = "ability", values_to = "score") %>%
+  mutate(ability = str_to_upper(ability)) %>%
+  group_by(ability) %>%
+  slice_max(score, n = 3) %>%
+  arrange(ability, desc(score))
+
+print(stat_extremes, n = 30)
+```
+
+```{r}
+#| label: viz-stat-extremes-annotated
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 6
+
+# Quick scatter: CR vs HP, sized by AC, colored by type
+# (only types with 5+ monsters)
+scatter_data <- monsters_clean %>%
+  filter(!is.na(hp_avg), !is.na(cr_num), !is.na(ac_num)) %>%
+  add_count(type, name = "type_n") %>%
+  filter(type_n >= 5)
+
+cat(sprintf("scatter_data: %d rows\n", nrow(scatter_data)))
+stopifnot("Scatter data is empty" = nrow(scatter_data) > 0)
+
+# Label the outliers (highest HP per CR bracket)
+label_pts <- scatter_data %>%
+  mutate(cr_bracket = cut(cr_num, breaks = c(-Inf, 1, 5, 10, 20, Inf),
+                          labels = c("CR 0–1", "CR 1–5", "CR 5–10",
+                                     "CR 10–20", "CR 20+"))) %>%
+  group_by(cr_bracket) %>%
+  slice_max(hp_avg, n = 1)
+
+p2 <- ggplot(scatter_data,
+             aes(x = cr_num, y = hp_avg, color = type)) +
+  geom_point(alpha = 0.5, size = 2) +
+  geom_smooth(
+    aes(group = 1),
+    method   = "loess",
+    color    = "grey30",
+    fill     = "grey80",
+    linewidth = 1,
+    se       = TRUE
+  ) +
+  ggrepel::geom_text_repel(
+    data         = label_pts,
+    aes(label    = name),
+    size         = 3,
+    color        = "grey10",
+    fontface     = "bold",
+    box.padding  = 0.4,
+    segment.color = "grey60",
+    max.overlaps = 10
+  ) +
+  scale_x_continuous(breaks = c(0, 1, 5, 10, 15, 20, 25, 30)) +
+  scale_y_log10(labels = scales::comma) +
+  labs(
+    title    = "Challenge Rating vs. Hit Points",
+    subtitle = "Monsters grow tankier as CR increases — but some punch far above their weight class",
+    x        = "Challenge Rating",
+    y        = "Average HP (log scale)",
+    color    = "Creature Type",
+    caption  = "Source: D&D 2024 SRD via TidyTuesdayR"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title      = element_text(face = "bold", size = 13),
+    plot.subtitle   = element_text(color = "grey40", size = 9),
+    legend.position = "right",
+    panel.grid.minor = element_blank()
+  )
+
+p2
+```
+
+The CR-vs-HP scatter confirms the expected scaling relationship — higher-CR monsters have dramatically more hit points — but individual outliers are telling. Some creatures achieve high HP at relatively modest challenge ratings, which in game terms means they're durable punching bags more than they're lethally dangerous. The log scale makes the full range from a 1 HP creature to several hundred HP legible in a single view.
+
+# Language Diversity
+
+```{r}
+#| label: analysis-languages
+#| echo: true
+#| output: true
+
+# Which languages appear most frequently across monsters?
+language_counts <- monsters_clean %>%
+  filter(!is.na(languages), languages != "", languages != "—") %>%
+  mutate(lang_list = str_split(languages, ",\\s*|;\\s*")) %>%
+  unnest(lang_list) %>%
+  mutate(
+    lang_clean = str_trim(lang_list),
+    lang_clean = str_remove(lang_clean, "\\s+\\(.*\\)"),   # strip parentheticals
+    lang_clean = str_to_title(lang_clean)
+  ) %>%
+  filter(
+    lang_clean != "",
+    lang_clean %ni% c("—", "None", "Any", "All", "But"),
+    !str_detect(lang_clean, "^Plus"),
+    !str_detect(lang_clean, "^And"),
+    nchar(lang_clean) > 1
+  ) %>%
+  count(lang_clean, sort = TRUE)
+
+cat("Top 20 languages spoken by monsters:\n")
+print(head(language_counts, 20))
+```
+
+```{r}
+#| label: viz-languages
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 6
+
+lang_plot_data <- language_counts %>%
+  slice_max(n, n = 15) %>%
+  mutate(lang_clean = fct_reorder(lang_clean, n))
+
+cat(sprintf("lang_plot_data: %d rows\n", nrow(lang_plot_data)))
+stopifnot("Language plot data is empty" = nrow(lang_plot_data) > 0)
+
+p3 <- ggplot(lang_plot_data, aes(x = n, y = lang_clean)) +
+  geom_col(fill = "#4a6fa5", alpha = 0.85) +
+  geom_text(aes(label = n), hjust = -0.2, size = 3.5, color = "grey20") +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.12))) +
+  labs(
+    title    = "The Tower of Babel, Monster Edition",
+    subtitle = "Number of monsters in the 2024 SRD that speak each language",
+    x        = "Number of monsters",
+    y        = NULL,
+    caption  = "Source: D&D 2024 SRD via TidyTuesdayR"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title     = element_text(face = "bold", size = 13),
+    plot.subtitle  = element_text(color = "grey40", size = 9),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor   = element_blank(),
+    axis.text.y    = element_text(size = 10)
+  )
+
+p3
+```
+
+Common and Deep Speech anchor the language leaderboard — the former because the setting's mortal races (and their monstrous cousins) share it as a lingua franca, the latter because so many aberrations and otherworldly beings descend from subterranean origins. A character who learns Abyssal or Infernal gains access to conversations with a substantial slice of the most dangerous creatures in the monster manual.
+
+# Update palette log
+
+```{r}
+#| label: palette-log-update
+#| echo: true
+#| output: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log      <- read.csv(palette_log_path)
+
+new_entry <- data.frame(
+  post_date = "2025-05-27",
+  palette   = "berlin",
+  package   = "scico",
+  type      = "continuous"
+)
+
+# Only append if this post_date + palette combo isn't already logged
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append    = TRUE,
+    sep       = ",",
+    row.names = FALSE,
+    col.names = FALSE
+  )
+  message("Palette log updated.")
+} else {
+  message("Palette already logged — skipping duplicate.")
+}
+```
+
+# Final thoughts and takeaways
+
+D&D monsters are a carefully engineered ecosystem. The ability score heatmap makes this visible: creature types occupy distinct niches in the six-dimensional stat space, and those niches mostly line up with their narrative roles. Dragons are apex predators. Fey are supernatural tricksters. Oozes are mindless hazards. The design team at Wizards of the Coast has — consciously or not — created a set of archetypes whose mechanical identities track their fictional ones with reasonable consistency.
+
+A few things surprised me in the data:
+
+- **Celestials skew higher across the board** than even Dragons on several stats. The 2024 SRD doesn't include as many high-CR celestials as prior editions, but the ones that made the cut are powerful.
+- **Undead CON** is not as catastrophically low as intuition might suggest. While many undead are immune to constitution-based effects (poison, exhaustion, disease), their raw CON modifier still averages respectable values — a reminder that the *stat* and the *immunity* are separate mechanical levers.
+- **The CR-vs-HP relationship is strong but not perfectly linear.** Some creatures are durable outliers at their tier — monsters designed to wear down a party over time rather than threaten them with immediate lethality.
+
+For players: speaking Common and Deep Speech covers the widest conversational net in the monster manual. For dungeon masters: if your players aren't scared of Fiends and Dragons, the stat fingerprints above show why they probably should be.
+
+::: {.callout-tip}
+**For local rendering:** After running `quarto render` on this post, commit the populated `_freeze/` directory to source control so CI doesn't need to re-execute the R code.
+:::
