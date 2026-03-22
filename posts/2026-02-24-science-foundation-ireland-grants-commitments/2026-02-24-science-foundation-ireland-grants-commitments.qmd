@@ -1,0 +1,503 @@
+---
+title: "Tidy Tuesday: Science Foundation Ireland Grants Commitments"
+author: "Sean Thimons"
+date: "2026-02-24"
+description: "Two decades of Irish science funding: mapping the €4.2B commitment from Science Foundation Ireland and the universities that built a research nation."
+categories: [tidytuesday, R, science, funding, Ireland]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-02-24).
+
+> This dataset contains grant commitments from Science Foundation Ireland (SFI), the Irish government agency responsible for funding scientific research. It includes over 7,200 grants spanning from 2001 to 2025, with information on the funding amount, research institution, programme name, and grant duration. SFI was established under the Programme for Research in Third-Level Institutions (PRTLI) to build Ireland's capacity in science, technology, engineering, and mathematics (STEM). The data reveals how Ireland has strategically invested in research capacity, shifting from building individual investigator programmes to large-scale research centres and cross-border partnerships.
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'patchwork',           # Multi-panel layouts
+    'ggrepel',             # Non-overlapping labels
+    'ggridges',            # Ridge/joy plots
+
+    ### Misc ----
+    'tidytuesdayR',
+    'ghibli'               # Ghibli color palettes
+  )
+
+  # ! Change load flag to load packages
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-02-24")
+
+grants <- raw$sfi_grants %>%
+  janitor::clean_names()
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## SFI Grants
+
+Before skimming, I drop columns that are primarily identifiers or redundant references: `proposal_id`, `research_body_ror_id`, `funder_name`, and `crossref_funder_registry_id`. The funder name is uniformly "Science Foundation Ireland" and the ROR/Crossref IDs are lookup keys rather than analytical variables.
+
+```{r}
+#| label: eda-grants
+#| echo: true
+#| output: true
+
+grants %>%
+  dplyr::select(-proposal_id, -research_body_ror_id, -funder_name, -crossref_funder_registry_id, -proposal_title, -supplement) %>%
+  my_skim()
+```
+
+The EDA reveals a dataset spanning 24+ years of Irish science investment. The `current_total_commitment` column has a notably right-skewed distribution (mean €574k, median €124k), with a handful of very large grants pulling the average up. There's also at least one negative value (−€5M), which likely represents a grant amendment or clawback. Start dates run from October 2001 through early 2025, while end dates extend to 2032 — reflecting multi-year research commitments still active today.
+
+```{r}
+#| label: eda-programmes
+#| echo: true
+#| output: true
+
+# Programme name distribution
+grants %>%
+  dplyr::count(programme_name, sort = TRUE) %>%
+  head(15)
+```
+
+```{r}
+#| label: eda-institutions
+#| echo: true
+#| output: true
+
+# Institution distribution
+grants %>%
+  dplyr::count(research_body, sort = TRUE) %>%
+  head(12)
+```
+
+The top 15 programmes span a wide range: from small travel fellowships and conference grants (dozens of €k) to major Research Centres with €10M+ commitments. The two largest by grant count — Research Frontiers Programme and Discover Programme — represent the "volume end" of SFI's portfolio: many modest grants to individual researchers. The largest by total euros are the Research Centres Programme and the Principal Investigator Programme.
+
+# Who Gets Irish Science Money?
+
+The core story in this data is concentration: a handful of universities absorb the vast majority of SFI funding. Ireland has five traditional research-intensive universities — Trinity College Dublin (TCD), University College Dublin (UCD), University College Cork (UCC), University of Galway, and University of Limerick (UL) — plus a cluster of specialist and newer institutions. Let's see how the money has moved.
+
+## Temporal funding trend
+
+```{r}
+#| label: analysis-temporal
+#| message: false
+#| warning: false
+
+funding_by_year <- grants %>%
+  mutate(year = lubridate::year(start_date)) %>%
+  group_by(year) %>%
+  summarise(
+    n_grants = n(),
+    total_funding_m = sum(current_total_commitment[current_total_commitment > 0], na.rm = TRUE) / 1e6,
+    .groups = "drop"
+  ) %>%
+  dplyr::filter(year >= 2002, year <= 2024)  # trim incomplete boundary years
+
+cat(sprintf("Temporal data: %d rows, %d cols\n", nrow(funding_by_year), ncol(funding_by_year)))
+stopifnot("No rows in temporal data" = nrow(funding_by_year) > 0)
+
+print(funding_by_year)
+```
+
+```{r}
+#| label: analysis-institutional
+#| message: false
+#| warning: false
+
+# Top institutions by total funding
+top_institutions <- grants %>%
+  dplyr::filter(current_total_commitment > 0) %>%
+  group_by(research_body) %>%
+  summarise(
+    n_grants = n(),
+    total_m = sum(current_total_commitment, na.rm = TRUE) / 1e6,
+    median_k = median(current_total_commitment, na.rm = TRUE) / 1e3,
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_m)) %>%
+  head(7)
+
+cat(sprintf("Top institutions data: %d rows, %d cols\n", nrow(top_institutions), ncol(top_institutions)))
+stopifnot("No rows in institution data" = nrow(top_institutions) > 0)
+
+print(top_institutions)
+```
+
+```{r}
+#| label: analysis-programme-categories
+#| message: false
+#| warning: false
+
+# Broad programme categories for context
+programme_summary <- grants %>%
+  dplyr::filter(current_total_commitment > 0) %>%
+  group_by(programme_name) %>%
+  summarise(
+    n = n(),
+    total_m = sum(current_total_commitment, na.rm = TRUE) / 1e6,
+    median_k = median(current_total_commitment, na.rm = TRUE) / 1e3,
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_m)) %>%
+  head(10)
+
+print(programme_summary)
+```
+
+::: {.callout-note}
+## About Science Foundation Ireland
+
+SFI was established in 2000 as part of the Irish government's National Development Plan, with a mandate to fund strategic basic and applied research in STEM. Ireland's Celtic Tiger boom of the late 1990s–2000s created the fiscal conditions for a major research investment push. By building on its existing university infrastructure, Ireland aimed to transition from a foreign direct investment–driven economy to a knowledge economy — with SFI as the primary lever. The data here begins in 2001, the first full year of operations.
+:::
+
+::: {.callout-important}
+## Notable finding
+
+A single programme — **Research Centres** (64 grants) — accounts for nearly **€1 billion** in commitments, roughly 23% of all positive funding in the dataset. These large multi-year consortia, designed to bring industry and academia together, dwarf individual investigator grants in scale. The median Research Centres grant is €4.6 million versus €124,000 across the full portfolio.
+:::
+
+## Grant size distribution by institution
+
+The ridgeline plot below shows how grant size distributions differ markedly across the top seven research bodies. Institutions with strong research centre activity show fat right tails; those relying more on small grants cluster near the lower end.
+
+```{r}
+#| label: analysis-ridge-prep
+#| message: false
+#| warning: false
+
+# Clean institution names for display
+top7_names <- top_institutions$research_body
+
+ridge_data <- grants %>%
+  dplyr::filter(
+    current_total_commitment > 1000,   # exclude negligible/negative
+    research_body %in% top7_names
+  ) %>%
+  mutate(
+    # Shorten institution names for display
+    institution_label = case_when(
+      research_body == "Trinity College Dublin (TCD)" ~ "TCD",
+      research_body == "University College Dublin (UCD)" ~ "UCD",
+      research_body == "University of Galway" ~ "U. Galway",
+      research_body == "University College Cork (UCC)" ~ "UCC",
+      research_body == "University of Limerick (UL)" ~ "UL",
+      research_body == "Tyndall National Institute (TNI)" ~ "Tyndall",
+      research_body == "Dublin City University (DCU)" ~ "DCU",
+      TRUE ~ research_body
+    ),
+    # Reorder by median grant size
+    institution_label = forcats::fct_reorder(institution_label, current_total_commitment, .fun = median)
+  )
+
+cat(sprintf("Ridge data: %d rows, %d cols\n", nrow(ridge_data), ncol(ridge_data)))
+stopifnot("Ridge data is empty" = nrow(ridge_data) > 0)
+
+# Quick sanity check: are there multiple distinct grant values per institution?
+sanity <- ridge_data %>%
+  group_by(institution_label) %>%
+  summarise(n_distinct = dplyr::n_distinct(current_total_commitment), .groups = "drop")
+print(sanity)
+```
+
+# Visualisation
+
+```{r}
+#| label: viz-palette-setup
+#| message: false
+#| warning: false
+
+# Palette: ghibli::MarnieMedium1 (7 qualitative colors — not previously used)
+institution_palette <- paletteer::paletteer_d("ghibli::MarnieMedium1")
+
+# Assign colours to institutions in order of the ridge factor levels
+inst_levels <- levels(ridge_data$institution_label)
+names(institution_palette) <- inst_levels
+
+cat("Using palette: ghibli::MarnieMedium1\n")
+print(institution_palette)
+```
+
+```{r}
+#| label: viz-hero
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 10
+
+# --- Plot 1: Funding by year ---
+p_time <- ggplot2::ggplot(funding_by_year, ggplot2::aes(x = year, y = total_funding_m)) +
+  ggplot2::geom_col(fill = "#1C77A3FF", width = 0.75, alpha = 0.85) +
+  ggplot2::geom_smooth(
+    ggplot2::aes(group = 1),
+    method = "loess", span = 0.5, se = FALSE,
+    colour = "#C5A387FF", linewidth = 1.2
+  ) +
+  ggplot2::scale_x_continuous(breaks = seq(2002, 2024, by = 4)) +
+  ggplot2::scale_y_continuous(
+    labels = scales::label_dollar(prefix = "€", suffix = "M"),
+    expand = ggplot2::expansion(mult = c(0, 0.08))
+  ) +
+  ggplot2::labs(
+    title = "Annual SFI funding commitments, 2002–2024",
+    subtitle = "Total value of new grants started each year (positive commitments only)",
+    x = NULL,
+    y = "Total committed (€M)"
+  ) +
+  ggplot2::theme_minimal(base_size = 11) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 13),
+    plot.subtitle = ggplot2::element_text(colour = "grey40", size = 10),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_blank(),
+    axis.text = ggplot2::element_text(colour = "grey30")
+  )
+
+# --- Plot 2: Grant size ridgeline by institution ---
+p_ridge <- ggplot2::ggplot(
+  ridge_data,
+  ggplot2::aes(
+    x = current_total_commitment,
+    y = institution_label,
+    fill = institution_label
+  )
+) +
+  ggridges::geom_density_ridges(
+    scale = 1.8,
+    rel_min_height = 0.01,
+    alpha = 0.85,
+    colour = "white",
+    linewidth = 0.4
+  ) +
+  ggplot2::scale_x_log10(
+    labels = scales::label_dollar(prefix = "€", scale_cut = scales::cut_short_scale()),
+    breaks = c(1e3, 1e4, 1e5, 1e6, 1e7, 6e7)
+  ) +
+  ggplot2::scale_fill_manual(values = institution_palette, guide = "none") +
+  ggplot2::labs(
+    title = "Grant size distributions by top research institution",
+    subtitle = "Log-scaled; each ridge shows the distribution of individual grant sizes for that institution",
+    x = "Grant size (log scale, €)",
+    y = NULL
+  ) +
+  ggplot2::theme_minimal(base_size = 11) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 13),
+    plot.subtitle = ggplot2::element_text(colour = "grey40", size = 10),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major.y = ggplot2::element_blank(),
+    axis.text.y = ggplot2::element_text(colour = "grey20", size = 11),
+    axis.text.x = ggplot2::element_text(colour = "grey30")
+  )
+
+# --- Combined layout ---
+p_combined <- (p_time / p_ridge) +
+  patchwork::plot_annotation(
+    title = "Two decades of Irish science investment",
+    subtitle = "Science Foundation Ireland grant commitments, 2001–2025",
+    caption = "Source: Science Foundation Ireland · TidyTuesday 2026-02-24",
+    theme = ggplot2::theme(
+      plot.title = ggplot2::element_text(face = "bold", size = 16, colour = "grey10"),
+      plot.subtitle = ggplot2::element_text(colour = "grey40", size = 12),
+      plot.caption = ggplot2::element_text(colour = "grey55", size = 9)
+    )
+  )
+
+p_combined
+```
+
+```{r}
+#| label: viz-lollipop
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 6
+
+# Lollipop of top 7 institutions by total funding
+lollipop_data <- top_institutions %>%
+  mutate(
+    institution_label = case_when(
+      research_body == "Trinity College Dublin (TCD)" ~ "TCD",
+      research_body == "University College Dublin (UCD)" ~ "UCD",
+      research_body == "University of Galway" ~ "U. Galway",
+      research_body == "University College Cork (UCC)" ~ "UCC",
+      research_body == "University of Limerick (UL)" ~ "UL",
+      research_body == "Tyndall National Institute (TNI)" ~ "Tyndall",
+      research_body == "Dublin City University (DCU)" ~ "DCU",
+      TRUE ~ research_body
+    ),
+    institution_label = forcats::fct_reorder(institution_label, total_m)
+  )
+
+p_lollipop <- ggplot2::ggplot(lollipop_data, ggplot2::aes(x = total_m, y = institution_label, colour = institution_label)) +
+  ggplot2::geom_segment(
+    ggplot2::aes(x = 0, xend = total_m, y = institution_label, yend = institution_label),
+    linewidth = 1.2, alpha = 0.6
+  ) +
+  ggplot2::geom_point(ggplot2::aes(size = n_grants), alpha = 0.9) +
+  ggrepel::geom_text_repel(
+    ggplot2::aes(
+      label = sprintf("€%.0fM\n(%d grants)", total_m, n_grants)
+    ),
+    nudge_x = 20,
+    size = 3.2,
+    colour = "grey20",
+    segment.colour = "grey70",
+    min.segment.length = 0.2
+  ) +
+  ggplot2::scale_colour_manual(values = institution_palette, guide = "none") +
+  ggplot2::scale_size_continuous(
+    name = "# of grants",
+    range = c(4, 12),
+    breaks = c(300, 700, 1400)
+  ) +
+  ggplot2::scale_x_continuous(
+    labels = scales::label_dollar(prefix = "€", suffix = "M"),
+    expand = ggplot2::expansion(mult = c(0, 0.4))
+  ) +
+  ggplot2::labs(
+    title = "Cumulative SFI funding by institution (2001–2025)",
+    subtitle = "Point size = number of grants received · Only positive commitments included",
+    x = "Total committed (€M)",
+    y = NULL,
+    caption = "Source: Science Foundation Ireland · TidyTuesday 2026-02-24"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 14),
+    plot.subtitle = ggplot2::element_text(colour = "grey40", size = 10),
+    plot.caption = ggplot2::element_text(colour = "grey55", size = 9),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major.y = ggplot2::element_blank(),
+    axis.text.y = ggplot2::element_text(colour = "grey15", size = 12),
+    legend.position = "right"
+  )
+
+p_lollipop
+```
+
+```{r}
+#| label: palette-log
+#| echo: false
+#| output: false
+
+# Log the palette used — idempotent
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log <- read.csv(palette_log_path)
+
+new_entry <- data.frame(
+  post_date = "2026-02-24",
+  palette   = "MarnieMedium1",
+  package   = "ghibli",
+  type      = "discrete"
+)
+
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+  )
+}
+```
+
+# Final thoughts and takeaways
+
+Over 24 years, Science Foundation Ireland has committed more than **€4 billion** to scientific research, and the data tells a clear story about strategy, concentration, and institutional hierarchy.
+
+**The funding is deeply concentrated.** Trinity College Dublin and University College Dublin together account for roughly €1.7 billion — 40% of all positive commitments — despite Ireland having seven research universities and dozens of institutes. This isn't a flaw in the system; SFI's explicit strategy was to build world-class research capacity at the institutions best positioned to compete internationally. TCD and UCD had the critical mass, the international networks, and the physical infrastructure to absorb and deploy large-scale investment effectively.
+
+**Programme design drives the size distribution.** The bimodal character visible in the ridgeline plots — a cluster of small grants and a long right tail of very large ones — reflects deliberate programme architecture. Small grants (~€10k–€200k) fund conferences, student internships, travel fellowships, and starter investigator awards. Large grants (€1M–€60M) fund Research Centres, Strategic Research Clusters, and the flagship Principal Investigator Programme. The Tyndall National Institute stands out: its grants cluster at the higher end because Tyndall is a specialist semiconductor and photonics institute that attracts infrastructure-scale investment.
+
+**Funding spiked in 2019.** The €468M committed in 2019 is the single largest annual figure in the dataset — nearly double 2018's total. This reflects the SFI Research Centres Programme's second call cycle, where a cohort of large multi-year centres were renewed and expanded simultaneously. Peaks like this are an artifact of how multi-year commitments are recorded at grant start rather than amortised over the grant period.
+
+**The post-2011 dip is real.** Ireland's austerity years (2010–2013) are visible in the data. While the count of grants held up partially — driven by small-ticket programmes that were cheaper to maintain — the total committed euros declined substantially from the Celtic Tiger–era peaks. The recovery from 2013 onward has been sustained, with the exchequer re-committing to science as a pillar of the post-recession economic model.
+
+One caveat: the `current_total_commitment` field reflects the most recent recorded amount for each grant, which can be amended over time. The small number of negative values (grant reductions or clawbacks) are not included in totals here. The picture is of commitment, not necessarily of money actually disbursed.
