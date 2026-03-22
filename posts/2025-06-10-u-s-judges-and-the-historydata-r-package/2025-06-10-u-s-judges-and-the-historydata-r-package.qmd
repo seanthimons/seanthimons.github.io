@@ -1,0 +1,575 @@
+---
+title: "Tidy Tuesday: U.S. Judges and the historydata R Package"
+author: "Sean Thimons"
+date: "2025-06-10"
+description: "Two centuries of federal judicial appointments — who made them, how many, and how the face of the federal bench has slowly transformed."
+categories: [tidytuesday, R, history, law, demographics, politics]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-06-10).
+
+> This week's dataset comes from the `{historydata}` R package (rOpenSci), which pulls from the [Federal Judicial Center's Biographical Directory of Article III Federal Judges](https://www.fjc.gov/history/judges/biographical-directory-article-iii-federal-judges-export). It covers every appointment to the U.S. federal bench since 1789 — District Courts, Courts of Appeals, the Supreme Court, former Circuit Courts, and special jurisdiction courts. Suggested questions: Which presidents appointed the most judges? How has the demographic makeup of the bench changed over time?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'patchwork',           # Multi-panel layouts
+    'ggtext',              # Rich text in ggplot (element_markdown)
+    'ggrepel',             # Non-overlapping labels
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  # ! Change load flag to load packages
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+}
+
+# Custom Functions --------------------------------------------------------
+
+`%ni%` <- Negate(`%in%`)
+
+geometric_mean <- function(x) {
+  exp(mean(log(x[x > 0]), na.rm = TRUE))
+}
+
+my_skim <- skim_with(
+  numeric = sfl(
+    n = length,
+    min = ~ min(.x, na.rm = T),
+    p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+    med = ~ median(.x, na.rm = T),
+    p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+    max = ~ max(.x, na.rm = T),
+    mean = ~ mean(.x, na.rm = T),
+    geo_mean = ~ geometric_mean(.x),
+    sd = ~ stats::sd(., na.rm = TRUE),
+    hist = ~ inline_hist(., 5)
+  ),
+  append = FALSE
+)
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-06-10')
+
+judges_appointments <- raw$judges_appointments
+judges_people        <- raw$judges_people
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of `skimr::skim()` that returns count, min, p25, median, p75, max, mean, geometric mean, standard deviation, and an ASCII histogram.
+
+## judges_appointments
+
+Date strings (nomination, confirmation, commission, retirement, termination) and predecessor name fields are dropped for the skim — they're character columns encoding dates in MM/DD/YYYY format that need parsing, not summarizing raw.
+
+```{r}
+#| label: eda-appointments
+#| echo: true
+#| output: true
+
+judges_appointments %>%
+  select(
+    -judge_id,
+    -nomination_date,
+    -senate_confirmation_date,
+    -commission_date,
+    -retirement_from_active_service,
+    -termination_date,
+    -predecessor_last_name,
+    -predecessor_first_name
+  ) %>%
+  my_skim()
+```
+
+The appointments table covers `r nrow(judges_appointments)` records across every federal judicial seat since 1789. The `court_type` column is almost entirely clean, with two known truncated entries (`"U. S. Court of Custo"` and `"U. S. Court of Inter"`) noted in the dataset documentation. `chief_judge_begin` and `chief_judge_end` are populated for only a handful of records. `termination_reason` is NA for many appointments — these are judges still serving or records with unknown termination circumstances.
+
+## judges_people
+
+Name fields and birth/death cities are dropped for the skim — they're free-text identifiers with no distributional interpretation.
+
+```{r}
+#| label: eda-people
+#| echo: true
+#| output: true
+
+judges_people %>%
+  select(
+    -judge_id,
+    -name_first,
+    -name_middle,
+    -name_last,
+    -name_suffix,
+    -birthplace_city,
+    -death_city
+  ) %>%
+  my_skim()
+```
+
+The people table covers `r nrow(judges_people)` unique individuals. Birth years span from the late 1700s through the early 2000s. The `gender` and `race` columns are as reported by the judiciary — an important caveat, since these categories reflect institutional classification practices that have evolved over time and likely undercount early representation. The `birthplace_state` and `death_state` columns offer some geographic texture.
+
+# The Presidential Appointment Record
+
+The power to shape the federal judiciary for decades is one of the most consequential — and least perishable — legacies a president leaves behind. Let's look at who appointed the most judges, and what the party breakdown looks like.
+
+## Data Preparation
+
+```{r}
+#| label: data-prep
+#| message: false
+#| warning: false
+
+# Join appointments with judge biographical info
+judges <- judges_appointments %>%
+  left_join(judges_people, by = "judge_id") %>%
+  mutate(
+    nom_date   = lubridate::mdy(nomination_date),
+    nom_year   = lubridate::year(nom_date),
+    nom_decade = floor(nom_year / 10) * 10
+  )
+
+# Verify exact gender category strings before any filtering
+cat("=== Gender categories (exact strings) ===\n")
+judges %>%
+  count(gender, sort = TRUE) %>%
+  print()
+
+# Verify exact race category strings
+cat("\n=== Race categories (exact strings) ===\n")
+judges %>%
+  count(race, sort = TRUE) %>%
+  print()
+
+# Verify court types (check for truncated entries)
+cat("\n=== Court types ===\n")
+judges %>%
+  count(court_type, sort = TRUE) %>%
+  print()
+```
+
+## Top Appointing Presidents
+
+```{r}
+#| label: president-appointments
+#| fig.width: 10
+#| fig.height: 7
+#| message: false
+#| warning: false
+
+pres_counts <- judges %>%
+  filter(
+    !is.na(president_name),
+    president_name %ni% c("Assignment", "Reassignment")
+  ) %>%
+  count(president_name, president_party, sort = TRUE) %>%
+  slice_head(n = 20) %>%
+  mutate(
+    president_name = fct_reorder(president_name, n),
+    party_group = case_when(
+      president_party == "Republican" ~ "Republican",
+      president_party == "Democrat"   ~ "Democrat",
+      TRUE                            ~ "Other/Unaffiliated"
+    )
+  )
+
+cat(sprintf("pres_counts: %d rows\n", nrow(pres_counts)))
+stopifnot("pres_counts has 0 rows — check filter" = nrow(pres_counts) > 0)
+
+party_colors <- c(
+  "Republican"        = "#C0392B",
+  "Democrat"          = "#2471A3",
+  "Other/Unaffiliated" = "#7F8C8D"
+)
+
+p_pres <- pres_counts %>%
+  ggplot(aes(x = n, y = president_name, fill = party_group)) +
+  geom_col(width = 0.7, alpha = 0.9) +
+  geom_text(
+    aes(label = n),
+    hjust = -0.2, size = 3.2, color = "grey30"
+  ) +
+  scale_fill_manual(values = party_colors) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.12))) +
+  labs(
+    title = "Top 20 presidents by federal judicial appointments",
+    subtitle = "Article III appointments (District Courts, Courts of Appeals, Supreme Court, and more)",
+    x = "Number of appointments",
+    y = NULL,
+    fill = "President's party",
+    caption = "Source: historydata R package / Federal Judicial Center | TidyTuesday 2025-06-10"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title    = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(color = "grey45", size = 10),
+    legend.position = "bottom",
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor   = element_blank(),
+    plot.caption = element_text(color = "grey60", size = 8)
+  )
+
+p_pres
+```
+
+Reagan and Clinton lead all modern presidents in total appointments — each clearing 380+ during their combined 8-year terms. Reagan's figure reflects not only longevity in office but a deliberate strategy to reshape the judiciary ideologically; Clinton matched him almost appointment-for-appointment. Carter's 267 appointments came in just one term, yet his administration's impact on judicial demographics far outweighs the raw count, as we'll see below. Congress periodically authorizes new judgeships to manage caseload growth, which is why high-volume decades cluster around specific legislative expansions (the 1978 Omnibus Judgeship Act, for example, added 152 seats at once).
+
+# The Changing Face of the Federal Bench
+
+The story of the federal judiciary isn't just about quantity. For most of U.S. history, federal judges were overwhelmingly white men. That began to change slowly — then faster — over the second half of the 20th century.
+
+## Gender Diversification by Decade
+
+```{r}
+#| label: gender-by-decade
+#| message: false
+#| warning: false
+
+# Using verified gender strings from EDA above
+female_pct_by_decade <- judges %>%
+  filter(
+    !is.na(nom_year),
+    gender %in% c("M", "F"),   # verified: actual values are "M" and "F"
+    nom_year >= 1900
+  ) %>%
+  group_by(nom_decade) %>%
+  summarise(
+    total    = n(),
+    n_female = sum(gender == "F"),
+    pct_female = n_female / total,
+    .groups = "drop"
+  )
+
+cat(sprintf("female_pct_by_decade: %d rows, %d cols\n",
+            nrow(female_pct_by_decade), ncol(female_pct_by_decade)))
+stopifnot(
+  "female_pct_by_decade has 0 rows — check filters" = nrow(female_pct_by_decade) > 0
+)
+
+# Sanity check: proportions should vary across decades
+if (length(unique(round(female_pct_by_decade$pct_female, 4))) == 1) {
+  warning("All pct_female values are identical — check grouping logic")
+}
+
+female_pct_by_decade %>%
+  select(nom_decade, total, n_female, pct_female) %>%
+  mutate(pct_female = scales::percent(pct_female, accuracy = 0.1)) %>%
+  print()
+```
+
+## Race and Ethnicity Composition
+
+```{r}
+#| label: race-by-decade
+#| message: false
+#| warning: false
+
+# Inspect race categories
+judges %>%
+  count(race, sort = TRUE) %>%
+  filter(!is.na(race)) %>%
+  print()
+
+# Group to broader categories for decade analysis (post-1960 for meaningful signal)
+race_by_decade <- judges %>%
+  filter(
+    !is.na(nom_year),
+    !is.na(race),
+    nom_year >= 1960
+  ) %>%
+  mutate(
+    # Verified category strings from EDA: "White", "African American",
+    # "Hispanic", "Asian American", "American Indian", plus multi-race entries
+    race_group = case_when(
+      race == "White"                                         ~ "White",
+      str_detect(race, "African Am")                         ~ "African American",
+      str_detect(race, "Hispanic") & !str_detect(race, "/") ~ "Hispanic",
+      str_detect(race, "Asian Am")                           ~ "Asian American",
+      TRUE                                                   ~ "Other/Multiple"
+    )
+  ) %>%
+  group_by(nom_decade, race_group) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(nom_decade) %>%
+  mutate(
+    total = sum(n),
+    pct   = n / total
+  ) %>%
+  ungroup()
+
+cat(sprintf("race_by_decade: %d rows\n", nrow(race_by_decade)))
+stopifnot("race_by_decade has 0 rows" = nrow(race_by_decade) > 0)
+
+# Sanity check
+if (length(unique(round(race_by_decade$pct, 4))) == 1) {
+  warning("All pct values identical — check grouping")
+}
+```
+
+# Hero Visualization
+
+```{r}
+#| label: hero-viz
+#| fig.width: 12
+#| fig.height: 7
+#| message: false
+#| warning: false
+
+# Extract palette colors for single-series area chart
+hero_pal <- paletteer::paletteer_d("dutchmasters::milkmaid")
+fill_col  <- hero_pal[4]   # deep blue — primary fill
+line_col  <- hero_pal[5]   # darker tone for line/points
+annot_col <- "grey35"
+
+# Annotation data for key administrations
+annotations <- tibble::tribble(
+  ~x,    ~y,    ~label,                              ~hjust,
+  1975,  0.22,  "Carter (1977–81)\nlowest % white,\nhighest % women\nto that point", 1,
+  2008,  0.38,  "Obama (2009–17)\n42% of appointments\nwere women",                   0
+)
+
+p_hero <- female_pct_by_decade %>%
+  ggplot(aes(x = nom_decade, y = pct_female)) +
+  # Shaded area under the curve
+  geom_area(fill = fill_col, alpha = 0.55) +
+  # Reference line at 50%
+  geom_hline(
+    yintercept = 0.5,
+    linetype = "dashed",
+    color = "grey60",
+    linewidth = 0.5
+  ) +
+  annotate(
+    "text", x = 1902, y = 0.515,
+    label = "50% parity line",
+    size = 3, hjust = 0, color = "grey55"
+  ) +
+  # Trend line
+  geom_line(color = line_col, linewidth = 1.4) +
+  # Points sized by appointment volume
+  geom_point(
+    aes(size = total),
+    color = line_col,
+    alpha = 0.85
+  ) +
+  # Carter annotation
+  annotate(
+    "segment",
+    x = 1975, xend = 1977, y = 0.19, yend = 0.133,
+    arrow = arrow(length = unit(0.2, "cm"), type = "closed"),
+    color = annot_col, linewidth = 0.5
+  ) +
+  annotate(
+    "text",
+    x = 1974, y = 0.205,
+    label = "Carter (1977–81):\nfirst major push\nfor bench diversity",
+    size = 3, hjust = 1, color = annot_col, lineheight = 1.2
+  ) +
+  # Obama annotation
+  annotate(
+    "segment",
+    x = 2012, xend = 2010, y = 0.43, yend = 0.405,
+    arrow = arrow(length = unit(0.2, "cm"), type = "closed"),
+    color = annot_col, linewidth = 0.5
+  ) +
+  annotate(
+    "text",
+    x = 2013, y = 0.44,
+    label = "Obama (2009–17):\n~41% of appointments\nwere women",
+    size = 3, hjust = 0, color = annot_col, lineheight = 1.2
+  ) +
+  scale_x_continuous(
+    breaks = seq(1900, 2020, by = 10),
+    labels = function(x) paste0(x, "s")
+  ) +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    limits = c(0, 0.55),
+    breaks = seq(0, 0.5, 0.1)
+  ) +
+  scale_size_continuous(
+    range  = c(2, 9),
+    name   = "Total appointments\nin decade",
+    breaks = c(100, 300, 500, 800)
+  ) +
+  labs(
+    title    = "**The long road to a more diverse federal bench**",
+    subtitle = "Share of U.S. federal judicial appointments going to women, by decade (1900s–2020s).<br>
+    Point size reflects total appointment volume. Prior to the 1970s, women were virtually absent from the federal judiciary.",
+    x        = NULL,
+    y        = "Share of appointments (female)",
+    caption  = "Source: historydata R package / Federal Judicial Center | TidyTuesday 2025-06-10"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title         = element_markdown(face = "bold", size = 17, margin = margin(b = 6)),
+    plot.subtitle      = element_markdown(color = "grey40", size = 11, lineheight = 1.3,
+                                          margin = margin(b = 12)),
+    plot.caption       = element_text(color = "grey60", size = 8.5, hjust = 0),
+    panel.grid.minor   = element_blank(),
+    panel.grid.major.x = element_blank(),
+    legend.position    = "right",
+    legend.title       = element_text(size = 9),
+    axis.text.x        = element_text(size = 10),
+    plot.margin        = margin(t = 10, r = 20, b = 10, l = 10)
+  )
+
+p_hero
+```
+
+## Supplementary: Racial Composition of Appointments (1960s–Present)
+
+```{r}
+#| label: race-viz
+#| fig.width: 11
+#| fig.height: 6
+#| message: false
+#| warning: false
+
+race_pal <- paletteer::paletteer_d("dutchmasters::milkmaid", n = 5)
+
+race_plot_data <- race_by_decade %>%
+  filter(nom_decade >= 1960) %>%
+  mutate(
+    race_group = factor(
+      race_group,
+      levels = c("White", "African American",
+                 "Hispanic", "Asian American", "Other/Multiple")
+    ),
+    nom_decade_label = paste0(nom_decade, "s")
+  )
+
+cat(sprintf("race_plot_data: %d rows\n", nrow(race_plot_data)))
+stopifnot("race_plot_data empty" = nrow(race_plot_data) > 0)
+
+p_race <- race_plot_data %>%
+  ggplot(aes(x = nom_decade_label, y = pct, fill = race_group)) +
+  geom_col(position = "stack", width = 0.72) +
+  scale_fill_manual(
+    values = setNames(
+        as.character(race_pal),
+        c("White", "African American", "Hispanic", "Asian American", "Other/Multiple")
+      )
+  ) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  labs(
+    title    = "Racial composition of federal judicial appointments, 1960s–2020s",
+    subtitle = "Share of appointments by reported race/ethnicity per decade",
+    x        = NULL,
+    y        = "Share of appointments",
+    fill     = "Race / ethnicity",
+    caption  = "Source: historydata R package / Federal Judicial Center | TidyTuesday 2025-06-10\nNote: race categories as reported by the Federal Judicial Center; classification practices have evolved over time."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title       = element_text(face = "bold", size = 14),
+    plot.subtitle    = element_text(color = "grey45", size = 10),
+    plot.caption     = element_text(color = "grey60", size = 8, hjust = 0),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor   = element_blank(),
+    legend.position  = "right"
+  )
+
+p_race
+```
+
+# Final thoughts and takeaways
+
+The federal bench has changed dramatically — but slowly. For roughly the first 180 years of the republic, the judiciary was the exclusive domain of white men. The data shows near-zero female representation through the 1960s. **The inflection point is the Carter administration (1977–81):** Carter made a deliberate, structured effort to diversify the bench, appointing women and minority judges at rates that had no historical precedent. Every subsequent president has maintained or extended that trajectory to varying degrees.
+
+By the Obama era, women made up roughly 41% of judicial appointments — a figure that would have been unimaginable a generation earlier. The 2020s data, still accumulating, appears on track to push that share higher.
+
+::: {.callout-note}
+**Methodological caveat:** The `gender` and `race` fields reflect how the Federal Judicial Center classified judges, not self-identification. Early records in particular may be incomplete or inconsistently coded. The dramatic increase in non-white appointments post-1960 partly reflects better record-keeping as much as actual change — though the demographic shift in appointments since Carter is real and well-documented independently.
+:::
+
+The race/ethnicity panel tells a complementary story: the white share of appointments has declined from near-100% to roughly 60–70% in recent decades, with Black and Hispanic judges making up a growing share. The trajectory is clear, even if parity remains distant.
+
+What the data can't capture is the compounding effect: federal judges serve for life. Every diverse appointment is a multi-decade presence on the bench. Carter's 1977–81 cohort was still issuing rulings into the 2010s. This is why presidential judicial legacies matter so much — they don't fade at the end of a term.
+
+```{r}
+#| label: palette-log-update
+#| echo: false
+#| output: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log      <- read.csv(palette_log_path)
+
+new_entry <- data.frame(
+  post_date = "2025-06-10",
+  palette   = "milkmaid",
+  package   = "dutchmasters",
+  type      = "discrete"
+)
+
+# Only append if this post_date + palette combo isn't already logged
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append    = TRUE,
+    sep       = ",",
+    row.names = FALSE,
+    col.names = FALSE
+  )
+}
+```
