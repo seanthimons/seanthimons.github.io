@@ -1,0 +1,453 @@
+---
+title: "Tidy Tuesday: Salmonid Mortality Data"
+author: "Sean Thimons"
+date: "2026-03-17"
+description: "Norway raises the world's salmon — and loses hundreds of millions of them every year. Six years of aquaculture mortality data reveal a counterintuitive seasonal rhythm and an industry operating at staggering scale."
+categories: [tidytuesday, R, aquaculture, ecology, Norway]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-03-17).
+
+> This week's data comes from the Norwegian Directorate of Fisheries
+> (Fiskeridirektoratet), tracking monthly mortality statistics for Atlantic
+> salmon (*Salmo salar*) and rainbow trout (*Oncorhynchus mykiss*) in
+> Norwegian aquaculture from 2020 through 2025. Two tables are provided:
+> `monthly_losses_data` records the absolute count of fish lost each month
+> by cause (dead, discarded, escaped, other), and `monthly_mortality_data`
+> records the monthly mortality *rate* (median and interquartile range
+> across individual aquaculture sites) by region. Norway produces roughly
+> two-thirds of the world's farmed Atlantic salmon, making this one of the
+> most consequential datasets in global food production.
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'patchwork',           # Multi-panel layouts
+    'ggrepel',             # Non-overlapping labels
+    'scales',              # Axis formatting
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-03-17')
+
+losses   <- raw$monthly_losses_data
+mortality <- raw$monthly_mortality_data
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## monthly_losses_data
+
+```{r}
+#| label: eda-losses
+#| echo: true
+#| output: true
+
+losses %>%
+  select(-species, -date, -geo_group, -region) %>%
+  my_skim()
+```
+
+The `losses` dataset spans **2,808 rows** covering January 2020 through December 2025 for two species (salmon and rainbow trout) across three geographic groupings: individual production areas (`area`, numbered 1–13), Norwegian counties (`county`), and the national total (`country`). There are no missing values anywhere.
+
+The distribution of `losses` is heavily right-skewed (the histogram shows mass at the lower end with a long right tail), reflecting the enormous difference in farm density across regions — some areas contain far more active sites than others. The `dead` column dominates total losses; `escaped` and `other` are orders of magnitude smaller, visible only in their maxima.
+
+## monthly_mortality_data
+
+```{r}
+#| label: eda-mortality
+#| echo: true
+#| output: true
+
+mortality %>%
+  select(median, q1, q3) %>%
+  my_skim()
+```
+
+The `mortality` dataset provides **1,788 rows** of monthly mortality *rates* — the percentage of standing stock that perishes each month — with median, first quartile, and third quartile across sites within each reporting unit. Rates range from 0.14% to 2.89% with a mean of 0.64%. The wide IQR (q1 ≈ 0.27%, q3 ≈ 1.30%) reflects genuine heterogeneity across farms: some operations run tight, others face chronic mortality challenges.
+
+::: {.callout-note}
+## What the mortality rate measures
+
+The monthly mortality rate is expressed as a percentage of the fish present at
+the start of the month. A rate of 0.6% means that for every 1,000 fish in the
+sea cage, roughly 6 die during that month. At industrial scale — Norwegian salmon
+farms hold hundreds of millions of fish simultaneously — even a small shift in
+this rate translates to millions of additional deaths.
+:::
+
+# Industrial Scale: The Arithmetic of Aquaculture Loss
+
+```{r}
+#| label: loss-composition
+#| message: false
+#| warning: false
+
+# National salmon losses only
+national_salmon <- losses %>%
+  filter(species == "salmon", geo_group == "country")
+
+cat(sprintf("national_salmon: %d rows, %d cols\n", nrow(national_salmon), ncol(national_salmon)))
+stopifnot("Empty data" = nrow(national_salmon) > 0)
+
+# Annual totals
+annual_totals <- national_salmon %>%
+  mutate(year = format(date, "%Y")) %>%
+  group_by(year) %>%
+  summarise(
+    total_losses  = sum(losses,    na.rm = TRUE),
+    total_dead    = sum(dead,      na.rm = TRUE),
+    total_discard = sum(discarded, na.rm = TRUE),
+    total_escaped = sum(escaped,   na.rm = TRUE),
+    total_other   = sum(other,     na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Reshape for stacked bar chart
+annual_long <- annual_totals %>%
+  select(year, Dead = total_dead, Discarded = total_discard,
+         Escaped = total_escaped, Other = total_other) %>%
+  pivot_longer(-year, names_to = "cause", values_to = "count") %>%
+  mutate(
+    cause = factor(cause, levels = c("Other", "Escaped", "Discarded", "Dead")),
+    count_m = count / 1e6
+  )
+
+cat(sprintf("annual_long: %d rows, %d cols\n", nrow(annual_long), ncol(annual_long)))
+stopifnot("Empty stacked data" = nrow(annual_long) > 0)
+
+# Palette: MetBrewer::Hokusai2 — 6 qualitative colors, wave/water inspired
+# (Hokusai3 was used 2025-09-30; Hokusai2 is fresh)
+cause_colors <- c(
+  Dead      = "#3B4988FF",   # deep ocean blue
+  Discarded = "#7EC5D1FF",   # pale teal
+  Escaped   = "#4CA57EFF",   # sea green
+  Other     = "#CCC18CFF"    # sand/kelp
+)
+
+p_bars <- annual_long %>%
+  ggplot2::ggplot(ggplot2::aes(x = year, y = count_m, fill = cause)) +
+  ggplot2::geom_col(width = 0.7) +
+  ggplot2::scale_fill_manual(
+    values = cause_colors,
+    guide  = ggplot2::guide_legend(reverse = TRUE)
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = scales::label_number(suffix = "M"),
+    expand = ggplot2::expansion(mult = c(0, 0.05))
+  ) +
+  ggplot2::labs(
+    title    = "~66 million Norwegian salmon are lost every year",
+    subtitle = "Annual salmon losses in Norwegian aquaculture by cause, 2020–2025",
+    x        = NULL,
+    y        = "Fish (millions)",
+    fill     = "Cause of loss",
+    caption  = "Source: Norwegian Directorate of Fisheries via TidyTuesday 2026-03-17"
+  ) +
+  ggplot2::theme_minimal(base_size = 13) +
+  ggplot2::theme(
+    plot.title         = ggplot2::element_text(face = "bold", size = 16),
+    plot.subtitle      = ggplot2::element_text(color = "#444444", size = 11),
+    panel.grid.major.x = ggplot2::element_blank(),
+    panel.grid.minor   = ggplot2::element_blank(),
+    legend.position    = "right"
+  )
+
+p_bars
+```
+
+Norway lost between **60 and 71 million salmon per year** over this period — rising from 60.3M in 2020 to a peak of 71.4M in 2023, then easing slightly toward 67.5M in 2025. The breakdown is striking: **~85% die outright**, roughly 5% are discarded (culled for health reasons before death), a small fraction escape into the wild, and the remainder are attributed to "other" causes (primarily fish removed for slaughter ahead of schedule due to disease pressure).
+
+::: {.callout-important}
+## Escaped fish: a small count, a large ecological concern
+
+Just 127,762 salmon escaped into Norwegian waters over six years — a fraction of a percent of total losses. But escaped farmed salmon are genetically distinct from wild populations, and even small numbers can interbreed with wild Atlantic salmon, diluting local adaptations that wild fish have developed over millennia. Norway has strict reporting requirements precisely because the impact-per-fish of escapes vastly exceeds that of mortality.
+:::
+
+# The Winter Mortality Paradox
+
+Conventional intuition might suggest that warm summer waters — stressful for cold-water salmonids — would drive peak mortality. Norwegian data tells the opposite story.
+
+```{r}
+#| label: seasonal-analysis
+#| message: false
+
+# Seasonal averages for salmon at country level
+seasonal_salmon <- mortality %>%
+  filter(species == "salmon", geo_group == "country") %>%
+  mutate(month = as.integer(format(date, "%m")))
+
+seasonal_avg <- seasonal_salmon %>%
+  group_by(month) %>%
+  summarise(
+    avg_median = mean(median, na.rm = TRUE),
+    avg_q1     = mean(q1,     na.rm = TRUE),
+    avg_q3     = mean(q3,     na.rm = TRUE),
+    .groups    = "drop"
+  )
+
+cat("Seasonal mortality averages (Norway, salmon):\n")
+print(seasonal_avg)
+
+cat(sprintf("\nPeak month: %s (%.3f%%)\n",
+  month.abb[seasonal_avg$month[which.max(seasonal_avg$avg_median)]],
+  max(seasonal_avg$avg_median)))
+cat(sprintf("Trough month: %s (%.3f%%)\n",
+  month.abb[seasonal_avg$month[which.min(seasonal_avg$avg_median)]],
+  min(seasonal_avg$avg_median)))
+```
+
+March carries the highest average mortality (0.73%), while July is the lowest (0.39%) — a near-doubling of mortality rate from summer to late winter. In Norwegian aquaculture this is well understood: winter and spring are peak periods for sea lice infestations and for the bacterial pathogen *Pasteurella*, both of which thrive in cold, dense cage conditions. Summer months bring better water circulation, lower lice pressure, and the physiological boost of longer daylight.
+
+# The Hero Visualization: Six Years of Salmon Mortality
+
+The most revealing view of this dataset isn't a single year or a single region — it's the repeating seasonal wave, seen six times, charting whether Norwegian aquaculture is getting better or worse at keeping its fish alive.
+
+```{r}
+#| label: hero-seasonal-cycle
+#| message: false
+#| warning: false
+#| fig.width: 11
+#| fig.height: 7
+
+# Prepare data: salmon, country level, with year and month columns
+salmon_cycle <- mortality %>%
+  filter(species == "salmon", geo_group == "country") %>%
+  mutate(
+    month = as.integer(format(date, "%m")),
+    year  = factor(format(date, "%Y"))
+  ) %>%
+  arrange(year, month)
+
+cat(sprintf("salmon_cycle: %d rows, %d cols\n", nrow(salmon_cycle), ncol(salmon_cycle)))
+stopifnot("Empty plot data" = nrow(salmon_cycle) > 0)
+
+# Sanity check proportions
+cat(sprintf("Mortality range: %.2f%% – %.2f%%\n",
+  min(salmon_cycle$median), max(salmon_cycle$median)))
+
+# Palette: MetBrewer::Hokusai2
+# Great Wave–inspired palette. Six colors for six years.
+# Not used previously (Hokusai3 used 2025-09-30, Hokusai2 is fresh).
+year_pal <- paletteer::paletteer_d("MetBrewer::Hokusai2")
+cat("Hokusai2 colors:", as.character(year_pal), "\n")
+
+# Annotation: highlight the summer trough and winter peak
+anno_low  <- data.frame(month = 7,  y = 0.20, label = "Summer trough\n(sea lice pressure drops)")
+anno_high <- data.frame(month = 3,  y = 1.05, label = "Winter–spring peak\n(lice & bacterial outbreaks)")
+
+p_hero <- salmon_cycle %>%
+  ggplot2::ggplot(ggplot2::aes(
+    x = month, y = median,
+    color = year, fill = year, group = year
+  )) +
+  # IQR ribbon
+  ggplot2::geom_ribbon(
+    ggplot2::aes(ymin = q1, ymax = q3),
+    alpha = 0.12, color = NA
+  ) +
+  # Median line
+  ggplot2::geom_line(linewidth = 1.1) +
+  # Points at each month
+  ggplot2::geom_point(size = 2.2) +
+  # Annotations
+  ggplot2::annotate(
+    "text",
+    x = 7.3, y = 0.23,
+    label = "Summer trough\n(sea lice pressure drops)",
+    hjust = 0, size = 3.2, color = "#444444", lineheight = 1.1
+  ) +
+  ggplot2::annotate(
+    "segment",
+    x = 7.1, xend = 7.05, y = 0.30, yend = 0.38,
+    color = "#444444", linewidth = 0.5,
+    arrow = ggplot2::arrow(length = ggplot2::unit(0.08, "inches"), type = "closed")
+  ) +
+  ggplot2::annotate(
+    "text",
+    x = 3.3, y = 1.05,
+    label = "Winter–spring peak\n(bacterial outbreaks, lice)",
+    hjust = 0, size = 3.2, color = "#444444", lineheight = 1.1
+  ) +
+  ggplot2::annotate(
+    "segment",
+    x = 3.2, xend = 3.05, y = 0.98, yend = 0.83,
+    color = "#444444", linewidth = 0.5,
+    arrow = ggplot2::arrow(length = ggplot2::unit(0.08, "inches"), type = "closed")
+  ) +
+  ggplot2::scale_x_continuous(
+    breaks = 1:12,
+    labels = month.abb,
+    expand = ggplot2::expansion(add = c(0.3, 1.8))
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = scales::label_number(suffix = "%"),
+    breaks = seq(0.2, 1.0, by = 0.2),
+    limits = c(0.1, 1.1)
+  ) +
+  ggplot2::scale_color_manual(values = as.character(year_pal)) +
+  ggplot2::scale_fill_manual(values  = as.character(year_pal)) +
+  ggplot2::labs(
+    title    = "Norwegian salmon die in winter, not summer",
+    subtitle = paste0(
+      "Monthly median mortality rate (%) for Atlantic salmon in Norwegian aquaculture, 2020–2025.\n",
+      "Shaded bands show the interquartile range across aquaculture sites. Country-level aggregate."
+    ),
+    x        = NULL,
+    y        = "Monthly mortality rate (%)",
+    color    = NULL,
+    fill     = NULL,
+    caption  = "Source: Norwegian Directorate of Fisheries via TidyTuesday 2026-03-17"
+  ) +
+  ggplot2::theme_minimal(base_size = 13) +
+  ggplot2::theme(
+    plot.title         = ggplot2::element_text(face = "bold", size = 18, margin = ggplot2::margin(b = 5)),
+    plot.subtitle      = ggplot2::element_text(color = "#555555", size = 11, lineheight = 1.3),
+    plot.caption       = ggplot2::element_text(color = "#888888", size = 9),
+    legend.position    = "top",
+    legend.direction   = "horizontal",
+    legend.text        = ggplot2::element_text(size = 11),
+    panel.grid.minor   = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_blank(),
+    axis.text.x        = ggplot2::element_text(size = 11),
+    plot.margin        = ggplot2::margin(12, 16, 12, 12)
+  )
+
+p_hero
+```
+
+Each colored line traces the seasonal mortality cycle for a single calendar year. The **wave shape is consistent**: mortality rises to a plateau in winter and early spring, collapses in midsummer, then recovers through autumn. Year-to-year, the level of the wave shifts — **2023 and 2024 carried notably higher winter mortality** than 2020, with January 2023 reaching a median of 0.85% (more than double the July trough). By 2025, rates appear to be moderating.
+
+```{r}
+#| label: write-palette-log
+#| echo: false
+#| output: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log <- read.csv(palette_log_path)
+
+new_entry <- data.frame(
+  post_date = "2026-03-17",
+  palette   = "Hokusai2",
+  package   = "MetBrewer",
+  type      = "discrete"
+)
+
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append    = TRUE,
+    sep       = ",",
+    row.names = FALSE,
+    col.names = FALSE
+  )
+}
+```
+
+# Final thoughts and takeaways
+
+Norwegian aquaculture is an industrial enterprise at a scale most people find difficult to visualize. Between 2020 and 2025, Norwegian fish farms lost roughly **396 million Atlantic salmon** at the country level — not to fishing nets, but to mortality inside the cages. That is more salmon than the entire wild Atlantic salmon population by many orders of magnitude.
+
+Three findings from this data stand out:
+
+**1. Winter is deadlier than summer for farmed salmon.** The seasonal mortality curve peaks in January–March and hits its low in June–August. This reflects the biology of *Lepeophtheirus salmonis* (sea lice), which reproduces more slowly in cold water but accumulates across the winter, and the spring recurrence of bacterial diseases like *Pasteurella*. The pattern is so consistent that Norwegian fish health authorities use it as a baseline; a year where the winter peak is unusually high signals an industry-wide problem.
+
+**2. 2021–2024 saw elevated winter mortality.** Looking at the seasonal cycles, 2020 was the mildest year. From 2021 onward, the winter plateaus climbed — reaching a peak in January 2023 (0.85% median mortality) and January–February 2024. The 2025 data suggests a return toward lower levels, but it is one year and too early to call a trend.
+
+**3. Dead fish vastly outnumber every other loss category.** Discarded fish (culled alive for welfare or disease management), escaped fish, and other losses together account for fewer than 15% of total losses. The dominant story is simply: fish die in the cages. Reducing that mortality is not only an ethical priority but an economic one — at 2024 spot prices, 70 million salmon represent several billion dollars in unrecoverable biomass.
+
+The escaped fish figure, though small in absolute terms, deserves separate scrutiny. Each escaped farmed salmon carries genes selected for growth in captivity rather than survival in the wild, and interbreeding with wild Atlantic salmon — already under pressure from overfishing and habitat loss — can reduce the adaptive fitness of wild populations for generations.
+
+Norwegian aquaculture has made real progress on sea lice resistance, vaccination protocols, and smolt health over the past decade. This dataset captures a moment where the industry's losses remain massive in absolute terms, but the seasonal pattern — predictable, biological, partially manageable — at least tells us where to look.
