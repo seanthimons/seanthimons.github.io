@@ -1,0 +1,427 @@
+---
+title: "Tidy Tuesday: Henley Passport Index Data"
+author: "Sean Thimons"
+date: "2025-09-09"
+description: "Tracking two decades of global passport power — how visa-free access has grown unevenly across regions, who has surged, and who remains trapped at the bottom."
+categories: [tidytuesday, R, geopolitics, travel, inequality]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-09-09/).
+
+> The Henley Passport Index is the original ranking of all the world's passports according to the number of destinations their holders can access without a prior visa. It is based on exclusive data from the International Air Transport Authority (IATA) and enhanced by Henley & Partners' research expertise. The dataset includes historical rankings from 2006 to 2025, showing visa-free access counts and global ranks for 199 countries. Alongside the annual rankings, a snapshot of the current access categories (visa-required, visa-on-arrival, visa-free, e-visa, eTA) provides a detailed view of the global mobility landscape.
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'ggrepel',             # Non-overlapping labels
+    'ggtext',              # Rich text in ggplot
+
+    ### Misc ----
+    'tidytuesdayR',
+    'khroma'               # Accessible qualitative palettes (bright palette)
+  )
+
+  # ! Change load flag to load packages
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-09-09')
+
+# Two datasets: historical rankings and current access category detail
+rank_by_year  <- raw$rank_by_year    # 3,950 rows — country × year panel
+country_lists <- raw$country_lists   # 199 rows — nested JSON lists of access categories
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse, the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram.
+
+## rank_by_year
+
+```{r}
+#| label: eda-rank-by-year
+#| echo: true
+#| output: true
+
+# Drop the JSON-encoded country list columns and look at the numeric spine
+rank_by_year %>%
+  select(rank, visa_free_count, year) %>%
+  my_skim()
+```
+
+```{r}
+#| label: eda-regions-years
+#| echo: true
+
+# Check regions
+cat("Regions in data:\n")
+print(unique(rank_by_year$region))
+
+# Year coverage — some years have sparse or zero data
+cat("\nYear × Region average visa_free_count (selected years):\n")
+rank_by_year %>%
+  filter(year %in% c(2006, 2010, 2015, 2020, 2025)) %>%
+  group_by(region, year) %>%
+  summarize(avg_vfc = round(mean(visa_free_count, na.rm = TRUE), 1),
+            n_countries = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = year, values_from = avg_vfc) %>%
+  print()
+
+# Note: 2007 and 2009 appear in the data but have all-zero visa_free_count
+# These are data gaps — exclude from trend analysis
+years_with_data <- rank_by_year %>%
+  group_by(year) %>%
+  summarize(avg_vfc = mean(visa_free_count, na.rm = TRUE)) %>%
+  filter(avg_vfc > 0) %>%
+  pull(year)
+cat("\nYears with valid data:", paste(years_with_data, collapse = ", "), "\n")
+```
+
+```{r}
+#| label: eda-top-bottom
+#| echo: true
+
+# Top and bottom passports in 2025
+cat("Top 10 passports in 2025:\n")
+rank_by_year %>%
+  filter(year == 2025) %>%
+  arrange(rank) %>%
+  select(country, region, rank, visa_free_count) %>%
+  head(10) %>%
+  print()
+
+cat("\nBottom 10 passports in 2025:\n")
+rank_by_year %>%
+  filter(year == 2025) %>%
+  arrange(desc(rank)) %>%
+  select(country, region, rank, visa_free_count) %>%
+  head(10) %>%
+  print()
+```
+
+The data tells an immediate story at the extremes: **Singapore** tops the 2025 index with access to 193 destinations, while **Afghanistan** sits at the bottom with just 25. The gulf between the most and least powerful passports is vast — roughly an 8-fold difference — and this gap has persisted across the full 2006–2025 time window. European passports dominate the top tier, but the dataset's most striking narrative is arguably regional: where you are born largely determines how freely you can move.
+
+# Global Passport Power: A Two-Decade View
+
+The core question the data invites is longitudinal: has global passport power become more equal over time, or has the gap between privileged and disadvantaged passports stayed stubbornly wide?
+
+```{r}
+#| label: analysis-regional-trends
+#| echo: true
+
+# Build regional trend data — median and IQR by region × year
+# Exclude years with no valid data (2007, 2009)
+regional_trends <- rank_by_year %>%
+  filter(year %in% years_with_data) %>%
+  group_by(region, year) %>%
+  summarize(
+    median_vfc  = median(visa_free_count, na.rm = TRUE),
+    p25_vfc     = quantile(visa_free_count, 0.25, na.rm = TRUE),
+    p75_vfc     = quantile(visa_free_count, 0.75, na.rm = TRUE),
+    n_countries = n(),
+    .groups = "drop"
+  )
+
+cat(sprintf("regional_trends: %d rows, %d cols\n", nrow(regional_trends), ncol(regional_trends)))
+stopifnot("regional_trends has 0 rows" = nrow(regional_trends) > 0)
+
+# Individual country trajectories for background lines
+country_trajectories <- rank_by_year %>%
+  filter(year %in% years_with_data) %>%
+  select(code, country, region, year, visa_free_count)
+
+cat(sprintf("country_trajectories: %d rows, %d cols\n", nrow(country_trajectories), ncol(country_trajectories)))
+stopifnot("country_trajectories has 0 rows" = nrow(country_trajectories) > 0)
+
+# 2025 endpoint labels for each region
+region_labels_2025 <- regional_trends %>%
+  filter(year == 2025) %>%
+  arrange(desc(median_vfc))
+
+print(region_labels_2025)
+```
+
+```{r}
+#| label: analysis-notable-movers
+#| echo: true
+
+# Biggest gainers and losers in visa_free_count from 2006 to 2025
+movers <- rank_by_year %>%
+  filter(year %in% c(2006, 2025), visa_free_count > 0) %>%
+  select(country, region, year, visa_free_count) %>%
+  tidyr::pivot_wider(names_from = year, values_from = visa_free_count,
+                     names_prefix = "vfc_") %>%
+  filter(!is.na(vfc_2006) & !is.na(vfc_2025)) %>%
+  mutate(vfc_change = vfc_2025 - vfc_2006) %>%
+  arrange(desc(vfc_change))
+
+cat("Top 10 gainers (2006 → 2025):\n")
+print(head(movers, 10))
+
+cat("\nTop 10 decliners (2006 → 2025):\n")
+print(tail(movers, 10))
+```
+
+::: {.callout-note}
+## Data note: sparse years
+The dataset is missing observations for 2007 and 2009 (all values zero). These years are excluded from all trend calculations. All other years from 2006 to 2025 have complete country coverage.
+:::
+
+::: {.callout-important}
+## UAE: the most dramatic rise in modern passport history
+Between 2006 and 2025, the United Arab Emirates gained access to **117 additional** visa-free destinations — by far the largest improvement in the dataset. A sustained diplomatic campaign by the UAE government, explicitly aimed at boosting passport power, transformed it from a mid-tier passport (rank 65 in 2011) to one of the world's top 10 (rank 8 in 2025). It is a rare example of a country deliberately engineering its passport's global standing.
+:::
+
+::: {.callout-tip}
+## Croatia's EU dividend
+Croatia's accession to the European Union in 2013 triggered an immediate jump in its passport power. Its visa-free count climbed from 122 (2011) to 183 (2025), vaulting it from rank 34 to rank 9. Schengen Area membership — which Croatia joined in 2023 — extended that effect further.
+:::
+
+# Hero Visualization: The Passport Power Divide
+
+```{r}
+#| label: viz-passport-power-divide
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 8
+
+# Palette: khroma::bright — 7 perfectly distinct qualitative colors
+# Colorblind-accessible; not previously used in this blog
+# Colors are assigned in factor-level order (highest → lowest median VFC):
+# EUROPE=#4477AA, CARIBBEAN=#EE6677, AMERICAS=#228833, OCEANIA=#CCBB44,
+# MIDDLE EAST=#66CCEE, ASIA=#AA3377, AFRICA=#BBBBBB
+
+# Ordered for legend readability (highest to lowest median 2025)
+region_order <- region_labels_2025 %>% arrange(desc(median_vfc)) %>% pull(region)
+
+regional_trends <- regional_trends %>%
+  mutate(region = factor(region, levels = region_order))
+
+country_trajectories <- country_trajectories %>%
+  mutate(region = factor(region, levels = region_order))
+
+region_labels_2025 <- region_labels_2025 %>%
+  mutate(region = factor(region, levels = region_order))
+
+# Sanity check: proportions / values look reasonable
+cat("Median VFC by region in 2025:\n")
+print(region_labels_2025 %>% select(region, median_vfc, p25_vfc, p75_vfc))
+
+p <- ggplot2::ggplot() +
+  # Background: individual country trajectories (faint)
+  ggplot2::geom_line(
+    data = country_trajectories,
+    ggplot2::aes(x = year, y = visa_free_count, group = code, color = region),
+    alpha = 0.08, linewidth = 0.3
+  ) +
+  # IQR ribbon per region
+  ggplot2::geom_ribbon(
+    data = regional_trends,
+    ggplot2::aes(x = year, ymin = p25_vfc, ymax = p75_vfc, fill = region),
+    alpha = 0.12
+  ) +
+  # Bold regional median line
+  ggplot2::geom_line(
+    data = regional_trends,
+    ggplot2::aes(x = year, y = median_vfc, color = region),
+    linewidth = 1.6
+  ) +
+  # Endpoint dots at 2025
+  ggplot2::geom_point(
+    data = region_labels_2025,
+    ggplot2::aes(x = 2025, y = median_vfc, color = region),
+    size = 3, shape = 21, fill = "white", stroke = 1.8
+  ) +
+  # Region labels at 2025
+  ggrepel::geom_text_repel(
+    data = region_labels_2025,
+    ggplot2::aes(x = 2025, y = median_vfc, label = region, color = region),
+    nudge_x      = 1.5,
+    hjust        = 0,
+    size         = 3.2,
+    fontface     = "bold",
+    segment.size = 0.3,
+    direction    = "y",
+    show.legend  = FALSE
+  ) +
+  # Annotation: Singapore at top in 2025
+  ggplot2::annotate(
+    "text",
+    x = 2023.5, y = 193,
+    label = "Singapore\n193 destinations",
+    size = 2.8, color = "#EE6677", hjust = 1, fontface = "italic"
+  ) +
+  # Annotation: Afghanistan at bottom
+  ggplot2::annotate(
+    "text",
+    x = 2023.5, y = 25,
+    label = "Afghanistan\n25 destinations",
+    size = 2.8, color = "#666666", hjust = 1, fontface = "italic"
+  ) +
+  # Scales
+  paletteer::scale_color_paletteer_d(
+    "khroma::bright",
+    name = "Region"
+  ) +
+  paletteer::scale_fill_paletteer_d(
+    "khroma::bright",
+    name = "Region"
+  ) +
+  ggplot2::scale_x_continuous(
+    breaks = c(2006, 2010, 2015, 2020, 2025),
+    expand = ggplot2::expansion(mult = c(0.02, 0.18))
+  ) +
+  ggplot2::scale_y_continuous(
+    limits = c(0, 210),
+    breaks = seq(0, 200, 50),
+    labels = function(x) paste0(x, " destinations")
+  ) +
+  # Labels
+  ggplot2::labs(
+    title    = "The Passport Power Divide",
+    subtitle = "Median visa-free destinations accessible per region, 2006–2025 (Henley Passport Index)\nShaded bands show the 25th–75th percentile range within each region; faint lines show individual countries",
+    x        = NULL,
+    y        = NULL,
+    caption  = "Source: Henley Passport Index via TidyTuesday | Visualization: Sean Thimons"
+  ) +
+  # Theme
+  ggplot2::theme_minimal(base_size = 13) +
+  ggplot2::theme(
+    plot.title         = ggplot2::element_text(face = "bold", size = 20, margin = ggplot2::margin(b = 4)),
+    plot.subtitle      = ggplot2::element_text(size = 10, color = "#555555", lineheight = 1.3,
+                                               margin = ggplot2::margin(b = 16)),
+    plot.caption       = ggplot2::element_text(size = 8, color = "#888888", margin = ggplot2::margin(t = 12)),
+    panel.grid.minor   = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_blank(),
+    panel.grid.major.y = ggplot2::element_line(color = "#EEEEEE", linewidth = 0.5),
+    legend.position    = "none",
+    axis.text          = ggplot2::element_text(color = "#555555"),
+    plot.margin        = ggplot2::margin(16, 80, 16, 16)
+  )
+
+p
+```
+
+```{r}
+#| label: log-palette
+#| echo: false
+#| output: false
+
+# Append to palette log (idempotent)
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log      <- read.csv(palette_log_path)
+new_entry        <- data.frame(
+  post_date = "2025-09-09",
+  palette   = "bright",
+  package   = "khroma",
+  type      = "discrete"
+)
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+  )
+}
+```
+
+# Final thoughts and takeaways
+
+The Henley Passport Index data, read across twenty years, delivers a clear verdict: **global passport power has grown, but the hierarchy has not fundamentally shifted.** Every region's median visa-free count is higher in 2025 than in 2006 — the world has, on balance, become more open. But the rank order of regions has barely changed. European passports were most powerful in 2006 and remain so in 2025. African and Middle Eastern passports were least powerful then, and remain so now.
+
+A few things stand out:
+
+- **The within-region spread is as telling as the between-region gap.** The IQR bands show that Africa, Asia, and the Americas each contain enormous internal variation. A Brazilian or Chilean passport is a very different document than a Haitian one, even though all three are "Americas." Treating regions as monoliths obscures this.
+
+- **Deliberate policy works — if you have leverage.** The UAE's rise is not a fluke. It reflects a sustained, well-resourced diplomatic effort to negotiate visa waivers, combined with the country's growing economic clout. Most countries at the bottom of the index lack both the resources and the bilateral leverage to replicate this.
+
+- **Conflict is the single strongest predictor of passport weakness.** Afghanistan, Syria, Iraq, Somalia, and Yemen all cluster at the bottom in 2025 — each a country where prolonged armed conflict has destroyed the state's ability to function as a credible passport issuer and eroded international trust in its travel documents.
+
+- **EU accession is still the fastest elevator.** Croatia's trajectory shows that joining the EU — and especially the Schengen Area — remains the most reliable mechanism for rapidly improving passport power. With other Western Balkan states in the accession queue, the next decade may bring similar jumps for Serbia, Albania, or Bosnia.
+
+The broader implication is uncomfortable: freedom of movement, which feels like a personal attribute, is almost entirely a function of where you happened to be born. The passport you carry shapes which borders open for you, which jobs you can pursue, and which crises you can escape from. The Henley Index makes that structural luck visible, year by year.
