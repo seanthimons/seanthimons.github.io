@@ -1,0 +1,509 @@
+---
+title: "Tidy Tuesday: EuroLeague Basketball"
+author: "Sean Thimons"
+date: "2025-10-07"
+description: "Mapping 37 years of EuroLeague Final Four appearances and championships to reveal basketball's great European dynasties."
+categories: [tidytuesday, R, basketball, sports, europe]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-10-07).
+
+> This dataset covers the premier men's club basketball competition in Europe, featuring team information and historical performance metrics for the 2025–26 EuroLeague season. Data was curated by Natasa Anastasiadou from Wikipedia and official EuroLeague records via the EuroleagueBasketball R package.
+>
+> **Suggested questions:** Which nations have the most EuroLeague representation? How do arena capacities vary among teams and across countries? Which organizations demonstrate the strongest historical track records?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'ggrepel',             # Non-overlapping labels
+    'patchwork',           # Multi-panel layouts
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-10-07')
+
+euroleague <- raw$euroleague_basketball %>%
+  janitor::clean_names()
+
+cat(sprintf("euroleague: %d rows, %d cols\n", nrow(euroleague), ncol(euroleague)))
+cat("Column names after clean_names():\n")
+print(names(euroleague))
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## EuroLeague teams dataset
+
+```{r}
+#| label: eda-profile
+#| echo: true
+#| output: true
+
+# Drop character-heavy columns not suited for numeric skimming
+euroleague %>%
+  select(final_four_appearances, titles_won) %>%
+  my_skim()
+```
+
+```{r}
+#| label: eda-categoricals
+#| echo: true
+#| output: true
+
+# Country representation
+cat("=== Teams by country ===\n")
+euroleague %>%
+  count(country, sort = TRUE) %>%
+  print()
+
+# Titles distribution
+cat("\n=== Titles distribution ===\n")
+euroleague %>%
+  count(titles_won, sort = TRUE) %>%
+  print()
+
+# Last season standings
+cat("\n=== Last season standings ===\n")
+euroleague %>%
+  select(team, country, last_season, final_four_appearances, titles_won) %>%
+  arrange(desc(final_four_appearances)) %>%
+  print(n = 20)
+```
+
+The data covers 20 teams in the 2025–26 EuroLeague season. A few things stand out immediately:
+
+- **Spain leads in representation** with 4 clubs, followed by France, Greece, Israel, Serbia, and Turkey with 2 each.
+- **Championships are extremely concentrated.** Only 6 of the 20 current teams have ever won a title, and 11 have never even reached the Final Four.
+- **Final Four appearances range from 0 to 14.** The median is 0 — most teams have never made the Final Four, revealing how elite the upper tier truly is.
+- **Two data quality notes worth flagging:** Partizan lists 3 `final_four_appearances` but 4 years in the years column; Olimpia Milano lists 4 appearances but only 2 years. The numeric columns appear to be the authoritative counts; the years strings may be incomplete.
+
+::: {.callout-note}
+The EuroLeague in its current format began in 2000 (then called "EuroLeague"), but this dataset includes historical precursor competitions dating to 1988 — explaining entries like Partizan (1988) and Olimpia Milano (1992).
+:::
+
+# Parsing the Dynasties: A Year-by-Year Timeline
+
+The most compelling story in this data isn't the aggregate counts — it's *when* teams were dominant. To answer that, I'll parse the year-string columns (`years_of_final_four_appearances` and `years_of_titles_won`) into a long-format timeline.
+
+```{r}
+#| label: parse-timeline
+#| echo: true
+#| output: true
+
+# Parse Final Four appearance years to long format
+ff_long <- euroleague %>%
+  filter(!is.na(years_of_final_four_appearances)) %>%
+  select(team, country, years_of_final_four_appearances) %>%
+  separate_rows(years_of_final_four_appearances, sep = ",\\s*") %>%
+  transmute(
+    team,
+    country,
+    year = as.integer(str_trim(years_of_final_four_appearances)),
+    event = "Final Four"
+  )
+
+cat(sprintf("ff_long: %d rows\n", nrow(ff_long)))
+stopifnot("ff_long has 0 rows" = nrow(ff_long) > 0)
+
+# Parse championship years to long format
+title_long <- euroleague %>%
+  filter(!is.na(years_of_titles_won), years_of_titles_won != "None") %>%
+  select(team, years_of_titles_won) %>%
+  separate_rows(years_of_titles_won, sep = ",\\s*") %>%
+  transmute(
+    team,
+    year = as.integer(str_trim(years_of_titles_won)),
+    event = "Champion"
+  )
+
+cat(sprintf("title_long: %d rows\n", nrow(title_long)))
+stopifnot("title_long has 0 rows" = nrow(title_long) > 0)
+
+# Combine: Champion status overrides Final Four for same team+year
+all_events <- bind_rows(ff_long, title_long) %>%
+  group_by(team, year) %>%
+  summarize(
+    event  = if_else(any(event == "Champion"), "Champion", first(event)),
+    .groups = "drop"
+  ) %>%
+  left_join(euroleague %>% select(team, country), by = "team")
+
+cat(sprintf("\nCombined events: %d rows\n", nrow(all_events)))
+cat(sprintf("Year range: %d – %d\n", min(all_events$year), max(all_events$year)))
+
+# Print year-by-year summary of champions
+cat("\n=== Championship years ===\n")
+all_events %>%
+  filter(event == "Champion") %>%
+  arrange(year) %>%
+  select(year, team, country) %>%
+  print(n = 30)
+```
+
+```{r}
+#| label: country-summary
+#| echo: true
+#| output: true
+
+# Country-level championship summary
+country_summary <- euroleague %>%
+  group_by(country) %>%
+  summarize(
+    n_teams          = n(),
+    total_ff         = sum(final_four_appearances),
+    total_titles     = sum(titles_won),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_titles), desc(total_ff))
+
+cat("=== Country-level dynasty stats ===\n")
+print(country_summary)
+
+# Title conversion rate for teams with ≥1 FF appearance
+cat("\n=== Title conversion rate (by team) ===\n")
+euroleague %>%
+  filter(final_four_appearances > 0) %>%
+  mutate(
+    conversion_pct = round(100 * titles_won / final_four_appearances, 1)
+  ) %>%
+  arrange(desc(conversion_pct), desc(titles_won)) %>%
+  select(team, country, final_four_appearances, titles_won, conversion_pct) %>%
+  print()
+```
+
+::: {.callout-important}
+## Greece: The Undisputed Capital of European Basketball
+
+Greece's two EuroLeague clubs — Panathinaikos and Olympiacos — have combined for **27 Final Four appearances and 10 championships** from current-season teams, more than any other country by a wide margin. Spain (Real Madrid) sits second with 12 Final Fours and 6 titles. Turkey has emerged as the dominant force of the modern era with Fenerbahce (7 FF, 2 titles) and Anadolu Efes (5 FF, 2 titles).
+:::
+
+```{r}
+#| label: build-plot-data
+#| echo: true
+#| output: false
+
+# Define team ordering by Final Four appearances (descending), titles as tiebreaker
+team_order <- euroleague %>%
+  filter(final_four_appearances > 0) %>%
+  arrange(desc(final_four_appearances), desc(titles_won)) %>%
+  pull(team)
+
+# Add country codes for display labels
+country_codes <- c(
+  "Greece"     = "GRE",
+  "Spain"      = "ESP",
+  "Turkey"     = "TUR",
+  "Italy"      = "ITA",
+  "Serbia"     = "SRB",
+  "Monaco"     = "MON",
+  "Lithuania"  = "LTU"
+)
+
+team_labels <- euroleague %>%
+  filter(team %in% team_order) %>%
+  mutate(
+    code    = country_codes[country],
+    display = paste0(team, "  (", code, ")")
+  ) %>%
+  select(team, display) %>%
+  # preserve team_order ordering
+  slice(match(team_order, team))
+
+display_order <- team_labels$display
+
+# Full grid: all team × year combinations in the range
+year_range <- min(all_events$year):max(all_events$year)
+
+timeline_data <- expand_grid(
+  team = team_order,
+  year = year_range
+) %>%
+  left_join(all_events %>% select(team, year, event), by = c("team", "year")) %>%
+  left_join(team_labels, by = "team") %>%
+  mutate(
+    event   = replace_na(event, "Not in Final Four"),
+    event   = factor(event, levels = c("Not in Final Four", "Final Four", "Champion")),
+    display = factor(display, levels = rev(display_order))
+  )
+
+cat(sprintf("timeline_data: %d rows, %d cols\n", nrow(timeline_data), ncol(timeline_data)))
+stopifnot("Plot data has 0 rows" = nrow(timeline_data) > 0)
+
+# Sanity check: make sure champions are showing up
+cat("Champion events in timeline:\n")
+timeline_data %>% filter(event == "Champion") %>% count(team, sort = TRUE) %>% print()
+```
+
+# The EuroLeague Dynasties
+
+```{r}
+#| label: hero-viz-timeline
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 6
+
+# Color palette: MetBrewer::Klimt
+# Inspired by Gustav Klimt's "The Kiss" — rich golds, deep teals, and warm umbers
+# Perfect for a prestige historical visualization
+klimt_pal <- paletteer::paletteer_d("MetBrewer::Klimt")
+
+# Preview palette
+# print(klimt_pal)
+
+champion_color  <- klimt_pal[2]   # warm amber-gold
+finalist_color  <- klimt_pal[7]   # deep blue-slate
+background_col  <- "#f5f2ee"      # warm off-white for "not present"
+
+p <- ggplot2::ggplot(timeline_data, ggplot2::aes(x = year, y = display, fill = event)) +
+  ggplot2::geom_tile(color = "white", linewidth = 0.25) +
+  ggplot2::scale_fill_manual(
+    values = c(
+      "Not in Final Four" = background_col,
+      "Final Four"        = as.character(finalist_color),
+      "Champion"          = as.character(champion_color)
+    ),
+    breaks = c("Final Four", "Champion"),
+    labels = c("Final Four appearance", "Champion")
+  ) +
+  ggplot2::scale_x_continuous(
+    breaks = c(1988, seq(1990, 2025, by = 5)),
+    expand = ggplot2::expansion(add = 0.5)
+  ) +
+  ggplot2::scale_y_discrete(expand = ggplot2::expansion(add = 0.4)) +
+  ggplot2::labs(
+    title    = "The EuroLeague Dynasties",
+    subtitle = "Every Final Four appearance and championship for current EuroLeague teams, 1988–2025\nTeams ordered by total Final Four appearances (top = most)",
+    x        = NULL,
+    y        = NULL,
+    fill     = NULL,
+    caption  = "Source: EuroleagueBasketball R package via TidyTuesday (2025-10-07) · Data: Natasa Anastasiadou"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    legend.position      = "top",
+    legend.justification = "left",
+    legend.key.size      = ggplot2::unit(0.5, "cm"),
+    legend.text          = ggplot2::element_text(size = 10),
+    plot.title           = ggplot2::element_text(face = "bold", size = 20, hjust = 0),
+    plot.subtitle        = ggplot2::element_text(size = 11, color = "gray40", hjust = 0, lineheight = 1.3),
+    plot.caption         = ggplot2::element_text(size = 8, color = "gray55"),
+    plot.background      = ggplot2::element_rect(fill = "white", color = NA),
+    panel.grid           = ggplot2::element_blank(),
+    axis.text.y          = ggplot2::element_text(size = 9.5, hjust = 1),
+    axis.text.x          = ggplot2::element_text(size = 9, color = "gray40"),
+    plot.margin          = ggplot2::margin(12, 18, 8, 12)
+  )
+
+p
+```
+
+```{r}
+#| label: hero-viz-conversion
+#| message: false
+#| warning: false
+#| fig.width: 9
+#| fig.height: 6
+
+# Supplementary: Final Four appearances vs. Titles Won (conversion efficiency)
+conversion_data <- euroleague %>%
+  filter(final_four_appearances > 0) %>%
+  mutate(
+    conversion_pct = titles_won / final_four_appearances,
+    country_code   = country_codes[country]
+  )
+
+stopifnot("conversion_data has 0 rows" = nrow(conversion_data) > 0)
+
+# Sanity check
+if (length(unique(conversion_data$conversion_pct)) == 1) {
+  warning("All conversion_pct values identical — check grouping logic")
+}
+
+# Overall average conversion rate (among teams with ≥1 FF)
+avg_conversion <- sum(euroleague$titles_won) / sum(euroleague$final_four_appearances[euroleague$final_four_appearances > 0])
+
+p2 <- ggplot2::ggplot(
+  conversion_data,
+  ggplot2::aes(x = final_four_appearances, y = titles_won, color = country)
+) +
+  # Reference line: average conversion slope
+  ggplot2::geom_abline(
+    slope     = avg_conversion,
+    intercept = 0,
+    linetype  = "dashed",
+    color     = "gray60",
+    linewidth  = 0.6
+  ) +
+  ggplot2::geom_point(size = 5, alpha = 0.9) +
+  ggrepel::geom_text_repel(
+    ggplot2::aes(label = paste0(team, "\n(", country_code, ")")),
+    size          = 3,
+    lineheight    = 0.9,
+    box.padding   = 0.4,
+    point.padding = 0.3,
+    show.legend   = FALSE
+  ) +
+  ggplot2::annotate(
+    "text",
+    x     = 13, y = avg_conversion * 13 + 0.3,
+    label = "Avg. conversion rate",
+    size  = 3, color = "gray50", hjust = 0
+  ) +
+  paletteer::scale_color_paletteer_d("MetBrewer::Klimt") +
+  ggplot2::scale_x_continuous(breaks = seq(0, 14, by = 2)) +
+  ggplot2::scale_y_continuous(breaks = 0:8) +
+  ggplot2::labs(
+    title    = "Appearing ≠ Winning",
+    subtitle = "Finals Four appearances vs. championships for teams that reached the Final Four\nTeams above the dashed line convert appearances to titles better than average",
+    x        = "Final Four appearances",
+    y        = "Championships won",
+    color    = "Country",
+    caption  = "Source: EuroleagueBasketball R package via TidyTuesday (2025-10-07)"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    legend.position  = "right",
+    plot.title       = ggplot2::element_text(face = "bold", size = 16, hjust = 0),
+    plot.subtitle    = ggplot2::element_text(size = 10, color = "gray40", hjust = 0, lineheight = 1.3),
+    plot.caption     = ggplot2::element_text(size = 8, color = "gray55"),
+    plot.background  = ggplot2::element_rect(fill = "white", color = NA),
+    panel.grid.minor = ggplot2::element_blank(),
+    plot.margin      = ggplot2::margin(12, 12, 8, 12)
+  )
+
+p2
+```
+
+```{r}
+#| label: log-palette
+#| echo: false
+#| output: false
+
+# Log palette usage (idempotent)
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log      <- read.csv(palette_log_path)
+
+new_entry <- data.frame(
+  post_date = "2025-10-07",
+  palette   = "Klimt",
+  package   = "MetBrewer",
+  type      = "discrete"
+)
+
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append    = TRUE,
+    sep       = ",",
+    row.names = FALSE,
+    col.names = FALSE
+  )
+}
+```
+
+# Final thoughts and takeaways
+
+The EuroLeague dynasty story resolves into three distinct eras and a clear hierarchy of greatness.
+
+**Greek supremacy defined the competition's first two decades.** Panathinaikos and Olympiacos together won 10 of the 22 championships between 1996 and 2025, with Athens clubs reaching the Final Four in nearly every season. Panathinaikos remains the most efficient champion in EuroLeague history — a 54% title-conversion rate (7 titles from 13 Final Four appearances) that no other club comes close to matching.
+
+**Real Madrid's sustained excellence is underappreciated.** Twelve Final Four appearances and 6 championships over 30 years is a record built through consistent squad investment, not lucky runs. Where Athens clubs tended to cluster their successes in bursts, Madrid has been perpetually dangerous.
+
+**Turkey's rise is the defining narrative of the modern era.** Fenerbahce's 7 Final Four appearances in just 11 years (2015–2025) and Anadolu Efes winning back-to-back titles in 2021–22 mark a genuine shift in continental power — the Ottoman Empire's symbolic successors claiming their own dynasty.
+
+**The gulf between elite and the rest is stark.** Eleven of the 20 current EuroLeague teams have zero Final Four appearances. For clubs like Dubai Basketball, Paris Basketball, and Valencia Basket, the competition's prestige is aspiration, not inheritance.
+
+One genuine limitation: the dataset reflects only *current* EuroLeague member clubs. Historic giants like CSKA Moscow (multiple-time champions) and Maccabi Tel Aviv (5 titles) are absent because they're not in the 2025–26 competition — a reminder that the standings here measure presence, not the full sweep of European basketball history.
