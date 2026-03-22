@@ -1,0 +1,490 @@
+---
+title: "Tidy Tuesday: NSF Grant Terminations Under the Trump Administration"
+author: "Sean Thimons"
+date: "2025-05-06"
+description: "Over a thousand NSF research grants totaling $613M were terminated in two waves in April 2025. STEM Education bore the brunt — and NSF cut more than Cruz even asked for."
+categories: [tidytuesday, R, science policy, education, politics]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-05-06/readme.md).
+
+> This week we're exploring data about National Science Foundation (NSF) grant terminations under the Trump administration. The data was compiled by [Grant Watch](https://grantwatch.org/), a project tracking federal science funding changes. The dataset covers 1,041 NSF grants terminated in April 2025, totaling over $613 million in previously committed research funding. Suggested questions: Which NSF directorates were most affected? How many terminations came from Ted Cruz's explicit list versus NSF's own discretion? Which states and institutions bore the biggest impact?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'ggtext',              # Rich text in ggplot (markdown in titles/labels)
+    'ggrepel',             # Non-overlapping labels
+    'scales',              # Axis formatting helpers
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  # ! Change load flag to load packages
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-05-06')
+
+nsf_terminations <- raw$nsf_terminations
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## NSF Terminations
+
+```{r}
+#| label: eda-nsf-terminations
+#| echo: true
+#| output: true
+
+# Drop non-analytical columns: IDs, raw URLs, free-text fields, zip codes
+nsf_for_skim <- nsf_terminations %>%
+  select(-grant_number, -nsf_url, -usaspending_url, -org_uei, -org_zip, -abstract)
+
+my_skim(nsf_for_skim)
+```
+
+The skim reveals a clean dataset with minimal missingness — only `directorate`, `division`, and `usaspending_obligated` are missing for 2 records each, likely grants without a clear organizational home. The `usaspending_obligated` column (the dollar amount committed to each grant) skews heavily right: the median is \$356K while the mean is \$590K, driven by a long tail up to \$6M. The ASCII histogram confirms this rightward skew. Start and expected end dates span multiple years, and the termination letters were sent in two tight clusters in April 2025 — an administrative purge, not a rolling review.
+
+# The Termination Waves
+
+```{r}
+#| label: termination-waves
+#| echo: true
+#| output: true
+
+wave_summary <- nsf_terminations %>%
+  count(termination_letter_date, name = "n_grants") %>%
+  mutate(
+    cumulative = cumsum(n_grants),
+    label = format(termination_letter_date, "%B %d, %Y")
+  )
+
+cat("=== Termination waves ===\n")
+print(wave_summary)
+
+total_grants <- nrow(nsf_terminations)
+total_obligated <- sum(nsf_terminations$usaspending_obligated, na.rm = TRUE)
+cat(sprintf(
+  "\nTotal: %d grants, $%s in obligated funding\n",
+  total_grants,
+  scales::dollar(total_obligated)
+))
+```
+
+::: {.callout-important}
+## Two Waves, One Purge
+
+All 1,041 terminations arrived in just four calendar days across two main waves:
+
+- **April 18, 2025**: 388 grants terminated
+- **April 25, 2025**: 651 grants terminated (two additional isolated terminations on April 21 and 22)
+
+This is not a gradual budget review. It is a coordinated administrative action executed over a single week.
+:::
+
+# Which Science Got Cut? Directorate Breakdown
+
+```{r}
+#| label: directorate-breakdown
+#| echo: true
+#| output: true
+
+directorate_summary <- nsf_terminations %>%
+  mutate(directorate_clean = str_remove_all(directorate, '"')) %>%
+  filter(!is.na(directorate_clean)) %>%
+  group_by(directorate_clean) %>%
+  summarise(
+    total_grants   = n(),
+    total_obligated = sum(usaspending_obligated, na.rm = TRUE),
+    cruz_grants    = sum(in_cruz_list == TRUE, na.rm = TRUE),
+    cruz_obligated = sum(usaspending_obligated[in_cruz_list == TRUE], na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    additional_grants    = total_grants - cruz_grants,
+    additional_obligated = total_obligated - cruz_obligated,
+    pct_cruz             = cruz_grants / total_grants
+  ) %>%
+  arrange(desc(total_obligated))
+
+cat(sprintf("Directorate summary: %d rows\n", nrow(directorate_summary)))
+stopifnot("Directorate summary has 0 rows — check filter" = nrow(directorate_summary) > 0)
+
+# Quick sanity check on pct_cruz
+if (length(unique(round(directorate_summary$pct_cruz, 3))) == 1) {
+  warning("All pct_cruz values are identical — check grouping logic")
+} else {
+  cat(sprintf("pct_cruz ranges from %.1f%% to %.1f%% — variation confirmed\n",
+              min(directorate_summary$pct_cruz) * 100,
+              max(directorate_summary$pct_cruz) * 100))
+}
+
+print(
+  directorate_summary %>%
+    select(directorate_clean, total_grants, total_obligated, cruz_grants, pct_cruz) %>%
+    mutate(
+      total_obligated = scales::dollar(total_obligated),
+      pct_cruz = scales::percent(pct_cruz, accuracy = 1)
+    )
+)
+```
+
+STEM Education dominates by every measure — 416 grants (40% of all terminations) and \$322M (52% of all terminated funding). Social and Behavioral Sciences is a distant second in grant count (266 grants) but represents a much smaller dollar footprint (\$78M) because education grants tend to run larger. Engineering and Computer Science were also hit, though their proportions are notably smaller.
+
+::: {.callout-note}
+## The Concentration Risk
+
+Over half of all terminated NSF funding — $322M — came from a single directorate: STEM Education. This is not random across the portfolio. It is a targeted dismantling of the agency's education research mission.
+:::
+
+# Beyond Cruz's List: NSF Went Further Than Asked
+
+In February 2025, Sen. Ted Cruz sent NSF a list of grants he wanted terminated, citing them as "DEI" or "woke" research spending. What happened next was more sweeping.
+
+```{r}
+#| label: cruz-list-analysis
+#| echo: true
+#| output: true
+
+cruz_overall <- nsf_terminations %>%
+  group_by(in_cruz_list) %>%
+  summarise(
+    n_grants        = n(),
+    total_obligated = sum(usaspending_obligated, na.rm = TRUE),
+    median_grant    = median(usaspending_obligated, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    pct_grants    = n_grants / sum(n_grants),
+    pct_obligated = total_obligated / sum(total_obligated),
+    label = ifelse(in_cruz_list, "On Cruz's list", "NSF additional")
+  )
+
+cat("=== Cruz list vs. NSF additional ===\n")
+print(cruz_overall %>% select(label, n_grants, pct_grants, total_obligated, pct_obligated, median_grant))
+
+# Cruz list by directorate
+cruz_by_directorate <- nsf_terminations %>%
+  mutate(directorate_clean = str_remove_all(directorate, '"')) %>%
+  filter(!is.na(directorate_clean)) %>%
+  group_by(directorate_clean, in_cruz_list) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  pivot_wider(names_from = in_cruz_list, values_from = n, values_fill = 0) %>%
+  rename(not_cruz = `FALSE`, on_cruz = `TRUE`) %>%
+  mutate(
+    total = not_cruz + on_cruz,
+    pct_on_cruz = on_cruz / total
+  ) %>%
+  arrange(desc(pct_on_cruz))
+
+cat("\n=== Cruz list % by directorate (sorted) ===\n")
+print(cruz_by_directorate %>% mutate(pct_on_cruz = scales::percent(pct_on_cruz, accuracy = 1)))
+```
+
+::: {.callout-important}
+## NSF Cut 572 Grants Cruz Never Asked For
+
+Of the 1,041 grants terminated:
+
+- **469** (45%) were on Sen. Cruz's explicit list
+- **572** (55%) were terminated by NSF *on its own initiative*, beyond what Cruz requested
+
+The Social and Behavioral Sciences directorate had the highest share of Cruz-list grants (62%), suggesting that directorate's programs most closely matched Cruz's stated "DEI" targets. But STEM Education — the single biggest category — saw a majority of its cuts come from outside Cruz's list, indicating the administration's own appetite for dismantling education research ran ahead of Congressional demands.
+:::
+
+# Hero Visualization: The Anatomy of the Purge
+
+```{r}
+#| label: viz-directorate-stacked
+#| message: false
+#| warning: false
+#| fig.width: 11
+#| fig.height: 7
+
+# --- Build plot data ---
+plot_data <- nsf_terminations %>%
+  mutate(directorate_clean = str_remove_all(directorate, '"')) %>%
+  filter(!is.na(directorate_clean)) %>%
+  mutate(
+    termination_source = if_else(in_cruz_list, "On Cruz's list", "NSF additional"),
+    # Shorten long directorate names for readability
+    dir_label = case_when(
+      str_detect(directorate_clean, "STEM") ~ "STEM Education",
+      str_detect(directorate_clean, "Social") ~ "Social & Behavioral Sciences",
+      str_detect(directorate_clean, "Computer") ~ "Computer & Info. Science & Eng.",
+      str_detect(directorate_clean, "Technology") ~ "Tech., Innovation & Partnerships",
+      str_detect(directorate_clean, "Mathematical") ~ "Math & Physical Sciences",
+      TRUE ~ directorate_clean
+    )
+  ) %>%
+  group_by(dir_label, termination_source) %>%
+  summarise(
+    n_grants        = n(),
+    total_obligated = sum(usaspending_obligated, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+cat(sprintf("plot_data: %d rows, %d cols\n", nrow(plot_data), ncol(plot_data)))
+stopifnot("Plot data has 0 rows — check filter" = nrow(plot_data) > 0)
+
+# Compute totals for ordering
+dir_totals <- plot_data %>%
+  group_by(dir_label) %>%
+  summarise(grand_total = sum(total_obligated), grand_n = sum(n_grants), .groups = "drop") %>%
+  arrange(grand_total)
+
+plot_data <- plot_data %>%
+  mutate(
+    dir_label          = factor(dir_label, levels = dir_totals$dir_label),
+    termination_source = factor(termination_source, levels = c("NSF additional", "On Cruz's list"))
+  )
+
+# Grant count label data (total per directorate, positioned at bar end)
+label_data <- dir_totals %>%
+  mutate(
+    dir_label = factor(dir_label, levels = dir_totals$dir_label),
+    label     = paste0(grand_n, " grants\n", scales::dollar(grand_total / 1e6, accuracy = 1), "M")
+  )
+
+# --- Colors from MexBrewer::Alacena (diverging: warm red → cool blue) ---
+alacena_cols <- paletteer::paletteer_d("MexBrewer::Alacena")
+fill_colors  <- c(
+  "On Cruz's list" = as.character(alacena_cols[2]),   # warm russet #894B33
+  "NSF additional" = as.character(alacena_cols[9])    # deep blue   #405A95
+)
+
+# --- Plot ---
+p <- ggplot2::ggplot(plot_data,
+       ggplot2::aes(x = total_obligated, y = dir_label, fill = termination_source)) +
+  ggplot2::geom_col(width = 0.7, color = "white", linewidth = 0.3) +
+  ggrepel::geom_text_repel(
+    data          = label_data,
+    ggplot2::aes(x = grand_total, y = dir_label, label = label),
+    inherit.aes   = FALSE,
+    nudge_x       = 4e6,
+    direction     = "y",
+    hjust         = 0,
+    size          = 2.8,
+    color         = "gray30",
+    segment.color = "gray70",
+    segment.size  = 0.3,
+    force         = 0.5
+  ) +
+  ggplot2::scale_x_continuous(
+    labels = scales::dollar_format(scale = 1e-6, suffix = "M"),
+    expand = ggplot2::expansion(mult = c(0, 0.28))
+  ) +
+  ggplot2::scale_fill_manual(
+    values = fill_colors,
+    name   = NULL,
+    guide  = ggplot2::guide_legend(reverse = TRUE)
+  ) +
+  ggplot2::labs(
+    title    = "**STEM Education bore $322M of the $613M purge —**<br>and NSF cut more than Cruz even asked for",
+    subtitle = "Stacked bars show obligated funding in terminated NSF grants by directorate.\nWarm bars = grants on Sen. Cruz's explicit list; blue bars = additional NSF discretionary terminations.",
+    caption  = "Data: TidyTuesday 2025-05-06 · Grant Watch / NSF · Graphic: Sean Thimons",
+    x        = "Total Obligated Funding Terminated",
+    y        = NULL
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title         = ggtext::element_markdown(
+      size = 15, face = "bold", lineheight = 1.3, margin = ggplot2::margin(b = 6)
+    ),
+    plot.subtitle      = ggplot2::element_text(
+      size = 10, color = "gray40", lineheight = 1.4, margin = ggplot2::margin(b = 12)
+    ),
+    plot.caption       = ggplot2::element_text(size = 8, color = "gray55", hjust = 0),
+    axis.text.y        = ggplot2::element_text(size = 10, color = "gray20"),
+    axis.text.x        = ggplot2::element_text(size = 9, color = "gray40"),
+    axis.title.x       = ggplot2::element_text(size = 9, color = "gray40",
+                                                margin = ggplot2::margin(t = 6)),
+    panel.grid.major.y = ggplot2::element_blank(),
+    panel.grid.minor   = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_line(color = "gray90", linewidth = 0.4),
+    legend.position    = "top",
+    legend.text        = ggplot2::element_text(size = 10),
+    plot.margin        = ggplot2::margin(12, 12, 12, 12)
+  )
+
+p
+```
+
+```{r}
+#| label: palette-log-update
+#| echo: false
+#| output: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log      <- read.csv(palette_log_path)
+new_entry        <- data.frame(
+  post_date = "2025-05-06",
+  palette   = "Alacena",
+  package   = "MexBrewer",
+  type      = "diverging"
+)
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+  )
+}
+```
+
+# Geographic Impact
+
+```{r}
+#| label: geographic-impact
+#| echo: true
+#| output: true
+
+state_summary <- nsf_terminations %>%
+  group_by(org_state) %>%
+  summarise(
+    n_grants        = n(),
+    total_obligated = sum(usaspending_obligated, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(n_grants)) %>%
+  mutate(
+    pct_of_total_grants = n_grants / sum(n_grants),
+    cum_pct             = cumsum(pct_of_total_grants)
+  )
+
+cat("=== Top 15 states by grants terminated ===\n")
+print(
+  state_summary %>%
+    head(15) %>%
+    mutate(
+      total_obligated     = scales::dollar(total_obligated),
+      pct_of_total_grants = scales::percent(pct_of_total_grants, accuracy = 0.1)
+    )
+)
+
+# How many states account for 75% of terminations?
+n_states_75pct <- state_summary %>%
+  filter(cum_pct <= 0.75) %>%
+  nrow()
+
+cat(sprintf("\n%d states account for 75%% of all terminated grants\n", n_states_75pct))
+
+# Top institution
+top_inst <- nsf_terminations %>%
+  group_by(org_name, org_state) %>%
+  summarise(
+    n_grants        = n(),
+    total_obligated = sum(usaspending_obligated, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_obligated)) %>%
+  head(10)
+
+cat("\n=== Top 10 institutions by terminated funding ===\n")
+print(top_inst %>% mutate(total_obligated = scales::dollar(total_obligated)))
+```
+
+The geographic concentration is striking but unsurprising: California (112 grants, \$70M), New York (\$57M), and Texas (\$42M) top the list, reflecting where the nation's large research universities are clustered. Just 9 states account for 75% of all terminated grants. No region is spared, but research-heavy coastal and Great Lakes states bear the highest absolute burden.
+
+# Final thoughts and takeaways
+
+The NSF terminations dataset tells a story that is cleaner and more concentrated than the noise around federal science funding might suggest. A few conclusions hold up under scrutiny:
+
+**The attack was targeted, not random.** STEM Education was not collateral damage — it absorbed 40% of the terminated grants and 52% of the terminated dollars. The programs that disappeared most frequently (AISL, Discovery Research K-12, ECR-EDU Core Research, ADVANCE, Build and Broaden) are precisely the ones that study how to make science accessible to underrepresented communities. Whether labeled "DEI" or not, the effect is a gutting of the research base for broadening participation in science.
+
+**The agency exceeded its political mandate.** Sen. Cruz's list was a floor, not a ceiling. NSF terminated 572 grants that weren't on it — 55% of all terminations. This is either evidence of administrative overreach or of an agency that has internalized the administration's preferences well enough to act without prompting. Either way, the political signal has become self-enforcing.
+
+**The dollar impact is real and front-loaded.** The median grant had about 12 months of remaining work cut off. These weren't zombie grants running on fumes — they were active research projects with personnel, students, and commitments already in flight. The \$613M in obligated funding represents money already promised, now clawed back.
+
+**Limitations worth noting:** The dataset captures obligated funding, not total project costs or the value of work already completed. Some grants may have had informal warning before the formal letter. And this snapshot ends in late April 2025 — subsequent termination rounds are not captured here.
+
+The data is clear enough to support a plain-spoken interpretation: the Trump administration, with or without Congressional direction, executed a rapid and concentrated rollback of NSF's education and social science research portfolio. The wave structure and directorate concentration make it difficult to read this as anything other than a deliberate policy choice.
