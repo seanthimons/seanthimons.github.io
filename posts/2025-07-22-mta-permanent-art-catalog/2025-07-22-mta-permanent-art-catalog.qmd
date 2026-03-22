@@ -1,0 +1,524 @@
+---
+title: "Tidy Tuesday: MTA Permanent Art Catalog"
+author: "Sean Thimons"
+date: "2025-07-22"
+description: "Four decades of permanent art in New York's transit system — how glass came to dominate the underground gallery."
+categories: [tidytuesday, R, art, new-york, transit, public-art]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-07-22).
+
+> Through the Permanent Art Program, MTA Arts & Design (formerly Arts for Transit) commissions public art that is seen by millions of city-dwellers as well as national and international visitors who use the MTA's subways and trains. Arts & Design works closely with the architects and engineers at MTA NYC Transit, Long Island Rail Road and Metro-North Railroad to determine the parameters and sites for the artwork that is to be incorporated into each station scheduled for renovation. A diversity of well-established, mid-career and emerging artists contribute to the growing collection of works created in the materials of the system — mosaic, ceramic, tile, bronze, steel and glass.
+
+**Dataset questions from TidyTuesday:**
+
+- Which agency has the most art? Which has the least?
+- What are some common materials? How are details such as "hand forged" for bronze denoted in the data?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'ggtext',              # Rich text in ggplot (markdown in titles/labels)
+    'ggrepel',             # Non-overlapping labels
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-07-22')
+
+mta_art <- raw$mta_art
+station_lines <- raw$station_lines
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## mta_art
+
+381 artworks commissioned by MTA agencies from 1980 through 2023. The `art_image_link` and `line` columns have minor missingness (5 and 3 NAs respectively). I'll drop `art_image_link` and `art_description` from the skim — they're free-text/URL fields that don't profile usefully numerically.
+
+```{r}
+#| label: eda-mta-art
+#| echo: true
+#| output: true
+
+mta_art %>%
+  select(-art_image_link, -art_description) %>%
+  my_skim()
+```
+
+The numeric column `art_date` (the installation year) spans 1980–2023, with a median of 2007 and a mean of 2007 — remarkably symmetric for a 43-year range. The ASCII histogram shows a right-leaning concentration in the 2000s and 2010s.
+
+```{r}
+#| label: eda-art-date-distribution
+
+mta_art %>%
+  count(art_date) %>%
+  arrange(desc(n)) %>%
+  head(10)
+```
+
+**2018 stands out immediately** — 38 artworks installed in a single year, nearly double the next-highest years. This warrants investigation.
+
+## station_lines
+
+The companion dataset normalizes the `line` column from `mta_art`: each station-line pair gets its own row (720 rows for 381 artworks, since many stations serve multiple lines).
+
+```{r}
+#| label: eda-station-lines
+#| echo: true
+#| output: true
+
+station_lines %>%
+  my_skim()
+```
+
+```{r}
+#| label: eda-agency-counts
+
+mta_art %>%
+  count(agency, sort = TRUE)
+```
+
+**NYCT** (New York City Transit — the subway) accounts for 77% of all artworks. Metro-North (commuter rail north) and LIRR (Long Island Rail Road) are distant seconds at ~11% each. The Staten Island Railway (SIR) and MTA Bus Company are minor contributors.
+
+# The Material Language of Transit Art
+
+The central creative constraint of the MTA Permanent Art Program is durability: artwork must survive decades of vibration, humidity, temperature swings, and 3+ million daily riders. The choice of material isn't just aesthetic — it's structural. Ceramic tile, mosaic, bronze, and glass aren't choices made lightly.
+
+::: {.callout-note}
+## What's "Faceted Glass"?
+
+Faceted glass (also called *dalle de verre*) is a French technique using thick slabs of colored glass chipped to catch light at different angles — the same technique used in cathedral windows, adapted for transit stations. Laminated glass sandwiches colored elements between panes. Both are extremely durable and have dominated MTA commissions since the 1990s.
+:::
+
+```{r}
+#| label: classify-materials
+
+classify_material <- function(mat) {
+  mat_lower <- tolower(mat)
+  dplyr::case_when(
+    stringr::str_detect(mat_lower, "glass") &
+      stringr::str_detect(mat_lower, "mosaic") ~ "Glass Mosaic",
+    stringr::str_detect(mat_lower, "faceted glass|laminated glass|stained glass|dalle de verre") ~ "Faceted / Laminated Glass",
+    stringr::str_detect(mat_lower, "glass") ~ "Faceted / Laminated Glass",
+    stringr::str_detect(mat_lower, "ceramic") &
+      stringr::str_detect(mat_lower, "mosaic") ~ "Ceramic & Tile",
+    stringr::str_detect(mat_lower, "ceramic|porcelain|tile|terrazzo") ~ "Ceramic & Tile",
+    stringr::str_detect(mat_lower, "mosaic") ~ "Glass Mosaic",
+    stringr::str_detect(mat_lower, "steel|aluminum|stainless") ~ "Steel & Aluminum",
+    stringr::str_detect(mat_lower, "bronze|copper|iron") ~ "Bronze & Metal",
+    TRUE ~ "Other"
+  )
+}
+
+art_classified <- mta_art %>%
+  mutate(material_cat = classify_material(art_material))
+
+cat("Material classification counts:\n")
+art_classified %>%
+  count(material_cat, sort = TRUE) %>%
+  mutate(pct = scales::percent(n / sum(n), accuracy = 1)) %>%
+  print()
+```
+
+```{r}
+#| label: material-sanity-check
+
+# Sanity check: verify no zero-row categories
+mat_counts <- art_classified %>% count(material_cat)
+stopifnot("All material categories must have > 0 rows" = all(mat_counts$n > 0))
+cat(sprintf("art_classified: %d rows, %d cols — all material categories populated\n",
+            nrow(art_classified), ncol(art_classified)))
+```
+
+Glass (mosaic + faceted/laminated) accounts for **61% of all 381 artworks**. The next largest category — Steel & Aluminum — is a distant 13%.
+
+## Why 2018?
+
+```{r}
+#| label: peak-2018
+
+peak_2018 <- art_classified %>%
+  filter(art_date == 2018)
+
+cat(sprintf("2018 artworks: %d\n", nrow(peak_2018)))
+
+peak_2018 %>%
+  count(agency, sort = TRUE)
+```
+
+The 2018 spike is a multi-agency event, but the largest contributor is NYCT (23 artworks), followed by LIRR (10). This aligns with two concurrent capital programs:
+
+::: {.callout-important}
+## The 2018 Surge: Two Expansions at Once
+
+**Q Train Second Avenue Subway** — Phase 1 opened January 1, 2017, adding three new stations (96 St, 86 St, 72 St) on the Upper East Side. Each station was designed from the ground up with permanent art commissions — a first for the MTA. The installations were completed and officially opened in 2017–2018.
+
+**LIRR / Metro-North Station Renovations** — Several major Long Island and commuter rail stations received capital upgrades during this period, including Penn Station–area improvements and the Belmont Park area, each requiring new permanent art as part of ADA and structural renovation packages.
+
+38 artworks in a single year is a record — about **3× the annual average** over the prior decade.
+:::
+
+## Material Composition by Agency
+
+```{r}
+#| label: agency-materials
+
+agency_materials <- art_classified %>%
+  filter(agency %in% c("NYCT", "Metro-North", "LIRR")) %>%
+  count(agency, material_cat) %>%
+  group_by(agency) %>%
+  mutate(pct = n / sum(n)) %>%
+  ungroup()
+
+cat("Material breakdown by agency:\n")
+agency_materials %>%
+  select(agency, material_cat, n, pct) %>%
+  mutate(pct = scales::percent(pct, accuracy = 1)) %>%
+  arrange(agency, desc(n)) %>%
+  print(n = 30)
+```
+
+Metro-North's collection leans more heavily on Steel & Aluminum (33% vs. 11% for NYCT) — a reflection of its newer station architecture, which favors industrial materials over mosaic traditions. NYCT's long renovation history and the influence of the Arts for Transit program from the 1980s onward embedded glass mosaic as the canonical medium.
+
+# Hero Visualization: Four Decades of Material in Motion
+
+```{r}
+#| label: palette-check
+
+# Check used palettes
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log <- read.csv(palette_log_path)
+cat("Previously used palettes:\n")
+print(palette_log$palette)
+
+# MetBrewer::VanGogh1 — 7 colors, artistic feel, not previously used
+# Perfect for 7 material categories in an art-themed dataset
+paletteer::paletteer_d("MetBrewer::VanGogh1")
+```
+
+```{r}
+#| label: hero-plot-prep
+
+# Build the annual material composition dataset
+annual_materials <- art_classified %>%
+  count(art_date, material_cat) %>%
+  complete(art_date = 1980:2023, material_cat, fill = list(n = 0))
+
+cat(sprintf("annual_materials: %d rows, %d cols\n",
+            nrow(annual_materials), ncol(annual_materials)))
+stopifnot("Plot data must not be empty" = nrow(annual_materials) > 0)
+
+# Factor order: glass types first (dominant), then others
+mat_order <- c(
+  "Glass Mosaic",
+  "Faceted / Laminated Glass",
+  "Ceramic & Tile",
+  "Steel & Aluminum",
+  "Bronze & Metal",
+  "Other"
+)
+
+annual_materials <- annual_materials %>%
+  mutate(material_cat = factor(material_cat, levels = mat_order))
+
+# Annotation data: 2018 peak
+annotation_2018 <- art_classified %>%
+  filter(art_date == 2018) %>%
+  summarise(n = n())
+```
+
+```{r}
+#| label: hero-plot
+#| fig.width: 12
+#| fig.height: 7
+#| message: false
+#| warning: false
+
+# Color palette: MetBrewer::VanGogh1 (7 colors, art-inspired)
+mat_colors <- paletteer::paletteer_d("MetBrewer::VanGogh1", n = 6)
+names(mat_colors) <- mat_order
+
+p <- ggplot2::ggplot(
+  annual_materials,
+  ggplot2::aes(x = art_date, y = n, fill = material_cat)
+) +
+  ggplot2::geom_col(width = 0.85, color = "white", linewidth = 0.15) +
+
+  # Annotation: 2018 peak
+  ggplot2::annotate(
+    "segment",
+    x = 2018, xend = 2018,
+    y = 42, yend = 39.5,
+    color = "#1a1a1a",
+    linewidth = 0.5,
+    arrow = ggplot2::arrow(length = ggplot2::unit(0.12, "cm"), type = "closed")
+  ) +
+  ggplot2::annotate(
+    "text",
+    x = 2018, y = 44,
+    label = "2018: 38 artworks\n(2nd Ave Subway\n+ LIRR renovations)",
+    size = 2.7,
+    hjust = 0.5,
+    vjust = 0,
+    fontface = "plain",
+    color = "#1a1a1a",
+    lineheight = 1.15
+  ) +
+
+  # Scales
+  ggplot2::scale_fill_manual(
+    values = mat_colors,
+    name = "Material",
+    guide = ggplot2::guide_legend(
+      nrow = 2,
+      byrow = TRUE,
+      override.aes = list(linewidth = 0)
+    )
+  ) +
+  ggplot2::scale_x_continuous(
+    breaks = seq(1980, 2020, by = 5),
+    expand = ggplot2::expansion(add = 0.5)
+  ) +
+  ggplot2::scale_y_continuous(
+    breaks = seq(0, 40, by = 10),
+    expand = ggplot2::expansion(mult = c(0, 0.18))
+  ) +
+
+  ggplot2::labs(
+    title = "Glass has become the defining medium of MTA transit art",
+    subtitle = "Permanent artworks commissioned by MTA agencies, 1980–2023, by primary material",
+    x = NULL,
+    y = "Artworks commissioned",
+    caption = "Source: MTA Arts & Design via TidyTuesday (2025-07-22) · Palette: MetBrewer::VanGogh1"
+  ) +
+
+  # Theme
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title = ggtext::element_markdown(
+      face = "bold",
+      size = 15,
+      margin = ggplot2::margin(b = 4)
+    ),
+    plot.subtitle = ggtext::element_markdown(
+      size = 10.5,
+      color = "#444444",
+      margin = ggplot2::margin(b = 14)
+    ),
+    plot.caption = ggtext::element_markdown(
+      size = 8,
+      color = "#777777",
+      margin = ggplot2::margin(t = 10)
+    ),
+    legend.position = "bottom",
+    legend.title = ggplot2::element_text(size = 9, face = "bold"),
+    legend.text = ggplot2::element_text(size = 8.5),
+    legend.key.size = ggplot2::unit(0.55, "cm"),
+    legend.margin = ggplot2::margin(t = 2),
+    panel.grid.major.x = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major.y = ggplot2::element_line(color = "#e8e8e8", linewidth = 0.4),
+    axis.text = ggplot2::element_text(color = "#444444", size = 9),
+    plot.margin = ggplot2::margin(16, 16, 10, 16),
+    plot.background = ggplot2::element_rect(fill = "#fafafa", color = NA)
+  )
+
+p
+```
+
+```{r}
+#| label: log-palette
+
+# Append palette to log (idempotent)
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log <- read.csv(palette_log_path)
+new_entry <- data.frame(
+  post_date = "2025-07-22",
+  palette = "VanGogh1",
+  package = "MetBrewer",
+  type = "discrete"
+)
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+  )
+}
+```
+
+## Bonus: Which train lines have the most art?
+
+```{r}
+#| label: lines-analysis
+
+# Join art with station_lines to get per-line art counts
+art_by_line <- station_lines %>%
+  inner_join(
+    mta_art %>% select(agency, station_name, art_title),
+    by = c("agency", "station_name"),
+    relationship = "many-to-many"
+  ) %>%
+  # Only NYCT subway letter/number lines (exclude commuter rail names)
+  filter(agency == "NYCT") %>%
+  filter(nchar(line) <= 2) %>%
+  distinct(line, art_title) %>%
+  count(line, sort = TRUE) %>%
+  head(15)
+
+cat(sprintf("art_by_line: %d rows\n", nrow(art_by_line)))
+stopifnot("art_by_line must not be empty" = nrow(art_by_line) > 0)
+print(art_by_line)
+```
+
+```{r}
+#| label: lines-plot
+#| fig.width: 9
+#| fig.height: 5
+#| message: false
+#| warning: false
+
+line_order <- art_by_line %>% arrange(n) %>% pull(line)
+
+p2 <- art_by_line %>%
+  mutate(line = factor(line, levels = line_order)) %>%
+  ggplot2::ggplot(ggplot2::aes(x = n, y = line)) +
+  ggplot2::geom_col(fill = unname(mat_colors["Glass Mosaic"]), width = 0.7) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = n),
+    hjust = -0.3,
+    size = 3.2,
+    color = "#333333"
+  ) +
+  ggplot2::scale_x_continuous(
+    expand = ggplot2::expansion(mult = c(0, 0.12))
+  ) +
+  ggplot2::labs(
+    title = "NYCT subway lines with the most permanent artworks",
+    subtitle = "Artworks counted by line served at each station",
+    x = "Artworks",
+    y = "Line",
+    caption = "Source: MTA Arts & Design via TidyTuesday (2025-07-22)"
+  ) +
+  ggplot2::theme_minimal(base_size = 11) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 13),
+    plot.subtitle = ggplot2::element_text(color = "#555555", size = 9.5),
+    panel.grid.major.y = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_line(color = "#e8e8e8"),
+    plot.margin = ggplot2::margin(12, 16, 8, 12),
+    plot.background = ggplot2::element_rect(fill = "#fafafa", color = NA)
+  )
+
+p2
+```
+
+The **2, 3, 4, 5, 6 IRT lines** (the original numbered subway trunks through Manhattan) dominate, reflecting both their age and the MTA's longstanding renovation cycles. The **Q line** ranks highly due to the Second Avenue Subway stations — each of which received purpose-built, high-profile commissions.
+
+# Final thoughts and takeaways
+
+Four decades of the MTA Permanent Art Catalog tell a clear story: **glass won**. What began as a program grounded in traditional transit materials — bronze plaques, ceramic tile, terrazzo floors — transformed into a nearly glass-exclusive medium by the 2010s.
+
+This isn't just aesthetic preference. Glass mosaic and faceted glass survive underground environments exceptionally well: they're impervious to moisture, easy to clean, and unlike paint or fiber, they don't fade under fluorescent light. The MTA's experience over decades of maintenance reinforced glass as the practical and artistic medium of choice.
+
+The 2018 peak (38 artworks) is the catalog's most dramatic signal: a confluence of the Second Avenue Subway Q train opening and concurrent LIRR/Metro-North capital programs created a one-time windfall for public art commissioning. Those three Second Avenue stations — 96 St, 86 St, and 72 St — represent some of the most ambitious transit art installations in American history, with commissions from Chuck Close, Vik Muniz, and Jean Shin.
+
+A few caveats worth noting:
+
+- **Material classification is imprecise.** The `art_material` column is free text with significant inconsistency (`"Faceted glass"`, `"faceted glass"`, `"Faceted Glass"` are all present). My classification captures the spirit, not every edge case.
+- **Dates reflect installation, not commission.** The bureaucratic lag between commissioning and installation means the 2018 artworks were likely contracted 3–5 years earlier.
+- **The catalog is incomplete at the margins.** Some early artworks (1980–1985) may be underdocumented, and the most recent years likely have works in progress not yet captured.
+
+The MTA's underground gallery is one of New York City's most-visited — and least-considered — art collections. 381 permanent works. Millions of daily viewers who mostly stare at their phones.
