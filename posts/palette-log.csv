@@ -10,3 +10,9 @@ post_date,palette,package,type
 2026-02-12,hardcoded (Olympic gradient),custom,continuous
 2026-02-12,hardcoded (city colors),custom,discrete
 2026-02-20,Hiroshige,MetBrewer,discrete
+"2026-03-21","Starfish","PNWColors","discrete"
+"2025-04-08","vik","scico","continuous"
+"2025-04-08","Juarez","MetBrewer","discrete"
+"2025-04-15","Zissou1","wesanderson","discrete"
+"2025-04-22","Vivid","rcartocolor","discrete"
+"2025-05-06","Alacena","MexBrewer","diverging"
