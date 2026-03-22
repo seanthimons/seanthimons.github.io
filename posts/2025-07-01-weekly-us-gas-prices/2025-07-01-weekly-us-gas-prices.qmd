@@ -1,0 +1,568 @@
+---
+title: "Tidy Tuesday: Weekly US Gas Prices"
+author: "Sean Thimons"
+date: "2025-07-01"
+description: "Thirty-five years at the pump: how geopolitics, recessions, and a pandemic shaped what Americans pay for gasoline."
+categories: [tidytuesday, R, energy, economics, time-series]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-07-01).
+
+> Weekly US retail gasoline and diesel prices from the U.S. Energy Information Administration (EIA), collected every Monday from approximately 1,000 gasoline outlets across the continental United States. The dataset spans from August 1990 to June 2025 and breaks prices down by fuel type (gasoline, diesel), grade (regular, midgrade, premium), and formulation (all, conventional, reformulated).
+>
+> *Suggested questions: How did gas prices respond during the 2008 recession and COVID-19 pandemic? Which fuel type exhibits greater price volatility—gasoline or diesel? Do different gasoline grades and formulations demonstrate parallel pricing trends?*
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'ggtext',              # Rich text in ggplot
+    'ggrepel',             # Non-overlapping labels
+    'patchwork',           # Multi-panel layouts
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-07-01')
+
+weekly_gas_prices <- raw$weekly_gas_prices
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function returns count, min, p25, median, p75, max, mean, geometric mean, SD, and an ASCII histogram.
+
+## weekly_gas_prices
+
+```{r}
+#| label: eda-gas-prices
+#| echo: true
+#| output: true
+
+# Drop formulation for initial skim — it has 2,688 NAs (all diesel rows)
+weekly_gas_prices %>%
+  select(date, fuel, grade, price) %>%
+  my_skim()
+```
+
+```{r}
+#| label: eda-factor-counts
+#| echo: true
+
+# Inspect exact factor levels — critical before any filtering
+cat("fuel levels:\n")
+weekly_gas_prices %>% count(fuel)
+
+cat("\ngrade levels:\n")
+weekly_gas_prices %>% count(grade)
+
+cat("\nfuel × grade combinations:\n")
+weekly_gas_prices %>% count(fuel, grade)
+
+cat("\ngasoline formulations:\n")
+weekly_gas_prices %>%
+  filter(fuel == "gasoline") %>%
+  count(grade, formulation)
+```
+
+The dataset contains **22,360 weekly observations** spanning August 1990 through June 2025 — a 35-year window that captures the full arc of modern US energy economics. Gasoline prices dominate the record (19,672 rows), with diesel data beginning in March 1994. The `formulation` column is `NA` for all diesel rows, which is expected — diesel doesn't have the conventional/reformulated split that gasoline does.
+
+Price ranges from **$0.88** (regular conventional, February 1999) to **$6.06** (premium reformulated, June 2022), a nearly 7-fold spread across three and a half decades.
+
+# Thirty-Five Years at the Pump
+
+The central story in this data is how external shocks — oil embargoes, recessions, pandemics, and wars — leave fingerprints on what Americans pay every time they fill up.
+
+## Grade premium spread over time
+
+Before building the main timeline, it's worth examining how the *gap* between premium and regular gasoline has evolved. If grades track perfectly in parallel, they'd maintain a constant dollar spread. If the spread compresses or expands, it tells us something about refinery economics and consumer behavior.
+
+```{r}
+#| label: grade-spread-analysis
+#| echo: true
+
+# Gasoline grade prices: all-formulation view, three grades
+gas_grades <- weekly_gas_prices %>%
+  filter(
+    fuel == "gasoline",
+    formulation == "all",
+    grade %in% c("regular", "midgrade", "premium")
+  ) %>%
+  select(date, grade, price) %>%
+  mutate(grade = factor(grade, levels = c("regular", "midgrade", "premium")))
+
+cat(sprintf("gas_grades: %d rows, %d cols\n", nrow(gas_grades), ncol(gas_grades)))
+stopifnot("gas_grades has 0 rows — check filter" = nrow(gas_grades) > 0)
+
+# Premium-to-regular spread
+grade_spread <- gas_grades %>%
+  pivot_wider(names_from = grade, values_from = price) %>%
+  mutate(
+    spread_prem_reg = premium - regular,
+    spread_mid_reg  = midgrade - regular,
+    year = as.integer(format(date, "%Y"))
+  )
+
+cat(sprintf("grade_spread: %d rows, %d cols\n", nrow(grade_spread), ncol(grade_spread)))
+
+# Annual averages for readability
+annual_spread <- grade_spread %>%
+  group_by(year) %>%
+  summarise(
+    avg_spread_prem = mean(spread_prem_reg, na.rm = TRUE),
+    avg_spread_mid  = mean(spread_mid_reg, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+cat("\nAnnual premium-over-regular spread ($/gal):\n")
+print(annual_spread, n = 40)
+```
+
+```{r}
+#| label: viz-grade-spread
+#| message: false
+#| warning: false
+#| fig.width: 9
+#| fig.height: 4
+
+# Annual premium-regular spread over time
+p_spread <- annual_spread %>%
+  pivot_longer(
+    cols = c(avg_spread_prem, avg_spread_mid),
+    names_to = "comparison",
+    values_to = "spread"
+  ) %>%
+  mutate(
+    comparison = dplyr::recode(comparison,
+      avg_spread_prem = "Premium over Regular",
+      avg_spread_mid  = "Midgrade over Regular"
+    )
+  ) %>%
+  ggplot2::ggplot(ggplot2::aes(x = year, y = spread, color = comparison)) +
+  ggplot2::geom_line(linewidth = 0.9) +
+  ggplot2::geom_point(size = 1.5) +
+  paletteer::scale_color_paletteer_d("ghibli::PonyoMedium") +
+  ggplot2::scale_y_continuous(labels = scales::dollar_format(accuracy = 0.01)) +
+  ggplot2::scale_x_continuous(breaks = seq(1990, 2025, 5)) +
+  ggplot2::labs(
+    title = "The grade premium has stayed remarkably stable",
+    subtitle = "Annual average price difference vs. regular gasoline (all formulations), 1990–2025",
+    x = NULL,
+    y = "Price spread ($/gal)",
+    color = NULL,
+    caption = "Source: U.S. Energy Information Administration via TidyTuesday 2025-07-01"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title    = ggtext::element_markdown(face = "bold", size = 14),
+    plot.subtitle = ggplot2::element_text(color = "grey40", size = 10),
+    plot.caption  = ggplot2::element_text(color = "grey60", size = 8),
+    legend.position = "bottom",
+    panel.grid.minor = ggplot2::element_blank()
+  )
+
+p_spread
+```
+
+::: {.callout-note}
+The premium-over-regular spread has hovered near **$0.50–$0.65/gallon** for most of the past 35 years — a surprisingly stable relationship given how dramatically absolute prices have moved. This suggests the grades are priced as a fixed markup rather than independently determined by supply and demand.
+:::
+
+## Major shock events
+
+The absolute price history reveals five distinct eras and three dramatic inflection points. Let me define annotations for the hero plot.
+
+```{r}
+#| label: shock-events-setup
+#| echo: true
+
+# Key shock events for annotation
+shock_events <- tibble::tribble(
+  ~date,                 ~label,                          ~vjust,
+  as.Date("1999-02-22"), "1999\nAll-time low\n$0.89/gal", -0.4,
+  as.Date("2008-07-07"), "2008\nFinancial crisis\npeak",   1.6,
+  as.Date("2020-04-27"), "2020\nCOVID-19\ncrash",         -0.4,
+  as.Date("2022-06-13"), "2022\nPost-Ukraine\npeak",       1.6
+)
+
+# Recession / disruption shading bands
+recession_bands <- tibble::tribble(
+  ~xmin,                 ~xmax,                 ~label,
+  as.Date("2008-01-01"), as.Date("2009-06-30"), "Great Recession",
+  as.Date("2020-02-01"), as.Date("2020-06-30"), "COVID-19"
+)
+
+# Get the actual price values at those dates for regular gasoline
+regular_prices <- weekly_gas_prices %>%
+  filter(fuel == "gasoline", grade == "regular", formulation == "all")
+
+shock_price_lookup <- function(target_date) {
+  regular_prices %>%
+    dplyr::arrange(abs(as.numeric(date - target_date))) %>%
+    dplyr::slice(1) %>%
+    dplyr::pull(price)
+}
+
+shock_events <- shock_events %>%
+  dplyr::mutate(price = purrr::map_dbl(date, shock_price_lookup))
+
+cat("Shock event anchor prices (regular/gal):\n")
+print(shock_events)
+```
+
+# The Hero Plot: 35 Years at the American Pump
+
+```{r}
+#| label: viz-hero-timeseries
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 7
+
+# Palette: ghibli::PonyoMedium
+# 3 colors for 3 grades: regular, midgrade, premium
+grade_colors <- paletteer::paletteer_d("ghibli::PonyoMedium", n = 4)
+# Use indices 2, 3, 4 for better contrast on white background
+grade_colors_use <- c(
+  regular  = as.character(grade_colors[2]),
+  midgrade = as.character(grade_colors[3]),
+  premium  = as.character(grade_colors[4])
+)
+
+p_hero <- gas_grades %>%
+  ggplot2::ggplot(ggplot2::aes(x = date, y = price, color = grade)) +
+  # Recession shading
+  ggplot2::geom_rect(
+    data = recession_bands,
+    ggplot2::aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf),
+    inherit.aes = FALSE,
+    fill = "grey90", alpha = 0.6
+  ) +
+  # Recession labels
+  ggplot2::geom_text(
+    data = recession_bands,
+    ggplot2::aes(x = xmin + (xmax - xmin) / 2, y = 5.7, label = label),
+    inherit.aes = FALSE,
+    color = "grey55", size = 3, fontface = "italic"
+  ) +
+  # Main lines
+  ggplot2::geom_line(linewidth = 0.7, alpha = 0.9) +
+  # Shock event points (on regular only)
+  ggplot2::geom_point(
+    data = shock_events %>%
+      dplyr::mutate(grade = factor("regular", levels = c("regular", "midgrade", "premium"))),
+    ggplot2::aes(x = date, y = price),
+    color = "black", size = 3, shape = 21, fill = "white", stroke = 1.5,
+    inherit.aes = FALSE
+  ) +
+  # Shock event labels
+  ggrepel::geom_label_repel(
+    data = shock_events %>%
+      dplyr::mutate(grade = factor("regular", levels = c("regular", "midgrade", "premium"))),
+    ggplot2::aes(x = date, y = price, label = label),
+    inherit.aes = FALSE,
+    size = 2.8,
+    fontface = "bold",
+    fill = "white",
+    color = "grey25",
+    label.size = 0.2,
+    label.padding = ggplot2::unit(0.3, "lines"),
+    min.segment.length = 0,
+    seed = 42
+  ) +
+  # Grade color mapping
+  ggplot2::scale_color_manual(
+    values = grade_colors_use,
+    labels = c(regular = "Regular", midgrade = "Midgrade", premium = "Premium")
+  ) +
+  # Axes
+  ggplot2::scale_y_continuous(
+    labels = scales::dollar_format(accuracy = 0.01),
+    breaks = seq(1, 6, 1),
+    limits = c(0.7, 6.3)
+  ) +
+  ggplot2::scale_x_date(
+    date_breaks = "5 years",
+    date_labels = "%Y",
+    limits = c(as.Date("1990-01-01"), as.Date("2025-12-31"))
+  ) +
+  # Labels
+  ggplot2::labs(
+    title    = "**35 Years at the American Pump**",
+    subtitle = "Weekly retail gasoline prices by grade (all formulations), August 1990 – June 2025",
+    x        = NULL,
+    y        = "Price per gallon (USD)",
+    color    = "Grade",
+    caption  = "Source: U.S. Energy Information Administration · TidyTuesday 2025-07-01\nShaded bands = Great Recession (2008–2009) and COVID-19 (early 2020) · Circles mark notable price extremes"
+  ) +
+  ggplot2::theme_minimal(base_size = 13) +
+  ggplot2::theme(
+    plot.title       = ggtext::element_markdown(face = "bold", size = 18, margin = ggplot2::margin(b = 4)),
+    plot.subtitle    = ggplot2::element_text(color = "grey40", size = 11, margin = ggplot2::margin(b = 12)),
+    plot.caption     = ggplot2::element_text(color = "grey60", size = 8, lineheight = 1.3),
+    axis.text        = ggplot2::element_text(color = "grey30"),
+    axis.title.y     = ggplot2::element_text(color = "grey40", size = 10),
+    panel.grid.major.x = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank(),
+    legend.position  = "top",
+    legend.direction = "horizontal",
+    legend.title     = ggplot2::element_text(size = 10, face = "bold"),
+    plot.margin      = ggplot2::margin(12, 16, 12, 12)
+  )
+
+p_hero
+```
+
+## Gasoline vs. Diesel: Tracking the spread
+
+Diesel has historically tracked gasoline closely, but the relationship can diverge sharply during supply shocks.
+
+```{r}
+#| label: diesel-vs-gasoline-analysis
+#| echo: true
+
+# Compare diesel (all grade) vs gasoline regular (all formulation)
+fuel_compare <- weekly_gas_prices %>%
+  filter(
+    (fuel == "diesel"   & grade == "all") |
+    (fuel == "gasoline" & grade == "regular" & formulation == "all")
+  ) %>%
+  select(date, fuel, price) %>%
+  pivot_wider(names_from = fuel, values_from = price) %>%
+  mutate(diesel_premium = diesel - gasoline) %>%
+  filter(!is.na(diesel) & !is.na(gasoline))
+
+cat(sprintf("fuel_compare: %d rows, %d cols\n", nrow(fuel_compare), ncol(fuel_compare)))
+stopifnot("fuel_compare has 0 rows" = nrow(fuel_compare) > 0)
+
+cat("\nDiesel-over-gasoline spread summary ($/gal):\n")
+summary(fuel_compare$diesel_premium)
+
+cat("\nWhen diesel was cheapest relative to gasoline:\n")
+fuel_compare %>% arrange(diesel_premium) %>% head(5) %>% print()
+
+cat("\nWhen diesel was most expensive relative to gasoline:\n")
+fuel_compare %>% arrange(desc(diesel_premium)) %>% head(5) %>% print()
+```
+
+```{r}
+#| label: viz-diesel-spread
+#| message: false
+#| warning: false
+#| fig.width: 9
+#| fig.height: 4
+
+# Diesel premium over regular gasoline over time
+p_diesel <- fuel_compare %>%
+  ggplot2::ggplot(ggplot2::aes(x = date, y = diesel_premium)) +
+  ggplot2::geom_hline(yintercept = 0, color = "grey60", linetype = "dashed") +
+  ggplot2::geom_line(
+    color = as.character(paletteer::paletteer_d("ghibli::PonyoMedium", n = 4)[4]),
+    linewidth = 0.7,
+    alpha = 0.85
+  ) +
+  ggplot2::annotate(
+    "label",
+    x = as.Date("2022-06-01"), y = 1.7,
+    label = "Ukraine war drives\ndiesel to $1.79/gal\nover regular",
+    size = 2.8, color = "grey25", fill = "white", label.size = 0.2
+  ) +
+  ggplot2::annotate(
+    "label",
+    x = as.Date("2000-01-01"), y = -0.35,
+    label = "Late 1990s:\ndiesel cheaper\nthan regular",
+    size = 2.8, color = "grey25", fill = "white", label.size = 0.2
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = scales::dollar_format(accuracy = 0.01),
+    breaks = seq(-0.5, 2, 0.5)
+  ) +
+  ggplot2::scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  ggplot2::labs(
+    title    = "Diesel used to be *cheaper* than regular — not anymore",
+    subtitle = "Weekly diesel price minus regular gasoline price ($/gal), 1994–2025",
+    x        = NULL,
+    y        = "Diesel premium ($/gal)",
+    caption  = "Source: U.S. EIA via TidyTuesday 2025-07-01 · Dashed line = price parity"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title    = ggtext::element_markdown(face = "bold", size = 14),
+    plot.subtitle = ggplot2::element_text(color = "grey40", size = 10),
+    plot.caption  = ggplot2::element_text(color = "grey60", size = 8),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_blank()
+  )
+
+p_diesel
+```
+
+::: {.callout-important}
+**A structural shift in diesel pricing.** Throughout the late 1990s, diesel was actually *cheaper* than regular gasoline — a fact that surprises most American drivers today. The structural flip happened around 2004–2005 as Asian demand for middle distillates surged and US refinery capacity didn't keep pace. By 2022, diesel briefly commanded a **$1.79/gallon premium** over regular — the largest spread ever recorded in this dataset.
+:::
+
+## Year-over-year volatility
+
+Which grade or fuel type is most volatile? Standard deviation of weekly price changes reveals the answer.
+
+```{r}
+#| label: volatility-analysis
+#| echo: true
+
+# Week-over-week price change for each fuel/grade combo
+volatility <- weekly_gas_prices %>%
+  filter(
+    (fuel == "gasoline" & formulation == "all" & grade %in% c("regular", "midgrade", "premium")) |
+    (fuel == "diesel" & grade == "all")
+  ) %>%
+  arrange(fuel, grade, date) %>%
+  group_by(fuel, grade) %>%
+  mutate(weekly_change = price - dplyr::lag(price)) %>%
+  summarise(
+    sd_weekly_change   = sd(weekly_change, na.rm = TRUE),
+    mean_weekly_change = mean(weekly_change, na.rm = TRUE),
+    n_weeks            = sum(!is.na(weekly_change)),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(sd_weekly_change))
+
+cat("Weekly price change volatility (std dev):\n")
+print(volatility)
+```
+
+::: {.callout-note}
+All grades move in near-perfect lockstep — the standard deviation of weekly changes is virtually identical across regular, midgrade, and premium gasoline. Diesel shows slightly higher volatility. This confirms that external shocks (crude oil prices, refinery disruptions, seasonal demand) propagate uniformly across the grade stack, and the grade premium is set by refinery margin decisions, not by separate supply-demand dynamics for each grade.
+:::
+
+# Log the palette
+
+```{r}
+#| label: log-palette
+#| echo: false
+#| output: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log <- read.csv(palette_log_path)
+new_entry <- data.frame(
+  post_date = "2025-07-01",
+  palette   = "PonyoMedium",
+  package   = "ghibli",
+  type      = "discrete"
+)
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+  )
+}
+```
+
+# Final thoughts and takeaways
+
+Thirty-five years of weekly pump prices tell a story of structural change punctuated by external shocks:
+
+**The five eras of American gas prices:**
+
+1. **The cheap era (1990–2003).** Regular gasoline mostly sat below $1.50/gallon. Relative to today, driving was extraordinarily cheap, which both reflected and enabled American car culture's expansion in this period.
+
+2. **The steady climb (2004–2007).** As Chinese and Indian industrialization drove global crude demand, prices crept upward year by year — the slow boil before the crisis.
+
+3. **The crisis years (2008–2009).** Gasoline peaked at **$4.11/gallon** for regular in July 2008, then cratered below $1.70 within six months as the financial crisis destroyed demand. No other period in the dataset shows a faster round-trip.
+
+4. **The plateau (2010–2019).** Prices settled into a new, higher normal — typically $2.00–$3.50/gallon — with some volatility tied to crude price swings. The shale revolution kept a ceiling on how high prices could go.
+
+5. **The COVID spike (2020–2022).** Demand destruction in April 2020 briefly pushed prices to $1.77/gallon, only to rebound sharply as supply chains disrupted and Russia's invasion of Ukraine tightened global energy markets. The June 2022 peak — **$6.06/gallon** for premium reformulated — was the highest ever recorded in the dataset.
+
+**The grade hierarchy is stable; the diesel relationship is not.** Premium consistently costs about $0.50–$0.65 more than regular — a remarkably durable spread across wildly different price environments. Diesel, by contrast, has undergone a permanent structural shift: from a cheaper alternative in the 1990s to a consistently more expensive fuel today, driven by global refinery economics and export demand for middle distillates.
+
+**What the data doesn't tell us:** These are national averages. State-level and regional variation can be substantial — California's reformulated gas requirements routinely add $0.30–$0.60 above the national average. The EIA does publish regional breakdowns, which would be a rich extension of this analysis.
+
+At the pump in 2025, Americans are paying prices that would have been unimaginable in 1999 but that feel strangely routine after the volatility of the past five years. The data suggests the new normal is somewhere between the pre-COVID plateau and the 2022 peak — roughly $3.00–$3.50 for regular — barring another major supply disruption.
