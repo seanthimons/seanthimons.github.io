@@ -119,8 +119,10 @@ flowchart TB
         SANDBAGGING["Sandbagging<br/>(Inflated estimates)"]
         SCOPE_CREEP["Scope Creep"]
         SALT["🧂 Salt Principle:<br/>If something spoils, add salt to fix it.<br/>But woe to the day the salt itself has spoiled.<br/>(The fix becomes the problem)"]
-        
+        GREENER["🌱 Greener Grass Trap<br/>(The grass is greener<br/>where you water it)"]
+
         YAK_SHAVING -->|"Causes"| SCOPE_CREEP
+        GREENER -->|"Causes"| SCOPE_CREEP
     end
 
     subgraph communication["💬 COMMUNICATION"]
@@ -157,6 +159,7 @@ flowchart TB
     TECH_DEBT -.->|"Triggers"| YAK_SHAVING
     TECH_DEBT -.->|"Risk of"| SALT
     YAGNI -.->|"Prevents"| YAK_SHAVING
+    GREENER -.->|"Misjudges"| OPP_COST
     
     %% ====== TRADEOFF CONNECTIONS ======
     cap -.->|"Similar pattern"| TRADEOFF_3D
@@ -178,7 +181,7 @@ flowchart TB
     class PARKINSON,SANDBAGGING,BUS_FACTOR warning
     class F,A,I,R,ROI output
     class TRADEOFF_3D,cap,OPP_COST tradeoff
-    class YAK_SHAVING,SCOPE_CREEP,TECH_DEBT,SALT risk
+    class YAK_SHAVING,SCOPE_CREEP,TECH_DEBT,SALT,GREENER risk
     class PARS_PRO_TOTO,MVP,FACTOTUM strategy
 `
 ```

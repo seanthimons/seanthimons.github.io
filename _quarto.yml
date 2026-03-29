@@ -15,6 +15,8 @@ website:
       - href: project_management_model.qmd
         text: Mental Model
       - volunteer.qmd
+      - href: resume.qmd
+        text: CV
       - href: color-palette.html
         text: "Colors"
   page-footer:

@@ -1,0 +1,165 @@
+---
+title: "The Trust Problem Goes Deeper Than Data"
+description: "Julie Zhuo is right that AI shifts the bottleneck from execution to judgment. But the implications extend further than data roles — into communication, domain expertise, and every technical field."
+date: 2026-02-22
+categories: [ai, data-science, opinion]
+image: hero.png
+---
+
+```{=html}
+<style>
+  /* Chemist's Bench: Mineral Earth */
+  /* warm, grounded, ancient */
+
+  /* --- CSS Custom Properties (scoped to article) --- */
+  #quarto-document-content {
+    --cb-primary:     #8B4513;
+    --cb-secondary:   #CC7722;
+    --cb-accent:      #722F37;
+    --cb-background:  #FAF8F5;
+    --cb-surface:     #F5F0E6;
+    --cb-text:        #3D2914;
+    --cb-text-muted:  #6F4E37;
+    --cb-heading:     #8B4513;
+    --cb-link:        #8B4513;
+    --cb-link-hover:  #CC7722;
+    --cb-code-bg:     #3D2914;
+    --cb-code-text:   #F5DEB3;
+    --cb-border:      #D2B48C;
+    --cb-success:     #6B8E23;
+    --cb-warning:     #CC7722;
+    --cb-error:       #722F37;
+    --cb-gradient:    linear-gradient(135deg, #CC7722, #8B4513, #6F4E37);
+  }
+
+  /* --- Article body: background + text --- */
+  #quarto-document-content {
+    background-color: var(--cb-background);
+    color: var(--cb-text);
+  }
+
+  /* --- Headings: MUST override global $headings-color --- */
+  #quarto-document-content h1,
+  #quarto-document-content h2,
+  #quarto-document-content h3,
+  #quarto-document-content h4,
+  #quarto-document-content h5,
+  #quarto-document-content h6 {
+    color: var(--cb-heading);
+  }
+
+  /* --- Links --- */
+  #quarto-document-content a {
+    color: var(--cb-link);
+  }
+  #quarto-document-content a:hover {
+    color: var(--cb-link-hover);
+  }
+
+  /* --- Muted text --- */
+  #quarto-document-content .text-muted,
+  #quarto-document-content .subtitle,
+  #quarto-document-content figcaption {
+    color: var(--cb-text-muted);
+  }
+
+  /* --- Code blocks --- */
+  #quarto-document-content pre,
+  #quarto-document-content div.sourceCode {
+    background-color: var(--cb-code-bg);
+    border: 1px solid var(--cb-border);
+  }
+  #quarto-document-content code {
+    color: var(--cb-code-text);
+  }
+  #quarto-document-content pre > code.sourceCode {
+    background-color: transparent;
+  }
+
+  /* --- Callouts --- */
+  #quarto-document-content .callout {
+    border-left-color: var(--cb-accent);
+    background-color: var(--cb-surface);
+    color: var(--cb-text);
+  }
+
+  /* --- Blockquotes --- */
+  #quarto-document-content blockquote {
+    border-left-color: var(--cb-accent);
+    color: var(--cb-text-muted);
+  }
+
+  /* --- Tables --- */
+  #quarto-document-content table {
+    border-color: var(--cb-border);
+  }
+  #quarto-document-content th {
+    background-color: var(--cb-surface);
+    color: var(--cb-heading);
+    border-color: var(--cb-border);
+  }
+  #quarto-document-content td {
+    border-color: var(--cb-border);
+  }
+
+  /* --- Horizontal rules --- */
+  #quarto-document-content hr {
+    border-color: var(--cb-border);
+  }
+
+  /* --- Title block (light theme) --- */
+  .quarto-title-block {
+    border-top: 4px solid var(--cb-primary);
+    padding-top: 0.5rem;
+  }
+  .quarto-title-block .quarto-title {
+    color: var(--cb-heading);
+  }
+  .quarto-title-block .description {
+    color: var(--cb-text-muted);
+  }
+</style>
+```
+
+Julie Zhuo's recent piece, ["The Data Job isn't Dying Because the Trust Problem is Exploding"](https://opinionatedintelligence.substack.com/cp/188281093), makes an argument I think is exactly right — and more important than even she lets on.
+
+Her core claim: AI eliminates the execution bottleneck in data work, but it doesn't solve the trust problem. When AI can generate five plausible explanations for a retention drop in seconds, the scarce resource isn't analysis — it's knowing which of those explanations is actually right. That requires institutional knowledge about schema changes, definition drift, and the political context of previous experiments. "Code can be a black box. Data cannot."
+
+I agree with all of that. But I think the implications go further in three directions.
+
+## Domain expertise is the moat
+
+{EXPAND: The "institutional knowledge" Zhuo describes — knowing that a schema changed last quarter, knowing that "active user" was redefined in March, knowing which experiments ran against which cohorts — is domain expertise wearing a data hat. It's not a data skill. It's the accumulated knowledge of someone who has been paying attention to the business for years.
+
+This matters because it reframes what "upskilling for AI" actually means. You can't upskill into domain expertise. You accumulate it. It accretes like sediment — slowly, through exposure, through making mistakes and remembering the context in which they happened. The geological metaphor isn't decorative: this knowledge really does form in layers, and each layer depends on the ones beneath it.
+
+AI can't learn what it can't observe. The schema change that happened during a reorg, the metric definition that shifted because of a VP's pet project, the A/B test that technically succeeded but was contaminated by a holiday week — none of this lives in the data. It lives in the people who were there.}
+
+## The trust problem is also a communication problem
+
+{EXPAND: Zhuo's "data curator" identifies the right answer. But that's only half the job. The other half is explaining *why* it's the right answer to someone who doesn't have the same institutional context.
+
+This is where the trust problem gets really hard. It's not enough to know that three of the five AI-generated explanations are wrong — you have to be able to explain *why* they're wrong in a way that a product manager or VP can follow and believe. That requires translating between the language of data (schema, definitions, cohort effects) and the language of decisions (revenue, risk, opportunity).
+
+AI makes this worse, not better. When analysis was expensive, people trusted it more — it took a week, so it must be thorough. When AI can generate a dashboard in seconds, every answer invites the question "but is it right?" The curator's job isn't just curation. It's persuasion grounded in credibility.}
+
+## This pattern extends beyond data roles
+
+{EXPAND: Zhuo frames this as a data story, but the same judgment-over-execution shift is happening everywhere. Engineers face the same trust problem when AI generates code — is this implementation correct, secure, maintainable? Designers face it when AI generates mockups — does this actually solve the user's problem? Researchers face it when AI generates literature summaries — are these citations real, and do they actually support the claim?
+
+In every case, the bottleneck shifts from "can you produce this?" to "should you trust this?" And in every case, the people best positioned to answer that question are the ones with the deepest domain expertise and the communication skills to explain their judgment.
+
+Data is the canary in the coal mine because data work was always closer to the trust boundary. A software bug is observable — the feature crashes. A data error is invisible until someone with context catches it. But as AI-generated output floods every domain, we're all moving toward the trust boundary. The question Zhuo asks about data — "who validates the methodology, not just the output?" — is becoming the universal question of professional work in the AI era.}
+
+---
+
+The irony is sharp. We built AI to scale production, and in doing so we created a trust deficit that only the most experienced, most human capabilities can fill. Domain expertise. Communication. Judgment that comes from having been wrong before and remembering why.
+
+{EXPAND: Closing thought — something about how the response to "AI will replace you" isn't to learn AI tools (though that helps). It's to go deeper into the domain. Become the person who knows why the data is wrong. Become the person who can explain it. The moat isn't technical. It's geological.}
+
+## Decisions Log
+- Post type: Response
+- Theme: mineral_earth (domain expertise as geological layers — built up slowly, impossible to shortcut)
+- Hero algorithm: concentric_drift (nested rings building outward, echoing the accumulation metaphor)
+- Hero placement: Listing card only
+- Date: 2026-02-22

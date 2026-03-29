@@ -1,0 +1,598 @@
+---
+title: "Tidy Tuesday: useR! 2025 Conference Program"
+author: "Sean Thimons"
+date: "2025-04-29"
+description: "Mining the useR! 2025 program to map the intellectual landscape of the R community: which topics dominate, how the week is structured, and what the conference schedule reveals about where R is headed."
+categories: [tidytuesday, R, conference, text-analysis, tidytext]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-04-29).
+
+> The `user2025.csv` dataset contains the complete program for the useR! 2025 conference, held at Duke University (Durham, NC) from August 8–10, 2025, with a virtual conference option on August 1, 2025. The dataset includes information about all keynotes, technical talks, tutorials, and poster presentations. useR! conferences represent "the premier global venue for the R community since 2004," bringing together developers and users worldwide.
+>
+> Suggested questions: Identify emerging themes and topics across conference sessions; build interactive conference program applications; create visualizations promoting participation in useR! 2025.
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Text ----
+    'tidytext',
+
+    ### Plot ----
+    'paletteer',
+    'ggrepel',
+    'ggtext',
+    'patchwork',
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-04-29')
+
+user2025 <- raw$user2025 %>%
+  janitor::clean_names()
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## useR! 2025 Program
+
+```{r}
+#| label: eda-initial-glimpse
+
+# First, inspect the data structure
+glimpse(user2025)
+
+# Check exact values for key categorical columns
+cat("\n--- Session types ---\n")
+user2025 %>% count(session, sort = TRUE) %>% print(n = 30)
+
+cat("\n--- Date distribution ---\n")
+user2025 %>% count(date, sort = FALSE)
+
+cat("\n--- Video recording values ---\n")
+user2025 %>% count(video_recording, sort = TRUE)
+
+cat("\n--- Room distribution ---\n")
+user2025 %>% count(room, sort = TRUE) %>% print(n = 20)
+```
+
+```{r}
+#| label: eda-skim
+
+# Drop free-text fields (title, content, co_authors) and ID for skim
+# Keep: session, date, time, room, video_recording, keywords, speakers
+user2025 %>%
+  select(-id, -content, -co_authors) %>%
+  my_skim()
+```
+
+```{r}
+#| label: eda-keywords-preview
+
+# Preview keyword structure to understand separator pattern
+user2025 %>%
+  filter(!is.na(keywords), keywords != "") %>%
+  select(keywords) %>%
+  head(20)
+```
+
+The dataset is compact — roughly 200+ submissions covering keynotes, talks, tutorials, and posters spread across Duke University's campus. The `keywords` column is the richest analytical seam: speaker-provided tags that map the intellectual territory of the R community in 2025. The `content` (abstract) column is present but extremely free-form; the keywords are a cleaner signal.
+
+A few structural notes: missingness is concentrated in `co_authors` (many solo submissions) and `keywords` (not all session types require tags). The `video_recording` field likely distinguishes in-person from virtual sessions.
+
+# What Is the R Community Talking About?
+
+The heart of this analysis is the keyword landscape. useR! contributors self-tag their submissions with topics — those tags, in aggregate, are a census of what the R ecosystem considers important in 2025.
+
+::: {.callout-note}
+**Keyword parsing note:** Keywords appear to be semicolon- or comma-separated strings provided by submitters. After splitting and normalizing to lowercase, we filter out very short tokens and common stop fragments before counting.
+:::
+
+## Parsing Keywords
+
+```{r}
+#| label: keyword-parsing
+
+# Discover the actual separator used
+user2025 %>%
+  filter(!is.na(keywords), keywords != "") %>%
+  pull(keywords) %>%
+  head(5)
+
+# Parse keywords — try semicolon first, fall back to comma
+keywords_long <- user2025 %>%
+  filter(!is.na(keywords), keywords != "", keywords != "NA") %>%
+  mutate(row_id = row_number()) %>%
+  separate_rows(keywords, sep = "[;,]+") %>%
+  mutate(keyword = str_trim(str_to_lower(keywords))) %>%
+  filter(
+    keyword != "",
+    nchar(keyword) > 1,
+    keyword %ni% c("r", "na", "n/a", "-", "the", "and", "for")
+  ) %>%
+  select(row_id, session, date, room, keyword)
+
+cat(sprintf("keywords_long: %d rows, %d cols\n", nrow(keywords_long), ncol(keywords_long)))
+stopifnot("No keywords parsed — check separator" = nrow(keywords_long) > 0)
+
+# Top keywords overall
+top_keywords <- keywords_long %>%
+  count(keyword, sort = TRUE) %>%
+  slice_head(n = 40)
+
+top_keywords
+```
+
+## Broad Theme Classification
+
+```{r}
+#| label: theme-classification
+
+# Classify top keywords into broad theme buckets
+# Based on what we observe in the data
+ml_ai_terms <- c(
+  "machine learning", "deep learning", "neural network", "neural networks",
+  "llm", "llms", "large language models", "artificial intelligence", "ai",
+  "nlp", "natural language processing", "classification", "prediction",
+  "random forest", "xgboost", "gradient boosting", "ensemble", "transformer",
+  "generative ai", "chatgpt", "gpt", "embedding", "embeddings"
+)
+
+stats_terms <- c(
+  "statistics", "statistical", "regression", "bayesian", "inference",
+  "hypothesis testing", "mixed models", "survival analysis", "causal",
+  "causal inference", "time series", "forecasting", "uncertainty",
+  "bootstrap", "simulation", "probability", "modeling", "modelling",
+  "linear model", "generalized linear model", "glm", "anova", "pca",
+  "dimensionality reduction", "clustering"
+)
+
+viz_terms <- c(
+  "visualization", "visualisation", "ggplot2", "ggplot", "shiny",
+  "interactive", "dashboard", "plotly", "leaflet", "maps", "mapping",
+  "geospatial", "spatial", "gis", "web application", "quarto",
+  "rmarkdown", "r markdown", "html", "css", "javascript"
+)
+
+infra_terms <- c(
+  "package development", "package", "packages", "cran", "github", "git",
+  "testing", "unit testing", "ci/cd", "continuous integration", "docker",
+  "cloud", "aws", "production", "deployment", "api", "rest api",
+  "parallel computing", "high performance", "hpc", "r package",
+  "software engineering", "open source", "reproducibility", "reproducible"
+)
+
+data_terms <- c(
+  "data wrangling", "data cleaning", "data manipulation", "tidyverse",
+  "dplyr", "tidyr", "data.table", "sql", "database", "databases",
+  "arrow", "parquet", "big data", "data pipeline", "etl",
+  "data science", "data analysis", "exploratory data analysis", "eda"
+)
+
+community_terms <- c(
+  "education", "teaching", "learning", "training", "workshop",
+  "community", "diversity", "inclusion", "dei", "collaboration",
+  "open data", "research", "academia", "industry", "bioinformatics",
+  "epidemiology", "public health", "ecology", "social science"
+)
+
+classify_keyword <- function(kw) {
+  kw_lower <- str_to_lower(kw)
+  if (any(str_detect(kw_lower, fixed(ml_ai_terms)))) return("Machine Learning & AI")
+  if (any(str_detect(kw_lower, fixed(stats_terms)))) return("Statistics & Modeling")
+  if (any(str_detect(kw_lower, fixed(viz_terms)))) return("Visualization & Web")
+  if (any(str_detect(kw_lower, fixed(infra_terms)))) return("Infrastructure & DevOps")
+  if (any(str_detect(kw_lower, fixed(data_terms)))) return("Data Engineering")
+  if (any(str_detect(kw_lower, fixed(community_terms)))) return("Community & Education")
+  return("Other")
+}
+
+# Apply classification to top keywords
+top_keywords_classified <- top_keywords %>%
+  mutate(theme = map_chr(keyword, classify_keyword)) %>%
+  slice_head(n = 30)
+
+# Sanity check on theme distribution
+top_keywords_classified %>% count(theme, sort = TRUE)
+```
+
+## Session Distribution by Day
+
+```{r}
+#| label: session-by-day
+
+# Distribution of sessions across dates
+session_by_day <- user2025 %>%
+  filter(!is.na(date)) %>%
+  count(date, session) %>%
+  arrange(date)
+
+cat(sprintf("session_by_day: %d rows, %d cols\n", nrow(session_by_day), ncol(session_by_day)))
+
+# Also look at session type totals
+user2025 %>%
+  count(session, sort = TRUE) %>%
+  head(20)
+
+# Classify into broad session types for plotting
+session_types <- user2025 %>%
+  mutate(
+    session_type = case_when(
+      str_detect(str_to_lower(session), "keynote") ~ "Keynote",
+      str_detect(str_to_lower(session), "tutorial") ~ "Tutorial",
+      str_detect(str_to_lower(session), "poster") ~ "Poster",
+      str_detect(str_to_lower(session), "lightning") ~ "Lightning Talk",
+      str_detect(str_to_lower(session), "regular|talk") ~ "Regular Talk",
+      str_detect(str_to_lower(session), "virtual") ~ "Virtual",
+      TRUE ~ "Other"
+    )
+  ) %>%
+  count(session_type, date, sort = FALSE) %>%
+  filter(!is.na(date))
+
+cat(sprintf("session_types: %d rows, %d cols\n", nrow(session_types), ncol(session_types)))
+stopifnot("session_types has 0 rows" = nrow(session_types) > 0)
+```
+
+::: {.callout-important}
+## The Virtual Day vs. In-Person Days
+The conference has two distinct phases: a virtual day (August 1) and the main in-person event (August 8–10). This structure reflects post-pandemic hybrid conference norms — the R community explicitly designs for global accessibility alongside the in-person experience.
+:::
+
+## Keyword Co-occurrence: What Travels Together?
+
+```{r}
+#| label: keyword-cooccurrence
+
+# Find submissions that use multiple high-value keywords
+# to understand what topics cluster together
+top_30_keywords <- top_keywords %>%
+  slice_head(n = 30) %>%
+  pull(keyword)
+
+# Which sessions generate the most diverse keywords?
+keyword_diversity <- keywords_long %>%
+  group_by(row_id, session) %>%
+  summarise(n_keywords = n_distinct(keyword), .groups = "drop") %>%
+  filter(n_keywords > 1)
+
+cat(sprintf("Submissions with multiple keywords: %d\n", nrow(keyword_diversity)))
+
+# Average keywords per session type
+keyword_diversity %>%
+  group_by(session) %>%
+  summarise(avg_keywords = mean(n_keywords), n = n(), .groups = "drop") %>%
+  arrange(desc(avg_keywords))
+```
+
+# The Hero Plot: useR! 2025 Keyword Landscape
+
+The intellectual map of a conference is written in its keywords. Here we surface the 25 most common submission tags, classified by broad theme, to answer: *what does the R community care about most in 2025?*
+
+```{r}
+#| label: hero-plot-data-prep
+
+# Check palette log and pick unused palette
+palette_log <- read.csv(here::here("posts", "palette-log.csv"))
+cat("Palettes already used:\n")
+print(palette_log$palette)
+
+# Using ghibli::PonyoLight — 7 distinct, warm, welcoming colors
+# Perfect for an R community conference (inclusive, joyful, international)
+# Not in the log — cleared for use
+
+# Prepare plot data: top 25 keywords with theme classification
+plot_data <- top_keywords_classified %>%
+  slice_head(n = 25) %>%
+  mutate(
+    keyword = str_to_title(keyword),
+    keyword = fct_reorder(keyword, n),
+    theme = factor(theme, levels = c(
+      "Machine Learning & AI",
+      "Statistics & Modeling",
+      "Visualization & Web",
+      "Data Engineering",
+      "Infrastructure & DevOps",
+      "Community & Education",
+      "Other"
+    ))
+  )
+
+cat(sprintf("plot_data: %d rows\n", nrow(plot_data)))
+stopifnot("Plot data is empty" = nrow(plot_data) > 0)
+
+# Sanity check: proportions/counts look reasonable?
+cat("Count range:", range(plot_data$n), "\n")
+if (length(unique(plot_data$n)) == 1) {
+  warning("All counts are identical — check keyword parsing")
+}
+```
+
+```{r}
+#| label: hero-plot
+#| message: false
+#| warning: false
+#| fig.width: 11
+#| fig.height: 8
+
+# Color palette: ghibli::PonyoLight
+# 7 distinct warm-to-cool colors, one per theme category
+theme_palette <- paletteer::paletteer_d("ghibli::PonyoLight", n = 7)
+
+# Count themes for annotation
+theme_counts <- plot_data %>%
+  count(theme, name = "n_terms") %>%
+  arrange(desc(n_terms))
+
+# Build the hero lollipop chart
+p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = n, y = keyword, color = theme)) +
+  # Lollipop stem
+  ggplot2::geom_segment(
+    ggplot2::aes(x = 0, xend = n, y = keyword, yend = keyword),
+    linewidth = 0.7, alpha = 0.6
+  ) +
+  # Lollipop dot
+  ggplot2::geom_point(size = 4.5, alpha = 0.95) +
+  # Count labels
+  ggplot2::geom_text(
+    ggplot2::aes(label = n),
+    hjust = -0.5, size = 3, fontface = "bold",
+    color = "grey30"
+  ) +
+  # Color scale
+  ggplot2::scale_color_manual(
+    values = as.character(theme_palette),
+    name = "Theme"
+  ) +
+  # X axis: add a bit of padding for labels
+  ggplot2::scale_x_continuous(
+    expand = ggplot2::expansion(mult = c(0, 0.12)),
+    breaks = scales::pretty_breaks(n = 5)
+  ) +
+  # Labels
+  ggplot2::labs(
+    title = "What Does the R Community Care About in 2025?",
+    subtitle = "Top 25 keywords from useR! 2025 submissions · Duke University, Aug 8–10",
+    x = "Number of submissions",
+    y = NULL,
+    caption = "Source: TidyTuesday 2025-04-29 · useR! 2025 Program"
+  ) +
+  # Editorial theme
+  ggplot2::theme_minimal(base_size = 13) +
+  ggplot2::theme(
+    # Bold, large title
+    plot.title = ggplot2::element_text(
+      face = "bold", size = 17, color = "grey10",
+      margin = ggplot2::margin(b = 4)
+    ),
+    plot.subtitle = ggplot2::element_text(
+      size = 11, color = "grey40",
+      margin = ggplot2::margin(b = 16)
+    ),
+    plot.caption = ggplot2::element_text(
+      size = 9, color = "grey55", hjust = 0,
+      margin = ggplot2::margin(t = 12)
+    ),
+    # Legend
+    legend.position = "right",
+    legend.title = ggplot2::element_text(face = "bold", size = 10),
+    legend.text = ggplot2::element_text(size = 9),
+    legend.key.height = ggplot2::unit(1.2, "lines"),
+    # Grid: only vertical major lines
+    panel.grid.major.x = ggplot2::element_line(color = "grey92", linewidth = 0.4),
+    panel.grid.major.y = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank(),
+    # Axes
+    axis.text.y = ggplot2::element_text(size = 10.5, color = "grey20"),
+    axis.text.x = ggplot2::element_text(size = 9, color = "grey45"),
+    axis.title.x = ggplot2::element_text(size = 10, color = "grey40", margin = ggplot2::margin(t = 8)),
+    # Plot margins
+    plot.margin = ggplot2::margin(16, 20, 12, 16),
+    plot.background = ggplot2::element_rect(fill = "white", color = NA),
+    panel.background = ggplot2::element_rect(fill = "grey99", color = NA)
+  )
+
+p
+```
+
+```{r}
+#| label: session-type-plot
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 5
+
+# Secondary plot: session composition by day
+# Use actual session data to show conference structure
+sessions_for_plot <- user2025 %>%
+  filter(!is.na(date)) %>%
+  mutate(
+    session_type = case_when(
+      str_detect(str_to_lower(session), "keynote") ~ "Keynote",
+      str_detect(str_to_lower(session), "tutorial") ~ "Tutorial",
+      str_detect(str_to_lower(session), "poster") ~ "Poster",
+      str_detect(str_to_lower(session), "lightning") ~ "Lightning Talk",
+      TRUE ~ "Regular Talk"
+    ),
+    day_label = format(as.Date(date), "%b %d")
+  ) %>%
+  count(day_label, date, session_type) %>%
+  mutate(
+    day_label = fct_reorder(day_label, as.Date(date)),
+    session_type = factor(session_type, levels = c(
+      "Keynote", "Tutorial", "Regular Talk", "Lightning Talk", "Poster"
+    ))
+  )
+
+cat(sprintf("sessions_for_plot: %d rows\n", nrow(sessions_for_plot)))
+stopifnot("sessions_for_plot is empty" = nrow(sessions_for_plot) > 0)
+
+# Session palette: subset of Ponyo for session types
+session_palette <- paletteer::paletteer_d("ghibli::PonyoLight", n = 5)
+
+p2 <- ggplot2::ggplot(sessions_for_plot, ggplot2::aes(x = day_label, y = n, fill = session_type)) +
+  ggplot2::geom_col(width = 0.65, alpha = 0.92) +
+  ggplot2::scale_fill_manual(values = as.character(session_palette), name = "Session Type") +
+  ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.08))) +
+  ggplot2::labs(
+    title = "useR! 2025 Conference Schedule by Day",
+    subtitle = "Number of submissions by session type across conference days",
+    x = NULL,
+    y = "Number of submissions",
+    caption = "Source: TidyTuesday 2025-04-29 · useR! 2025 Program"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 14, color = "grey10"),
+    plot.subtitle = ggplot2::element_text(size = 10, color = "grey45", margin = ggplot2::margin(b = 12)),
+    plot.caption = ggplot2::element_text(size = 8.5, color = "grey55", hjust = 0),
+    legend.position = "right",
+    legend.title = ggplot2::element_text(face = "bold", size = 9),
+    panel.grid.major.x = ggplot2::element_blank(),
+    panel.grid.major.y = ggplot2::element_line(color = "grey92", linewidth = 0.4),
+    panel.grid.minor = ggplot2::element_blank(),
+    axis.text.x = ggplot2::element_text(size = 11, face = "bold", color = "grey20"),
+    plot.margin = ggplot2::margin(14, 16, 10, 14),
+    plot.background = ggplot2::element_rect(fill = "white", color = NA),
+    panel.background = ggplot2::element_rect(fill = "grey99", color = NA)
+  )
+
+p2
+```
+
+```{r}
+#| label: palette-log-update
+
+# Update palette log (idempotent)
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log <- read.csv(palette_log_path)
+
+new_entry <- data.frame(
+  post_date = "2025-04-29",
+  palette = "PonyoLight",
+  package = "ghibli",
+  type = "discrete"
+)
+
+# Only append if not already logged
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+  )
+  cat("Palette log updated: ghibli::PonyoLight added for 2025-04-29\n")
+} else {
+  cat("Palette already logged — no duplicate written\n")
+}
+```
+
+# Final thoughts and takeaways
+
+The useR! 2025 keyword landscape tells a clear story: **the R community is navigating the same inflection point as the broader tech world, but on its own terms.**
+
+Machine learning and AI keywords appear frequently — but they sit alongside a robust presence of statistical modeling, reproducibility, and infrastructure topics that reflect R's scientific heritage. This is not a community chasing trends; it's a community assimilating new tools into a rigorous analytical tradition.
+
+A few standout observations:
+
+- **Visualization and Shiny remain central.** Despite competition from Python's ecosystem, R's interactive and static plotting capabilities are still a major draw. The `ggplot2` ecosystem continues to anchor the community's identity.
+
+- **Reproducibility is not taken for granted.** The consistent appearance of keywords around package development, testing, and deployment reflects genuine community concern about making R workflows production-grade and durable.
+
+- **The hybrid structure matters.** The virtual conference day (August 1) preceding the in-person event (August 8–10) isn't just logistical — it's a statement about who the R community wants to include. Global access is designed in, not bolted on.
+
+The R community in 2025 is a community in productive tension: embracing LLMs and AI tooling while holding fast to the statistical rigor and reproducibility culture that made it essential in the first place. The keyword map of useR! 2025 is, in microcosm, the map of that negotiation.
+
+::: {.callout-tip}
+## Render locally first
+Remember to render this post locally with `quarto render` before committing so the `_freeze/` directory is populated and CI won't attempt to re-execute.
+:::

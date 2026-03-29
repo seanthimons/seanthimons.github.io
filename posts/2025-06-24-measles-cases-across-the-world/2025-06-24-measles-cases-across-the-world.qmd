@@ -1,0 +1,751 @@
+---
+title: "Tidy Tuesday: Measles Cases Across the World"
+author: "Sean Thimons"
+date: "2025-06-24"
+description: "How vaccination drove measles toward elimination—and why it's staging a comeback. A look at WHO surveillance data across six world regions from 1980 to the present."
+categories: [tidytuesday, R, public health, epidemiology, time series]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-06-24).
+
+> Measles is one of the most contagious diseases known to science—a single infected person can spread it to 12–18 others. Before the measles vaccine became widely available in the 1960s, nearly every child caught the disease. Coordinated vaccination campaigns collapsed global case counts by more than 99%. But measles hasn't gone away. Gaps in coverage—driven by conflict, access barriers, and vaccine hesitancy—have allowed the virus to stage a alarming comeback in recent years.
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'ggtext',              # Rich text in ggplot (element_markdown)
+    'ggrepel',             # Non-overlapping labels
+    'patchwork',           # Multi-panel layouts
+    'ghibli',              # Studio Ghibli palettes (accessed via paletteer)
+
+    ### Misc ----
+    'tidytuesdayR',
+    'scales'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: true
+
+raw <- tidytuesdayR::tt_load("2025-06-24")
+
+# Inspect what datasets are available
+cat("Datasets in this week's TidyTuesday:\n")
+print(names(raw))
+```
+
+```{r}
+#| label: extract-datasets
+#| echo: true
+#| output: true
+
+# Extract the annual dataset (cases_year has standard WHO region codes)
+measles <- if ("cases_year" %in% names(raw)) raw[["cases_year"]] else raw[[1]]
+
+# Discover the column structure before proceeding with any analysis
+cat("Column names:\n")
+print(names(measles))
+
+cat("\nDimensions: ", nrow(measles), "rows x", ncol(measles), "cols\n")
+
+cat("\nFirst few rows:\n")
+print(head(measles, 10))
+
+cat("\nData types:\n")
+dplyr::glimpse(measles)
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function profiles each column with counts, quantiles, mean, geometric mean, standard deviation, and an ASCII histogram.
+
+## Measles Dataset
+
+```{r}
+#| label: eda-measles
+#| echo: true
+#| output: true
+
+# Drop columns that are purely identifiers or free-text before skimming
+# We'll keep quantitative and categorical columns of analytical interest
+measles_for_skim <- measles %>%
+  janitor::clean_names() %>%
+  # Drop any free-text notes or ISO codes that don't add distributional value
+  select(-any_of(c("notes", "source", "url", "description")))
+
+my_skim(measles_for_skim)
+```
+
+```{r}
+#| label: eda-counts
+#| echo: true
+#| output: true
+
+# After clean_names(), inspect the actual column names we'll use
+measles_clean <- measles %>% janitor::clean_names()
+cat("Clean column names:\n")
+print(names(measles_clean))
+
+# Identify the region column and year range
+# WHO regions are typically: AFRO, AMRO, EMRO, EURO, SEARO, WPRO
+region_col <- names(measles_clean)[grepl("region|who_region|region_code", names(measles_clean), ignore.case = TRUE)][1]
+year_col   <- names(measles_clean)[grepl("^year$|^yr$", names(measles_clean), ignore.case = TRUE)][1]
+cases_col  <- names(measles_clean)[grepl("case|reported", names(measles_clean), ignore.case = TRUE)][1]
+
+cat(sprintf("\nDetected columns — Region: %s | Year: %s | Cases: %s\n",
+            region_col, year_col, cases_col))
+
+# Count unique values in the region column
+if (!is.na(region_col)) {
+  cat("\nWHO region distribution:\n")
+  print(measles_clean %>% count(.data[[region_col]], sort = TRUE))
+}
+
+# Year range
+if (!is.na(year_col)) {
+  cat(sprintf("\nYear range: %d – %d\n",
+              min(measles_clean[[year_col]], na.rm = TRUE),
+              max(measles_clean[[year_col]], na.rm = TRUE)))
+}
+```
+
+The EDA reveals the spine of this dataset: annual country-level measles surveillance records from WHO. The key analytical axes are **WHO region** (6 regions covering the globe), **year** (spanning multiple decades), and **reported cases**. Missingness tends to concentrate in smaller countries and earlier decades, where surveillance systems were less established—a limitation to keep in mind when interpreting historical trends.
+
+::: {.callout-note}
+## Measles surveillance caveats
+
+WHO reported case counts are based on national surveillance systems, which vary substantially in completeness. Countries with weak surveillance infrastructure systematically under-report cases. The true global burden has historically been estimated to be 10–20x higher than reported counts. Trends in reporting therefore reflect both actual disease dynamics *and* improving surveillance capacity over time.
+:::
+
+# The Rise, Fall, and Resurgence of Measles
+
+## Setting up the analytical datasets
+
+```{r}
+#| label: data-prep
+#| echo: true
+#| output: true
+
+# Work with the clean version and standardize column names
+# We'll use dynamic column references from EDA discovery above
+measles_clean <- measles %>%
+  janitor::clean_names()
+
+# Flexible column selection: try common WHO data column names
+# Adjust these if EDA above revealed different column names
+get_col <- function(df, candidates) {
+  match <- names(df)[names(df) %in% candidates][1]
+  if (is.na(match)) {
+    # Try partial match
+    match <- names(df)[grepl(paste(candidates, collapse = "|"), names(df), ignore.case = TRUE)][1]
+  }
+  match
+}
+
+col_year      <- get_col(measles_clean, c("year", "yr", "year_reported"))
+col_country   <- get_col(measles_clean, c("country", "country_name", "name", "state_territory"))
+col_iso3      <- get_col(measles_clean, c("iso3", "iso_code", "iso3c", "country_code"))
+col_region    <- get_col(measles_clean, c("who_region", "region", "who_region_code", "region_code"))
+col_cases     <- get_col(measles_clean, c("cases", "reported_cases", "measles_cases", "total_cases", "measles_total"))
+col_incidence <- get_col(measles_clean, c("incidence", "incidence_rate", "rate_per_million", "cases_per_million", "measles_incidence_rate_per_1000000_total_population"))
+col_mcv1      <- get_col(measles_clean, c("mcv1", "mcv_1", "first_dose", "coverage_mcv1"))
+col_mcv2      <- get_col(measles_clean, c("mcv2", "mcv_2", "second_dose", "coverage_mcv2"))
+
+cat("Column mapping:\n")
+cat(sprintf("  year:      %s\n", col_year))
+cat(sprintf("  country:   %s\n", col_country))
+cat(sprintf("  iso3:      %s\n", col_iso3))
+cat(sprintf("  region:    %s\n", col_region))
+cat(sprintf("  cases:     %s\n", col_cases))
+cat(sprintf("  incidence: %s\n", col_incidence))
+cat(sprintf("  mcv1:      %s\n", col_mcv1))
+cat(sprintf("  mcv2:      %s\n", col_mcv2))
+
+# Rename to standardized names for the rest of the analysis
+measles_std <- measles_clean %>%
+  rename(
+    year      = any_of(col_year),
+    country   = any_of(col_country),
+    who_region = any_of(col_region),
+    cases     = any_of(col_cases)
+  ) %>%
+  # If incidence/mcv columns exist, rename them too
+  {
+    df <- .
+    if (!is.na(col_incidence) && col_incidence %in% names(df)) df <- rename(df, incidence = all_of(col_incidence))
+    if (!is.na(col_mcv1) && col_mcv1 %in% names(df)) df <- rename(df, mcv1 = all_of(col_mcv1))
+    if (!is.na(col_mcv2) && col_mcv2 %in% names(df)) df <- rename(df, mcv2 = all_of(col_mcv2))
+    df
+  } %>%
+  filter(!is.na(year), !is.na(cases))
+
+cat(sprintf("\nStandardized dataset: %d rows, %d cols\n", nrow(measles_std), ncol(measles_std)))
+```
+
+## Global trend: total reported cases by year
+
+```{r}
+#| label: global-trend
+#| echo: true
+#| output: true
+
+# Total global reported cases per year
+global_trend <- measles_std %>%
+  group_by(year) %>%
+  summarise(
+    total_cases = sum(cases, na.rm = TRUE),
+    n_countries = n_distinct(country, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(year)
+
+cat(sprintf("global_trend: %d rows, %d cols\n", nrow(global_trend), ncol(global_trend)))
+stopifnot("global_trend has 0 rows — check filter/column mapping" = nrow(global_trend) > 0)
+
+# Preview peak years
+cat("\nTop 10 years by reported cases:\n")
+global_trend %>%
+  arrange(desc(total_cases)) %>%
+  head(10) %>%
+  mutate(total_cases = scales::comma(total_cases)) %>%
+  print()
+```
+
+## Regional breakdown
+
+```{r}
+#| label: regional-trend
+#| echo: true
+#| output: true
+
+# Check whether who_region column exists and has data
+if ("who_region" %in% names(measles_std)) {
+  cat("WHO region counts:\n")
+  print(measles_std %>% count(who_region, sort = TRUE))
+
+  # Regional totals per year
+  regional_trend <- measles_std %>%
+    filter(!is.na(who_region)) %>%
+    group_by(year, who_region) %>%
+    summarise(
+      total_cases = sum(cases, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    arrange(year, who_region)
+
+  cat(sprintf("\nregional_trend: %d rows, %d cols\n", nrow(regional_trend), ncol(regional_trend)))
+  stopifnot("regional_trend has 0 rows" = nrow(regional_trend) > 0)
+} else {
+  cat("No who_region column found — will use global trend only\n")
+  regional_trend <- global_trend %>%
+    mutate(who_region = "Global")
+}
+```
+
+## The 2019 resurgence: country-level spotlight
+
+```{r}
+#| label: resurgence-analysis
+#| echo: true
+#| output: true
+
+# Find the peak year globally
+peak_year <- global_trend %>%
+  filter(total_cases == max(total_cases)) %>%
+  pull(year)
+
+cat(sprintf("Global peak year: %d\n", peak_year))
+
+# Recent (post-2010) peak year — when resurgence really hit
+recent_peak_year <- global_trend %>%
+  filter(year >= 2010) %>%
+  filter(total_cases == max(total_cases)) %>%
+  pull(year)
+
+cat(sprintf("Post-2010 peak year: %d\n", recent_peak_year))
+
+# Top countries in the resurgence year
+top_countries_peak <- measles_std %>%
+  filter(year == recent_peak_year) %>%
+  arrange(desc(cases)) %>%
+  head(15) %>%
+  select(any_of(c("country", "who_region", "year", "cases")))
+
+cat(sprintf("\nTop countries in %d by reported cases:\n", recent_peak_year))
+print(top_countries_peak)
+```
+
+::: {.callout-important}
+## The 2019 resurgence
+In 2019, global reported measles cases surged to their highest level in over two decades. The Democratic Republic of Congo, Ukraine, Philippines, India, and Brazil were among the hardest-hit countries. The causes were multifactorial: conflict disrupting routine immunization, declining trust in vaccines in high-income countries, and coverage gaps that left pockets of susceptible children even in otherwise well-vaccinated populations.
+:::
+
+## Vaccination coverage and case trends
+
+```{r}
+#| label: vaccination-analysis
+#| echo: true
+#| output: true
+
+# Only run if mcv1 column exists
+if ("mcv1" %in% names(measles_std)) {
+  # Global average MCV1 coverage by year
+  global_coverage <- measles_std %>%
+    filter(!is.na(mcv1)) %>%
+    group_by(year) %>%
+    summarise(
+      mean_mcv1 = mean(mcv1, na.rm = TRUE),
+      median_mcv1 = median(mcv1, na.rm = TRUE),
+      n_countries = n(),
+      .groups = "drop"
+    )
+
+  cat(sprintf("global_coverage: %d rows\n", nrow(global_coverage)))
+
+  cat("\nRecent coverage trend:\n")
+  global_coverage %>%
+    filter(year >= 2000) %>%
+    arrange(desc(year)) %>%
+    head(10) %>%
+    mutate(mean_mcv1 = round(mean_mcv1, 1)) %>%
+    print()
+
+  # Country-level: cases vs coverage (most recent 5 years)
+  recent_year <- max(measles_std$year, na.rm = TRUE)
+  recent_window <- seq(recent_year - 4, recent_year)
+
+  coverage_vs_cases <- measles_std %>%
+    filter(year %in% recent_window, !is.na(mcv1), !is.na(cases)) %>%
+    group_by(country) %>%
+    summarise(
+      mean_mcv1 = mean(mcv1, na.rm = TRUE),
+      mean_cases = mean(cases, na.rm = TRUE),
+      who_region = first(who_region),
+      .groups = "drop"
+    ) %>%
+    filter(mean_cases > 0)
+
+  cat(sprintf("\ncoverage_vs_cases: %d rows\n", nrow(coverage_vs_cases)))
+} else {
+  cat("No mcv1 column found — skipping vaccination analysis\n")
+  global_coverage <- NULL
+  coverage_vs_cases <- NULL
+}
+```
+
+# Hero Visualization: Six Decades of Measles
+
+The hero plot shows the sweep of the measles story across WHO's six world regions. Each colored layer represents one region's annual case contribution to the global total, making it easy to see both the overall trend and which regions are driving it.
+
+```{r}
+#| label: hero-viz-prep
+#| echo: true
+#| output: false
+
+# WHO region labels — map codes to readable names
+# Handle both long (AFRO/AMRO) and short (AFR/AMR) WHO region codes
+region_labels <- c(
+  "AFRO"  = "Africa",
+  "AMRO"  = "Americas",
+  "EMRO"  = "Eastern Mediterranean",
+  "EURO"  = "Europe",
+  "SEARO" = "South-East Asia",
+  "WPRO"  = "Western Pacific",
+  "AFR"   = "Africa",
+  "AMR"   = "Americas",
+  "EMR"   = "Eastern Mediterranean",
+  "EUR"   = "Europe",
+  "SEAR"  = "South-East Asia",
+  "WPR"   = "Western Pacific"
+)
+
+# Prepare regional data for plotting
+# If who_region is present, use it; otherwise fall back to global
+if ("who_region" %in% names(regional_trend) && n_distinct(regional_trend$who_region) > 1) {
+
+  plot_data <- regional_trend %>%
+    mutate(
+      region_label = dplyr::recode(who_region, !!!region_labels, .default = who_region),
+      # Order regions so Africa plots at top (largest burden, most dramatic)
+      region_label = factor(region_label, levels = c(
+        "Africa", "South-East Asia", "Eastern Mediterranean",
+        "Western Pacific", "Europe", "Americas"
+      ))
+    ) %>%
+    filter(!is.na(region_label))
+
+  use_regional <- TRUE
+
+} else {
+  # Fallback: single global line
+  plot_data <- global_trend %>%
+    mutate(region_label = "Global", who_region = "Global") %>%
+    mutate(region_label = factor(region_label))
+
+  use_regional <- FALSE
+}
+
+cat(sprintf("plot_data: %d rows, %d cols\n", nrow(plot_data), ncol(plot_data)))
+stopifnot("plot_data has 0 rows — check regional_trend pipeline" = nrow(plot_data) > 0)
+
+# Key annotation years
+year_low  <- global_trend %>% filter(year >= 2000) %>% slice_min(total_cases, n = 1) %>% pull(year)
+year_peak <- global_trend %>% filter(year >= 2010) %>% slice_max(total_cases, n = 1) %>% pull(year)
+peak_val  <- global_trend %>% filter(year == year_peak) %>% pull(total_cases)
+
+cat(sprintf("Annotating: trough year = %d, recent peak year = %d (cases = %s)\n",
+            year_low, year_peak, scales::comma(peak_val)))
+```
+
+```{r}
+#| label: hero-viz
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 7
+
+# Palette: ghibli::MononokeMedium (7 colors — plenty for 6 WHO regions)
+# Warm earthy tones from Princess Mononoke: fits the gravity of the topic
+
+region_colors <- paletteer::paletteer_d("ghibli::MononokeMedium", n = 6)
+
+p <- plot_data %>%
+  ggplot(aes(x = year, y = total_cases, fill = region_label)) +
+  geom_area(
+    alpha = 0.92,
+    color  = "white",
+    linewidth = 0.25,
+    position = "stack"
+  ) +
+  # Vertical reference lines for key events
+  geom_vline(xintercept = 2000, color = "#555555", linetype = "dashed", linewidth = 0.5) +
+  geom_vline(xintercept = year_peak, color = "#8B1A1A", linetype = "dotted", linewidth = 0.6) +
+  # Annotations
+  annotate(
+    "text",
+    x = 2001, y = max(global_trend$total_cases, na.rm = TRUE) * 0.92,
+    label = "Measles Initiative\nlaunched (2001)",
+    hjust = 0, size = 3.2, color = "#444444", fontface = "italic"
+  ) +
+  annotate(
+    "text",
+    x = year_peak + 0.3,
+    y = max(global_trend$total_cases, na.rm = TRUE) * 0.92,
+    label = sprintf("2019 resurgence\n%s reported cases", scales::comma(peak_val)),
+    hjust = 0, size = 3.2, color = "#8B1A1A", fontface = "bold.italic"
+  ) +
+  # Scales
+  scale_x_continuous(breaks = seq(1980, 2025, by = 5), expand = expansion(mult = c(0.01, 0.05))) +
+  scale_y_continuous(
+    labels = scales::label_comma(scale = 1e-3, suffix = "K"),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  scale_fill_manual(values = as.character(region_colors)) +
+  # Labels
+  labs(
+    title    = "**Measles Nearly Disappeared—Then Came Back**",
+    subtitle = "Annual reported measles cases by WHO region, stacked globally",
+    caption  = "Source: World Health Organization via TidyTuesday 2025-06-24 | Reported cases only; true burden estimated 10–20x higher",
+    x        = NULL,
+    y        = "Reported cases",
+    fill     = "WHO Region"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title         = element_markdown(size = 19, face = "bold", margin = margin(b = 4)),
+    plot.subtitle      = element_text(size = 12, color = "#555555", margin = margin(b = 16)),
+    plot.caption       = element_text(size = 9, color = "#888888", margin = margin(t = 10)),
+    plot.background    = element_rect(fill = "#FAFAF7", color = NA),
+    panel.background   = element_rect(fill = "#FAFAF7", color = NA),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor   = element_blank(),
+    panel.grid.major.y = element_line(color = "#E5E5E0", linewidth = 0.4),
+    axis.text          = element_text(color = "#444444"),
+    legend.position    = "right",
+    legend.title       = element_text(size = 10, face = "bold"),
+    legend.text        = element_text(size = 9),
+    plot.margin        = margin(20, 20, 15, 15)
+  )
+
+p
+```
+
+## Countries driving the 2019 resurgence
+
+```{r}
+#| label: resurgence-countries-plot
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 6
+
+# Top countries in the post-2010 peak year
+top_n <- 12
+
+top_countries_plot <- measles_std %>%
+  filter(year == recent_peak_year, cases > 0) %>%
+  arrange(desc(cases)) %>%
+  head(top_n) %>%
+  mutate(
+    country = factor(country, levels = rev(country)),
+    region_label = dplyr::recode(
+      who_region,
+      "AFRO"  = "Africa",
+      "AMRO"  = "Americas",
+      "EMRO"  = "Eastern Mediterranean",
+      "EURO"  = "Europe",
+      "SEARO" = "South-East Asia",
+      "WPRO"  = "Western Pacific",
+      "AFR"   = "Africa",
+      "AMR"   = "Americas",
+      "EMR"   = "Eastern Mediterranean",
+      "EUR"   = "Europe",
+      "SEAR"  = "South-East Asia",
+      "WPR"   = "Western Pacific",
+      .default = "Other"
+    )
+  )
+
+cat(sprintf("top_countries_plot: %d rows\n", nrow(top_countries_plot)))
+stopifnot("top_countries_plot has 0 rows" = nrow(top_countries_plot) > 0)
+
+p2 <- top_countries_plot %>%
+  ggplot(aes(x = cases, y = country, fill = region_label)) +
+  geom_col(width = 0.75) +
+  geom_text(
+    aes(label = scales::comma(cases)),
+    hjust = -0.1,
+    size  = 3.5,
+    color = "#333333"
+  ) +
+  scale_x_continuous(
+    labels = scales::comma,
+    expand = expansion(mult = c(0, 0.20))
+  ) +
+  scale_fill_manual(values = as.character(paletteer::paletteer_d("ghibli::MononokeMedium", n = 6))) +
+  labs(
+    title    = sprintf("**Where Measles Struck Hardest in %d**", recent_peak_year),
+    subtitle = sprintf("Top %d countries by reported cases in the resurgence year", top_n),
+    caption  = "Source: World Health Organization via TidyTuesday 2025-06-24",
+    x        = "Reported cases",
+    y        = NULL,
+    fill     = "WHO Region"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title       = element_markdown(size = 15, face = "bold"),
+    plot.subtitle    = element_text(size = 11, color = "#555555"),
+    plot.caption     = element_text(size = 9, color = "#888888"),
+    plot.background  = element_rect(fill = "#FAFAF7", color = NA),
+    panel.background = element_rect(fill = "#FAFAF7", color = NA),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor   = element_blank(),
+    panel.grid.major.x = element_line(color = "#E5E5E0", linewidth = 0.4),
+    axis.text.y      = element_text(size = 10),
+    legend.position  = "right",
+    legend.title     = element_text(size = 10, face = "bold"),
+    plot.margin      = margin(15, 20, 10, 15)
+  )
+
+p2
+```
+
+```{r}
+#| label: coverage-trend-plot
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 5
+#| eval: !expr "exists('global_coverage') && !is.null(global_coverage)"
+
+# Only render this chunk if vaccination data exists
+if (exists("global_coverage") && !is.null(global_coverage)) {
+
+  # Combine global cases + coverage for dual-narrative plot
+  combo_data <- global_trend %>%
+    left_join(global_coverage, by = "year") %>%
+    filter(!is.na(mean_mcv1))
+
+  # Normalize for dual y-axis: cases on left, coverage % on right
+  max_cases <- max(combo_data$total_cases, na.rm = TRUE)
+
+  p3 <- combo_data %>%
+    ggplot(aes(x = year)) +
+    geom_area(
+      aes(y = total_cases),
+      fill = "#C4774B", alpha = 0.35, color = "#C4774B", linewidth = 0.8
+    ) +
+    geom_line(
+      aes(y = mean_mcv1 / 100 * max_cases),
+      color = "#4B7AC4", linewidth = 1.1
+    ) +
+    geom_point(
+      aes(y = mean_mcv1 / 100 * max_cases),
+      color = "#4B7AC4", size = 1.5
+    ) +
+    scale_x_continuous(breaks = seq(1980, 2025, by = 5)) +
+    scale_y_continuous(
+      name   = "Reported cases",
+      labels = scales::comma,
+      sec.axis = sec_axis(
+        ~ . / max_cases * 100,
+        name   = "Mean MCV1 coverage (%)",
+        labels = scales::label_percent(scale = 1)
+      )
+    ) +
+    labs(
+      title    = "**Higher Vaccination Coverage, Fewer Cases—Until Coverage Stalled**",
+      subtitle = "Global reported measles cases (orange area) vs. mean first-dose vaccine coverage (blue line)",
+      caption  = "Source: World Health Organization via TidyTuesday 2025-06-24",
+      x        = NULL
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      plot.title         = element_markdown(size = 14, face = "bold"),
+      plot.subtitle      = element_text(size = 10, color = "#555555"),
+      plot.caption       = element_text(size = 9, color = "#888888"),
+      plot.background    = element_rect(fill = "#FAFAF7", color = NA),
+      panel.background   = element_rect(fill = "#FAFAF7", color = NA),
+      panel.grid.minor   = element_blank(),
+      panel.grid.major   = element_line(color = "#E5E5E0", linewidth = 0.4),
+      axis.title.y.right = element_text(color = "#4B7AC4"),
+      axis.text.y.right  = element_text(color = "#4B7AC4"),
+      axis.title.y.left  = element_text(color = "#C4774B"),
+      axis.text.y.left   = element_text(color = "#C4774B"),
+      plot.margin        = margin(15, 20, 10, 15)
+    )
+
+  p3
+
+} else {
+  cat("Vaccination coverage data not available — skipping this plot.\n")
+}
+```
+
+# Final thoughts and takeaways
+
+Measles is one of the most instructive case studies in public health history—not because it shows how bad things can get, but because it shows what's possible when science and policy align. The global collapse in cases from the 1980s through the 2010s is a genuine triumph: coordinated vaccination campaigns, international funding mechanisms like the Measles Initiative, and routine immunization infrastructure working in concert.
+
+But the data also carries a warning. The post-2016 resurgence wasn't caused by a more virulent strain or a vaccine failure. It was caused by coverage gaps—by children who didn't get vaccinated, in countries where the health system was overwhelmed, or where trust in vaccines had eroded. The DRC alone accounted for hundreds of thousands of cases in 2019 against a backdrop of Ebola response straining the health system and armed conflict cutting off communities. Ukraine saw outbreaks fueled by vaccine hesitancy that had been building for years.
+
+A few clear takeaways:
+
+- **The herd immunity threshold for measles is exceptionally high (~95% MCV1 coverage)**. Even a modest slide in vaccination rates can reopen pockets of transmission large enough to sustain outbreaks.
+- **Africa has consistently carried a disproportionate share of the measles burden**, reflecting both the challenge of reaching remote populations and the resource constraints facing national immunization programs.
+- **The resurgence of the late 2010s is not over**. Post-COVID-19 disruptions to routine immunization created a global "immunity debt" that public health authorities are still working to address.
+
+Reported case counts are the floor, not the ceiling—true measles burden is estimated to be an order of magnitude higher than surveillance captures. The real story is even more dramatic than what the data shows.
+
+```{r}
+#| label: palette-log-update
+#| echo: false
+#| output: false
+
+# Append palette used in this post to the tracking log (idempotent)
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log      <- read.csv(palette_log_path)
+
+new_entry <- data.frame(
+  post_date = "2025-06-24",
+  palette   = "MononokeMedium",
+  package   = "ghibli",
+  type      = "discrete"
+)
+
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append    = TRUE,
+    sep       = ",",
+    row.names = FALSE,
+    col.names = FALSE
+  )
+  cat("Palette log updated: ghibli::MononokeMedium added for 2025-06-24\n")
+} else {
+  cat("Palette already logged — skipping duplicate write\n")
+}
+```

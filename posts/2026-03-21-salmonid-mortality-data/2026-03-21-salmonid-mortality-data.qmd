@@ -1,0 +1,561 @@
+---
+title: "Tidy Tuesday: The Geography of Norwegian Fish Mortality"
+author: "Sean Thimons"
+date: "2026-03-21"
+description: "Where are Norway's farmed salmon dying? A regional deep-dive into six years of aquaculture mortality data from the Norwegian Veterinary Institute."
+categories: [tidytuesday, R, aquaculture, norway, ggridges]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-03-17/readme.md).
+
+> This week's data comes from the Norwegian Veterinary Institute's salmonid mortality datasets. The Norwegian government aims to reduce fish farming mortality, making this data relevant to public health policy. Two datasets are provided: monthly loss counts (dead, discarded, escaped, other) and monthly mortality rate summaries (median, Q1, Q3) across regions and species.
+
+**Suggested questions:**
+
+- How does monthly mortality vary over the available time period?
+- Which regions demonstrate the lowest mortality rates?
+- Beyond fish deaths, what other loss categories significantly impact operations?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'patchwork',           # Multi-panel layouts
+    'ggridges',            # Ridge plots
+    'ggtext',              # Rich text in ggplot
+    'ggrepel',             # Non-overlapping labels
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+
+
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-03-17')
+
+losses <- raw$monthly_losses_data
+mortality <- raw$monthly_mortality_data
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Monthly Losses
+
+```{r}
+#| label: eda-losses
+#| echo: true
+#| output: true
+
+losses <- losses %>%
+  mutate(date = as.Date(date))
+
+cat(sprintf("monthly_losses_data: %d rows, %d cols\n", nrow(losses), ncol(losses)))
+cat(sprintf("Date range: %s to %s\n", min(losses$date), max(losses$date)))
+cat(sprintf("Species: %s\n", paste(unique(losses$species), collapse = ", ")))
+cat(sprintf("Geo groups: %s\n", paste(unique(losses$geo_group), collapse = ", ")))
+
+losses %>%
+  select(losses, dead, discarded, escaped, other) %>%
+  my_skim()
+
+```
+
+The losses data spans January 2020 through December 2025 — six full years of monthly records. Two species are tracked: Atlantic salmon and rainbow trout. Data is reported at three geographic levels: numbered production areas (1–13), named counties, and a country-level aggregate ("Norge").
+
+The `escaped` column is heavily right-skewed with a median near zero but occasional massive spikes — these represent dramatic escape events from damaged net pens. The `dead` column dominates the `losses` total, accounting for ~85% of all recorded losses.
+
+## Monthly Mortality Rates
+
+```{r}
+#| label: eda-mortality
+#| echo: true
+#| output: true
+
+mortality <- mortality %>%
+  mutate(date = as.Date(date))
+
+cat(sprintf("monthly_mortality_data: %d rows, %d cols\n", nrow(mortality), ncol(mortality)))
+cat(sprintf("Species: %s\n", paste(unique(mortality$species), collapse = ", ")))
+
+mortality %>%
+  select(median, q1, q3) %>%
+  my_skim()
+
+```
+
+The mortality dataset reports distributional summaries (median, Q1, Q3) of monthly mortality rates across farms within each region. This captures the *spread* of farm-level performance, not just the aggregate — a region's median might look acceptable while its Q3 reveals a long tail of struggling farms.
+
+# The Geography of Mortality
+
+Norway's aquaculture industry stretches along its western and northern coastline, from Agder in the south to Finnmark in the Arctic. But the fish don't die equally everywhere.
+
+## Regional mortality rankings
+
+```{r}
+#| label: regional-mortality-ranking
+#| echo: true
+#| output: true
+
+# Focus on salmon at the county level
+county_mortality <- mortality %>%
+  filter(geo_group == "county", species == "salmon") %>%
+  mutate(year = year(date))
+
+# Verify county names
+cat("Counties in mortality data:\n")
+print(sort(unique(county_mortality$region)))
+
+# Average mortality by county
+county_avg <- county_mortality %>%
+  group_by(region) %>%
+  summarise(
+    avg_median_mort = mean(median, na.rm = TRUE),
+    avg_q1 = mean(q1, na.rm = TRUE),
+    avg_q3 = mean(q3, na.rm = TRUE),
+    spread = mean(q3 - q1, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(avg_median_mort))
+
+cat(sprintf("\nCounty mortality ranking: %d counties\n", nrow(county_avg)))
+stopifnot("No county data found" = nrow(county_avg) > 0)
+
+county_avg
+
+```
+
+::: {.callout-important}
+## Regional note
+
+The mortality dataset uses combined regions for some counties (e.g., "Agder & Rogaland") that differ slightly from the losses dataset's individual county reporting. This is because mortality rates are computed per-farm within production zones, while absolute losses are tallied per administrative county.
+:::
+
+## Mortality distributions over time
+
+Let's look at how the *distribution* of mortality rates across farms has shifted year-by-year in each county. This is where ridgeline plots shine — they reveal whether the entire distribution is shifting, or whether improvements are concentrated at the top or bottom.
+
+```{r}
+#| label: mortality-ridges-by-county
+#| echo: true
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 9
+
+# Reshape mortality data: each row gives us median, q1, q3 for a county-month
+# We'll use the median values for ridgelines across months, grouped by year and county
+
+county_monthly <- mortality %>%
+  filter(geo_group == "county", species == "salmon") %>%
+  mutate(
+    year = factor(year(date)),
+    month = month(date)
+  )
+
+cat(sprintf("county_monthly: %d rows, %d cols\n", nrow(county_monthly), ncol(county_monthly)))
+stopifnot("county_monthly is empty" = nrow(county_monthly) > 0)
+
+# Order counties by overall median mortality (highest at top)
+county_order <- county_monthly %>%
+  group_by(region) %>%
+  summarise(avg_mort = mean(median, na.rm = TRUE), .groups = "drop") %>%
+  arrange(avg_mort) %>%
+  pull(region)
+
+county_monthly <- county_monthly %>%
+  mutate(region = factor(region, levels = county_order))
+
+# Palette check
+palette_log <- read.csv(here::here("posts", "palette-log.csv"))
+cat("Already used palettes:\n")
+print(palette_log$palette)
+
+p <- ggplot2::ggplot(
+  county_monthly,
+  ggplot2::aes(x = median, y = region, fill = region)
+) +
+  ggridges::geom_density_ridges(
+    scale = 1.4,
+    alpha = 0.85,
+    bandwidth = 0.08,
+    rel_min_height = 0.01,
+    color = "white",
+    linewidth = 0.3
+  ) +
+  paletteer::scale_fill_paletteer_d("PNWColors::Starfish") +
+  ggplot2::facet_wrap(~ year, nrow = 1) +
+  ggplot2::scale_x_continuous(
+    limits = c(0, 3),
+    breaks = seq(0, 3, 0.5),
+    labels = function(x) paste0(x, "%")
+  ) +
+  ggplot2::labs(
+    title = "Where Norway's Farmed Salmon Die",
+    subtitle = "Monthly median mortality rate distributions by county, 2020–2025",
+    x = "Monthly median mortality rate",
+    y = NULL,
+    caption = "Source: Norwegian Veterinary Institute (Laksetap) | TidyTuesday 2026-03-17"
+  ) +
+  ggplot2::theme_minimal(base_size = 13) +
+  ggplot2::theme(
+    legend.position = "none",
+    plot.title = ggtext::element_markdown(face = "bold", size = 18, margin = ggplot2::margin(b = 4)),
+    plot.subtitle = ggplot2::element_text(color = "grey40", size = 12, margin = ggplot2::margin(b = 12)),
+    plot.caption = ggplot2::element_text(color = "grey60", size = 9, hjust = 0),
+    strip.text = ggplot2::element_text(face = "bold", size = 12),
+    panel.grid.major.y = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank(),
+    axis.text.y = ggplot2::element_text(size = 10),
+    plot.margin = ggplot2::margin(15, 15, 10, 10)
+  )
+
+p
+
+```
+
+## Absolute losses by county
+
+The mortality *rate* tells one story, but absolute numbers tell another. A small county with a high rate may lose fewer fish than a massive production hub with a moderate rate.
+
+```{r}
+#| label: absolute-losses-by-county
+#| echo: true
+#| output: true
+
+county_losses <- losses %>%
+  filter(geo_group == "county", species == "salmon") %>%
+  mutate(
+    year = year(date),
+    # Combine Agder + Rogaland to match mortality data's grouping
+    region = case_when(
+      region %in% c("Agder", "Rogaland") ~ "Agder & Rogaland",
+      TRUE ~ region
+    )
+  ) %>%
+  # Drop Akershus (0 across all months)
+  filter(region != "Akershus")
+
+# Verify counties
+cat("Counties in losses data (after combining):\n")
+print(sort(unique(county_losses$region)))
+
+yearly_county <- county_losses %>%
+  group_by(region, year) %>%
+  summarise(
+    total_dead = sum(dead, na.rm = TRUE),
+    total_escaped = sum(escaped, na.rm = TRUE),
+    total_discarded = sum(discarded, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+cat(sprintf("\nyearly_county: %d rows\n", nrow(yearly_county)))
+stopifnot("yearly_county is empty" = nrow(yearly_county) > 0)
+
+# Overall totals
+yearly_county %>%
+  group_by(region) %>%
+  summarise(
+    total_dead_millions = round(sum(total_dead) / 1e6, 1),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_dead_millions))
+
+```
+
+## Year-over-year trends
+
+```{r}
+#| label: yearly-trend-lines
+#| echo: true
+#| message: false
+#| warning: false
+#| fig.width: 11
+#| fig.height: 7
+
+# Order counties by total dead (most at top)
+loss_order <- county_losses %>%
+  group_by(region) %>%
+  summarise(total = sum(dead, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(total)) %>%
+  pull(region)
+
+yearly_county_plot <- yearly_county %>%
+  mutate(
+    region = factor(region, levels = loss_order),
+    dead_millions = total_dead / 1e6
+  )
+
+cat(sprintf("yearly_county_plot: %d rows\n", nrow(yearly_county_plot)))
+stopifnot("yearly_county_plot is empty" = nrow(yearly_county_plot) > 0)
+
+p2 <- ggplot2::ggplot(
+  yearly_county_plot,
+  ggplot2::aes(x = year, y = dead_millions, color = region, group = region)
+) +
+  ggplot2::geom_line(linewidth = 1.2, alpha = 0.8) +
+  ggplot2::geom_point(size = 2.5, alpha = 0.9) +
+  ggrepel::geom_text_repel(
+    data = yearly_county_plot %>% filter(year == max(year)),
+    ggplot2::aes(label = region),
+    nudge_x = 0.3,
+    direction = "y",
+    hjust = 0,
+    size = 3.5,
+    segment.size = 0.3,
+    segment.color = "grey70"
+  ) +
+  paletteer::scale_color_paletteer_d("PNWColors::Starfish") +
+  ggplot2::scale_x_continuous(
+    breaks = 2020:2025,
+    limits = c(2020, 2026.2)
+  ) +
+  ggplot2::scale_y_continuous(labels = function(x) paste0(x, "M")) +
+  ggplot2::labs(
+    title = "Annual Salmon Deaths by County",
+    subtitle = "Vestland leads in absolute losses, but most counties show declining trends since 2023",
+    x = NULL,
+    y = "Fish deaths (millions)",
+    caption = "Source: Norwegian Veterinary Institute (Laksetap) | TidyTuesday 2026-03-17"
+  ) +
+  ggplot2::theme_minimal(base_size = 13) +
+  ggplot2::theme(
+    legend.position = "none",
+    plot.title = ggtext::element_markdown(face = "bold", size = 17),
+    plot.subtitle = ggplot2::element_text(color = "grey40", size = 11, margin = ggplot2::margin(b = 10)),
+    plot.caption = ggplot2::element_text(color = "grey60", size = 9, hjust = 0),
+    panel.grid.minor = ggplot2::element_blank()
+  )
+
+p2
+
+```
+
+## The gap between best and worst
+
+```{r}
+#| label: iqr-spread
+#| echo: true
+#| message: false
+#| warning: false
+#| fig.width: 11
+#| fig.height: 7
+
+# Show the IQR (Q1 to Q3) spread by county over time
+# This captures farm-level inequality within regions
+
+county_spread <- mortality %>%
+  filter(geo_group == "county", species == "salmon") %>%
+  mutate(
+    year = year(date),
+    iqr = q3 - q1
+  ) %>%
+  group_by(region, year) %>%
+  summarise(
+    avg_median = mean(median, na.rm = TRUE),
+    avg_q1 = mean(q1, na.rm = TRUE),
+    avg_q3 = mean(q3, na.rm = TRUE),
+    avg_iqr = mean(iqr, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+cat(sprintf("county_spread: %d rows\n", nrow(county_spread)))
+stopifnot("county_spread is empty" = nrow(county_spread) > 0)
+
+# Sanity check
+if (length(unique(county_spread$avg_iqr)) == 1) {
+  warning("All IQR values are identical — check grouping logic")
+}
+
+p3 <- ggplot2::ggplot(
+  county_spread,
+  ggplot2::aes(x = year, y = avg_median, ymin = avg_q1, ymax = avg_q3,
+               fill = region, color = region)
+) +
+  ggplot2::geom_ribbon(alpha = 0.2, color = NA) +
+  ggplot2::geom_line(linewidth = 1) +
+  ggplot2::geom_point(size = 1.5) +
+  ggplot2::facet_wrap(~ region, ncol = 2) +
+  paletteer::scale_fill_paletteer_d("PNWColors::Starfish") +
+  paletteer::scale_color_paletteer_d("PNWColors::Starfish") +
+  ggplot2::scale_y_continuous(labels = function(x) paste0(x, "%")) +
+  ggplot2::scale_x_continuous(breaks = c(2020, 2022, 2024)) +
+  ggplot2::labs(
+    title = "Mortality Rate Spread Across Norwegian Counties",
+    subtitle = "Ribbon shows Q1–Q3 range of farm-level mortality; line is the median.\nWider ribbons = more inequality between best and worst farms in that county.",
+    x = NULL,
+    y = "Monthly mortality rate",
+    caption = "Source: Norwegian Veterinary Institute (Laksetap) | TidyTuesday 2026-03-17"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    legend.position = "none",
+    plot.title = ggtext::element_markdown(face = "bold", size = 16),
+    plot.subtitle = ggplot2::element_text(color = "grey40", size = 10, margin = ggplot2::margin(b = 10)),
+    plot.caption = ggplot2::element_text(color = "grey60", size = 9, hjust = 0),
+    strip.text = ggplot2::element_text(face = "bold", size = 11),
+    panel.grid.minor = ggplot2::element_blank()
+  )
+
+p3
+
+```
+
+::: {.callout-note}
+## Reading the spread
+
+A county where the IQR ribbon is narrow has farms performing similarly — good or bad, they're consistent. A wide ribbon means some farms in that county are doing well while others are hemorrhaging fish. Policy interventions might focus differently: narrow-and-high counties need systemic change, while wide-ribbon counties need to bring their worst performers up to the level of their best.
+:::
+
+## Salmon vs. rainbow trout
+
+```{r}
+#| label: species-comparison
+#| echo: true
+#| output: true
+
+# Country-level comparison
+species_compare <- mortality %>%
+  filter(geo_group == "country") %>%
+  mutate(year = year(date)) %>%
+  group_by(species, year) %>%
+  summarise(
+    avg_median = round(mean(median, na.rm = TRUE), 3),
+    .groups = "drop"
+  ) %>%
+  pivot_wider(names_from = species, values_from = avg_median)
+
+cat("Annual median mortality rates (country-level):\n")
+species_compare
+
+```
+
+Rainbow trout consistently shows higher median mortality rates than salmon, despite being a much smaller share of Norwegian aquaculture production. The trout industry may face different biological pressures or have less operational investment in mortality reduction.
+
+# Final thoughts and takeaways
+
+**Vestland is the epicenter.** With 83 million salmon deaths over six years and the highest average mortality rate (0.80%), Vestland stands apart. It's also Norway's largest salmon-producing county, so some of this is scale — but the *rate* being highest suggests structural challenges beyond just volume.
+
+**2023 was the turning point — maybe.** National salmon deaths peaked at 62.8 million in 2023 and declined in 2024–2025. Several counties show similar patterns. Whether this reflects genuine policy impact from Norway's aquaculture reforms or just cyclical variation will take more years to confirm.
+
+**The IQR tells the real story.** Average mortality rates can mask enormous variation between farms within the same county. Vestland's wide Q1–Q3 spread suggests that some farms there have cracked the code while others haven't — a more targeted intervention strategy could focus on knowledge transfer rather than blanket regulation.
+
+**The North does better.** Troms and Nordland consistently show the lowest mortality rates and narrowest spreads. Colder waters, lower sea lice pressure, or simply more space between farms may all contribute. As the industry considers Arctic expansion, these mortality advantages are part of the calculus.
+
+**338 million dead salmon in six years** is a staggering number by any measure. Norway's ambition to grow its aquaculture industry while reducing mortality is one of the more concrete sustainability challenges in global food production — and this data makes it clear where the hardest work remains.
+
+```{r}
+#| label: palette-log-update
+#| echo: false
+#| output: false
+
+# Log palettes used in this post
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log <- read.csv(palette_log_path)
+
+new_entries <- data.frame(
+  post_date = "2026-03-21",
+  palette = "Starfish",
+  package = "PNWColors",
+  type = "discrete"
+)
+
+for (i in seq_len(nrow(new_entries))) {
+  if (!any(palette_log$post_date == new_entries$post_date[i] &
+           palette_log$palette == new_entries$palette[i])) {
+    write.table(
+      new_entries[i, ],
+      palette_log_path,
+      append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+    )
+  }
+}
+
+```

@@ -12,12 +12,54 @@
 #
 set -euo pipefail
 
+# Windows-compatible timeout for Claude invocations.
+# On MINGW64, coreutils `timeout` doesn't kill child process trees.
+# This function runs the command in the background, sets a watchdog timer,
+# and uses taskkill /T to kill the entire process tree on timeout.
+# Returns 124 on timeout (matching coreutils timeout convention).
+#
+# Usage: run_claude_with_timeout <seconds> <claude_args...>
+# Redirections must be passed as part of the arguments or applied by caller.
+run_claude_with_timeout() {
+  local limit=$1
+  shift
+
+  set +e  # Disable errexit for background process management
+
+  env CLAUDECODE= "$@" >>"$LOG_FILE" 2>&1 &
+  local cmd_pid=$!
+
+  (
+    sleep "$limit"
+    # Kill the entire process tree on Windows
+    taskkill //PID $cmd_pid //T //F >/dev/null 2>&1 || kill $cmd_pid 2>/dev/null
+  ) &
+  local watchdog_pid=$!
+
+  wait $cmd_pid 2>/dev/null
+  local exit_code=$?
+
+  # Cancel the watchdog if the command finished before the timeout
+  kill $watchdog_pid 2>/dev/null
+  wait $watchdog_pid 2>/dev/null || true
+
+  # If the command was killed by signal, treat as timeout
+  if [[ $exit_code -eq 137 || $exit_code -eq 143 ]]; then
+    exit_code=124
+  fi
+
+  # Store exit code for caller to read via $?
+  # NOTE: Do NOT re-enable set -e here — the caller handles it.
+  # set -e + return N (N!=0) would kill the script.
+  return $exit_code
+}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 MANIFEST="$PROJECT_DIR/tasks/week_manifest.json"
 POSTS_DIR="$PROJECT_DIR/posts"
 LOG_FILE="$PROJECT_DIR/tasks/backfill-log.txt"
-RSCRIPT="C:\Program Files\R\R-4.5.1\bin\Rscript.exe"
+RSCRIPT="C:/Program Files/R/R-4.5.1/bin/Rscript.exe"
 VALIDATE_SCRIPT="$PROJECT_DIR/scripts/validate_post.R"
 
 DRY_RUN=false
@@ -181,44 +223,21 @@ PROMPT
   # Run claude in print mode with permissions bypassed for automation
   # In verbose mode, stream JSON events and extract tool-use progress;
   # otherwise capture quietly (heartbeat provides liveness)
-  if [[ "$VERBOSE" == "true" ]]; then
-    echo "  ---- Claude trace ----"
-    # Stream JSON events and extract a readable progress trace
-    CLAUDECODE= claude -p \
-      --dangerously-skip-permissions \
-      --model sonnet \
-      --output-format stream-json \
-      --allowedTools "Bash Edit Read Write Glob Grep Skill WebFetch WebSearch" \
-      --max-budget-usd 1.50 \
-      "$prompt" \
-      2>>"$LOG_FILE" \
-    | stdbuf -oL jq -r --unbuffered '
-        if .type == "assistant" and .subtype == "tool_use" then
-          "  [tool] \(.tool_name // "unknown"): \(.tool_input_preview // .tool_input.command // .tool_input.pattern // .tool_input.file_path // "" | tostring | .[0:120])"
-        elif .type == "result" then
-          "  [done] cost=$\(.cost_usd // "?") duration=\(.duration_ms // "?")"
-        else empty end
-      ' 2>/dev/null \
-    | tee -a "$LOG_FILE"
-    claude_exit=${PIPESTATUS[0]}
-    echo "  ---- end Claude trace ----"
-  else
-    if CLAUDECODE= claude -p \
-      --dangerously-skip-permissions \
-      --model sonnet \
-      --allowedTools "Bash Edit Read Write Glob Grep Skill WebFetch WebSearch" \
-      --max-budget-usd 1.50 \
-      "$prompt" \
-      2>>"$LOG_FILE" 1>/dev/null; then
-      claude_exit=0
-    else
-      claude_exit=$?
-    fi
-  fi
+  # Note: --verbose flag is ignored on Windows/MINGW64 — the stream-json
+  # pipe approach doesn't work with background process timeouts.
+  # All runs use the same quiet mode with heartbeat for liveness.
+  claude_exit=0
+  run_claude_with_timeout 720 claude -p \
+    --dangerously-skip-permissions \
+    --model sonnet \
+    --allowedTools "Bash Edit Read Write Glob Grep Skill WebFetch WebSearch" \
+    --max-budget-usd 2.50 \
+    "$prompt" || claude_exit=$?
+  set -e
 
   # Stop the heartbeat
   kill $heartbeat_pid 2>/dev/null
-  wait $heartbeat_pid 2>/dev/null
+  wait $heartbeat_pid 2>/dev/null || true
 
   elapsed=$(( $(date +%s) - start_ts ))
   elapsed_fmt="$(( elapsed / 60 ))m $(( elapsed % 60 ))s"
@@ -232,7 +251,11 @@ PROMPT
 
       # US-006: Render validation — verify the post actually builds
       echo "  Rendering post to validate..."
-      if ! quarto render "$POSTS_DIR/$post_slug/$post_slug.qmd" 2>>"$LOG_FILE"; then
+      set +e
+      quarto render "$POSTS_DIR/$post_slug/$post_slug.qmd" --no-clean 2>>"$LOG_FILE"
+      render_exit=$?
+      set -e
+      if [[ $render_exit -ne 0 ]]; then
         echo "  RENDER FAIL: Post created but doesn't render cleanly"
         echo "  RENDER-FAIL $week_date $dataset_name" >> "$LOG_FILE"
         failed=$((failed + 1))
@@ -303,17 +326,14 @@ HEAL
         echo "  Invoking healing retry... (started $(date +%H:%M:%S))"
 
         # Run healing attempt (reuse same claude invocation pattern)
-        if CLAUDECODE= claude -p \
+        heal_claude_exit=0
+        run_claude_with_timeout 720 claude -p \
           --dangerously-skip-permissions \
           --model sonnet \
           --allowedTools "Bash Edit Read Write Glob Grep Skill WebFetch WebSearch" \
-          --max-budget-usd 1.50 \
-          "$heal_prompt" \
-          2>>"$LOG_FILE" 1>/dev/null; then
-          heal_claude_exit=0
-        else
-          heal_claude_exit=$?
-        fi
+          --max-budget-usd 2.50 \
+          "$heal_prompt" || heal_claude_exit=$?
+        set -e
 
         heal_elapsed=$(( $(date +%s) - heal_start_ts ))
         echo "  Healing attempt finished in $((heal_elapsed / 60))m $((heal_elapsed % 60))s (exit $heal_claude_exit)"

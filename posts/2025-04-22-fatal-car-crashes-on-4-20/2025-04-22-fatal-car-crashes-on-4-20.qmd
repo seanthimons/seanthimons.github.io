@@ -1,0 +1,554 @@
+---
+title: "Tidy Tuesday: Fatal Car Crashes on 4/20"
+author: "Sean Thimons"
+date: "2025-04-22"
+description: "A replication of Harper & Palayew (2019): the 4/20 cannabis holiday shows no reliable signal in fatal crash data, but July 4th does. Analytical choices matter."
+categories: [tidytuesday, R, traffic safety, public health, cannabis, epidemiology]
+---
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-04-22).
+
+> This dataset explores whether a correlation exists between fatal vehicle accidents in the United States and the "4/20 holiday" (4:20pm to 11:59pm on April 20th). It draws from research by Harper and Palayew (2019) which contradicted earlier findings by Staples and Redelmeier (2018). While the earlier study suggested a strong link between 4/20 and fatal crashes, Harper and Palayew's more comprehensive analysis "could not find a signal for 4/20, but could for other holidays, such as July 4."
+
+In 2018, Staples and Redelmeier published a *JAMA Internal Medicine* paper claiming a ~12% surge in fatal crashes during the 4:20pm–11:59pm window on April 20th. The headline wrote itself. The following year, Harper and Palayew systematically dismantled that finding using 25 years of FARS data and day-of-week-matched controls — and found nothing. The rebuttal never quite got the same headlines. That asymmetry is itself worth examining.
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',
+    'ggtext',
+    'ggrepel',
+    'patchwork',
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom helpers ----
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n        = length,
+      min      = ~ min(.x, na.rm = T),
+      p25      = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med      = ~ median(.x, na.rm = T),
+      p75      = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max      = ~ max(.x, na.rm = T),
+      mean     = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd       = ~ stats::sd(., na.rm = TRUE),
+      hist     = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-04-22')
+
+# Use [[ ]] to avoid partial matching on the tt_dataset_table_list class
+daily_accidents     <- raw[["daily_accidents"]]     %>% janitor::clean_names()
+daily_accidents_420 <- raw[["daily_accidents_420"]] %>% janitor::clean_names()
+
+# The time-of-day dataset (d420 flag across all days) — load directly from
+# the TidyTuesday GitHub source as a fallback if tt_load doesn't expose it
+daily_accidents_time <- tryCatch(
+  raw[["daily_accidents_420_time"]] %>% janitor::clean_names(),
+  error = function(e) {
+    readr::read_csv(
+      paste0(
+        "https://raw.githubusercontent.com/rfordatascience/",
+        "tidytuesday/main/data/2025/2025-04-22/daily_accidents_420_time.csv"
+      ),
+      show_col_types = FALSE
+    )
+  }
+)
+
+cat("Loaded datasets:", "daily_accidents", nrow(daily_accidents), "rows |",
+    "daily_accidents_420", nrow(daily_accidents_420), "rows |",
+    "daily_accidents_time", nrow(daily_accidents_time), "rows\n")
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function provides count, min, p25, median, p75, max, mean, geometric mean, standard deviation, and an ASCII histogram for each numeric column.
+
+## Daily accidents (full series)
+
+```{r}
+#| label: eda-daily-accidents
+
+daily_accidents %>%
+  mutate(year = lubridate::year(date), yday = lubridate::yday(date)) %>%
+  select(-date) %>%
+  my_skim()
+
+cat(sprintf(
+  "Date range: %s to %s (%d years)\n",
+  min(daily_accidents$date),
+  max(daily_accidents$date),
+  length(unique(lubridate::year(daily_accidents$date)))
+))
+```
+
+The full series covers 25 years of FARS data. Mean daily fatalities hover around 100–110, with strong seasonality: summer months and major holidays push counts higher. The histogram shows a roughly symmetric distribution with a modest right tail from outlier-heavy days.
+
+## Daily accidents with 4/20 flag
+
+```{r}
+#| label: eda-daily-420
+
+daily_accidents_420 %>%
+  select(-date) %>%
+  my_skim()
+
+daily_accidents_420 %>% count(e420)
+```
+
+The `e420` flag marks the 4:20pm–11:59pm window specifically on April 20th. Most years contribute one flagged day, giving us ~25 observations of the "4/20 event" — already a warning sign about statistical power for the original study.
+
+## Daily accidents with 4:20pm time flag (any day)
+
+```{r}
+#| label: eda-daily-time
+
+daily_accidents_time %>%
+  select(-date) %>%
+  my_skim()
+
+daily_accidents_time %>% count(d420)
+```
+
+The `d420` flag marks the same evening time window on *any* calendar day. This is the denominator Harper & Palayew used to ask: is the 4:20pm–11:59pm window on April 20th actually different from the same window on other days?
+
+# Is 4/20 Actually Dangerous? Replicating Harper & Palayew
+
+The core claim of the original 2018 paper was a ~12% excess in fatal crashes during the 4:20pm–11:59pm window on April 20th. Harper and Palayew's 2019 replication found no such signal when:
+
+1. A longer time series is used (25 years vs. ~5)
+2. Control days are matched by day of week rather than adjacent calendar days
+3. July 4th, New Year's, and other true "drinking holidays" serve as comparison points
+
+Here, I'll replicate the comparison approach: build holiday indicators for major US holidays, then compare each holiday's typical fatality count to a non-holiday baseline.
+
+## Building the holiday comparison framework
+
+```{r}
+#| label: holiday-framework
+
+# Helper functions for variable-date US holidays
+thanksgiving <- function(year) {
+  nov1      <- lubridate::ymd(paste0(year, "-11-01"))
+  first_thu <- nov1 + lubridate::days((5 - lubridate::wday(nov1)) %% 7)
+  first_thu + lubridate::weeks(3)
+}
+
+memorial_day <- function(year) {
+  may31        <- lubridate::ymd(paste0(year, "-05-31"))
+  days_to_sub  <- (lubridate::wday(may31) - 2) %% 7
+  may31 - lubridate::days(days_to_sub)
+}
+
+labor_day <- function(year) {
+  sep1        <- lubridate::ymd(paste0(year, "-09-01"))
+  days_to_add <- (2 - lubridate::wday(sep1)) %% 7
+  sep1 + lubridate::days(days_to_add)
+}
+
+years_in_data <- lubridate::year(daily_accidents$date) %>% unique() %>% sort()
+
+holiday_dates <- tibble(year = years_in_data) %>%
+  mutate(
+    new_years_day = lubridate::ymd(paste0(year, "-01-01")),
+    new_years_eve = lubridate::ymd(paste0(year, "-12-31")),
+    april_20      = lubridate::ymd(paste0(year, "-04-20")),
+    memorial_day  = memorial_day(year),
+    july_4        = lubridate::ymd(paste0(year, "-07-04")),
+    labor_day     = labor_day(year),
+    halloween     = lubridate::ymd(paste0(year, "-10-31")),
+    thanksgiving  = thanksgiving(year),
+    christmas     = lubridate::ymd(paste0(year, "-12-25"))
+  ) %>%
+  pivot_longer(-year, names_to = "holiday", values_to = "date")
+
+holiday_labels_lookup <- c(
+  new_years_day = "New Year's Day",
+  new_years_eve = "New Year's Eve",
+  april_20      = "April 20 (4/20)",
+  memorial_day  = "Memorial Day",
+  july_4        = "July 4th",
+  labor_day     = "Labor Day",
+  halloween     = "Halloween",
+  thanksgiving  = "Thanksgiving",
+  christmas     = "Christmas"
+)
+
+holiday_dates <- holiday_dates %>%
+  mutate(holiday_label = holiday_labels_lookup[holiday])
+
+cat(sprintf(
+  "Holiday lookup: %d rows across %d years, %d unique holidays\n",
+  nrow(holiday_dates),
+  length(years_in_data),
+  n_distinct(holiday_dates$holiday)
+))
+```
+
+## Computing holiday excess vs. baseline
+
+```{r}
+#| label: holiday-join
+
+crashes_with_holidays <- daily_accidents %>%
+  left_join(
+    holiday_dates %>% dplyr::select(date, holiday, holiday_label),
+    by = "date"
+  ) %>%
+  mutate(
+    is_holiday    = !is.na(holiday),
+    holiday_label = if_else(is_holiday, holiday_label, "Non-holiday")
+  )
+
+# Baseline: mean daily fatalities on non-holiday days
+baseline_mean <- crashes_with_holidays %>%
+  filter(!is_holiday) %>%
+  summarise(mean_fat = mean(fatalities_count, na.rm = TRUE)) %>%
+  pull(mean_fat)
+
+cat(sprintf("Non-holiday baseline: %.1f fatalities/day\n", baseline_mean))
+
+# Per-holiday summary
+holiday_summary <- crashes_with_holidays %>%
+  filter(is_holiday) %>%
+  group_by(holiday, holiday_label) %>%
+  summarise(
+    n_obs      = n(),
+    mean_fat   = mean(fatalities_count, na.rm = TRUE),
+    median_fat = median(fatalities_count, na.rm = TRUE),
+    se_fat     = sd(fatalities_count, na.rm = TRUE) / sqrt(n()),
+    ci_low     = mean_fat - 1.96 * se_fat,
+    ci_high    = mean_fat + 1.96 * se_fat,
+    .groups    = "drop"
+  ) %>%
+  mutate(
+    excess         = mean_fat - baseline_mean,
+    pct_excess     = (mean_fat - baseline_mean) / baseline_mean * 100,
+    excess_ci_low  = ci_low  - baseline_mean,
+    excess_ci_high = ci_high - baseline_mean,
+    highlight      = case_when(
+      holiday == "april_20" ~ "April 20 (4/20)",
+      holiday == "july_4"   ~ "July 4th",
+      TRUE                  ~ "Other Holidays"
+    )
+  )
+
+cat(sprintf("Holiday summary: %d rows\n", nrow(holiday_summary)))
+stopifnot("Expected 9 holiday rows" = nrow(holiday_summary) == 9)
+
+# Sanity check: pct_excess should vary across holidays
+if (length(unique(round(holiday_summary$pct_excess, 1))) == 1) {
+  warning("All pct_excess values are identical — check grouping logic")
+}
+
+holiday_summary %>%
+  dplyr::select(holiday_label, n_obs, mean_fat, excess, pct_excess) %>%
+  arrange(desc(pct_excess))
+```
+
+::: {.callout-note}
+**About the baseline**: The baseline is mean daily fatalities on all non-holiday days across the full study period (~330 days/year × 25 years ≈ 8,000+ observations). This gives a stable estimate of a "typical" day, against which each holiday's excess is measured.
+:::
+
+## The headline result: July 4th, not 4/20
+
+```{r}
+#| label: hero-holiday-comparison
+#| fig.width: 10
+#| fig.height: 7
+#| message: false
+#| warning: false
+
+# Pull from rcartocolor::Vivid palette
+vivid_cols   <- paletteer::paletteer_d("rcartocolor::Vivid")
+col_july4    <- as.character(vivid_cols[10])  # red-orange
+col_420      <- as.character(vivid_cols[3])   # teal
+col_other    <- as.character(vivid_cols[12])  # muted gray
+
+# July 4 pct for inline annotation
+july4_pct <- holiday_summary %>%
+  filter(holiday == "july_4") %>%
+  pull(pct_excess) %>%
+  round(0)
+
+plot_data <- holiday_summary %>%
+  mutate(holiday_label = forcats::fct_reorder(holiday_label, excess))
+
+p <- ggplot2::ggplot(
+  plot_data,
+  ggplot2::aes(x = excess, y = holiday_label, color = highlight)
+) +
+  # Baseline reference line
+  ggplot2::geom_vline(
+    xintercept = 0, linetype = "dashed",
+    color = "#555555", linewidth = 0.6
+  ) +
+  # CI segments
+  ggplot2::geom_segment(
+    ggplot2::aes(
+      x    = excess_ci_low,
+      xend = excess_ci_high,
+      y    = holiday_label,
+      yend = holiday_label
+    ),
+    linewidth = 1.5, alpha = 0.35
+  ) +
+  # Points
+  ggplot2::geom_point(size = 5) +
+  # Percent excess labels to the right of each CI
+  ggplot2::geom_text(
+    ggplot2::aes(
+      label = sprintf("%+.0f%%", pct_excess),
+      x     = excess_ci_high
+    ),
+    hjust = -0.3, size = 3.6, fontface = "bold",
+    show.legend = FALSE
+  ) +
+  # Color scale
+  ggplot2::scale_color_manual(
+    values = c(
+      "April 20 (4/20)" = col_420,
+      "July 4th"        = col_july4,
+      "Other Holidays"  = col_other
+    ),
+    name = NULL
+  ) +
+  ggplot2::scale_x_continuous(
+    breaks = seq(-30, 60, by = 10),
+    labels = function(x) sprintf("%+d", x),
+    expand = ggplot2::expansion(mult = c(0.05, 0.25))
+  ) +
+  ggplot2::labs(
+    title    = "**July 4th kills. 4/20 doesn't** — at least not more than any other day.",
+    subtitle = paste0(
+      "Mean excess fatal crashes per day vs. non-holiday baseline (",
+      round(baseline_mean, 1), " fatalities/day). ",
+      "Error bars show 95% CIs across ", length(years_in_data),
+      " years of FARS data (1992\u20132016)."
+    ),
+    x       = "Excess fatalities vs. non-holiday baseline",
+    y       = NULL,
+    caption = "Source: Harper & Palayew (2019), FARS | TidyTuesdayR 2025-04-22"
+  ) +
+  ggplot2::theme_minimal(base_size = 13) +
+  ggplot2::theme(
+    plot.title         = ggtext::element_markdown(
+      size = 16, margin = ggplot2::margin(b = 6)
+    ),
+    plot.subtitle      = ggplot2::element_text(
+      color = "#555555", size = 11, lineheight = 1.35,
+      margin = ggplot2::margin(b = 18)
+    ),
+    plot.caption       = ggplot2::element_text(
+      color = "#888888", size = 9, hjust = 0
+    ),
+    panel.grid.major.y = ggplot2::element_blank(),
+    panel.grid.minor   = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_line(color = "#e8e8e8"),
+    legend.position    = "top",
+    legend.text        = ggplot2::element_text(size = 11),
+    axis.text.y        = ggplot2::element_text(size = 11.5),
+    plot.margin        = ggplot2::margin(16, 30, 16, 16)
+  )
+
+p
+```
+
+::: {.callout-important}
+**Key finding**: July 4th shows roughly **`r july4_pct`%** excess fatality risk compared to the non-holiday baseline — among the highest of any day in the US calendar. April 20th, meanwhile, sits well within the range of ordinary days. The 4/20 "effect" evaporates when you use a long time series and appropriate controls.
+:::
+
+## Annual pattern: fatalities across the calendar year
+
+```{r}
+#| label: annual-pattern
+#| fig.width: 12
+#| fig.height: 5
+#| message: false
+#| warning: false
+
+yday_avg <- daily_accidents %>%
+  mutate(yday = lubridate::yday(date)) %>%
+  group_by(yday) %>%
+  summarise(
+    mean_fat = mean(fatalities_count, na.rm = TRUE),
+    sd_fat   = sd(fatalities_count, na.rm = TRUE),
+    n_fat    = n(),
+    se_fat   = sd_fat / sqrt(n_fat),
+    ci_low   = mean_fat - 1.96 * se_fat,
+    ci_high  = mean_fat + 1.96 * se_fat,
+    .groups  = "drop"
+  )
+
+cat(sprintf("Day-of-year averages: %d rows\n", nrow(yday_avg)))
+stopifnot("Should have at least 360 day-of-year rows" = nrow(yday_avg) >= 360)
+
+# Key holiday markers by approximate day-of-year
+key_labels <- tibble(
+  yday  = c(1, 110, 148, 185, 247, 304, 359, 365),
+  label = c(
+    "Jan 1",
+    "Apr 20\n(4/20)",
+    "Memorial\nDay",
+    "Jul 4",
+    "Labor\nDay",
+    "Halloween",
+    "Christmas",
+    "Dec 31"
+  )
+) %>%
+  left_join(yday_avg, by = "yday")
+
+p2 <- ggplot2::ggplot(yday_avg, ggplot2::aes(x = yday, y = mean_fat)) +
+  ggplot2::geom_ribbon(
+    ggplot2::aes(ymin = ci_low, ymax = ci_high),
+    fill = col_other, alpha = 0.25
+  ) +
+  ggplot2::geom_line(color = as.character(vivid_cols[8]), linewidth = 0.85) +
+  ggplot2::geom_point(
+    data  = key_labels,
+    ggplot2::aes(x = yday, y = mean_fat),
+    color = col_july4, size = 3.5
+  ) +
+  ggrepel::geom_text_repel(
+    data              = key_labels,
+    ggplot2::aes(x = yday, y = mean_fat, label = label),
+    size              = 3, color = "#333333",
+    max.overlaps      = 20,
+    min.segment.length = 0.3,
+    seed              = 42,
+    lineheight        = 0.9
+  ) +
+  ggplot2::scale_x_continuous(
+    breaks = c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335),
+    labels = month.abb
+  ) +
+  ggplot2::labs(
+    title    = "Fatalities peak in summer and spike around major holidays",
+    subtitle = "Mean daily fatal crashes by day of year, averaged across 1992–2016. Shaded band = 95% CI.",
+    x        = NULL,
+    y        = "Mean daily fatalities",
+    caption  = "Source: FARS via Harper & Palayew (2019)"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title       = ggplot2::element_text(face = "bold", size = 14),
+    plot.subtitle    = ggplot2::element_text(color = "#555555", size = 11),
+    plot.caption     = ggplot2::element_text(color = "#888888", size = 9, hjust = 0),
+    panel.grid.minor = ggplot2::element_blank(),
+    plot.margin      = ggplot2::margin(16, 24, 16, 16)
+  )
+
+p2
+```
+
+The annual pattern surfaces two things: a clear summer surge (more driving, more exposure) and discrete spikes around the major drinking holidays. April 20th is invisible in this view — it doesn't register above the seasonal noise of mid-spring.
+
+# Final thoughts and takeaways
+
+The Harper & Palayew dataset is a clean case study in **how analytical choices manufacture conclusions**.
+
+The original 2018 finding wasn't fabricated — it was the product of a short time series (which amplifies random fluctuations), a poorly matched control group (comparing 4/20 to the adjacent Saturdays, which share similar baseline risk), and a narrow time window (4:20pm–11:59pm) that introduces researcher degrees of freedom. With only ~5 years of data and ~5 observations of the "4/20 event," you're essentially flipping a coin and calling it science.
+
+Harper and Palayew's approach was straightforward: use 25 years of FARS data, match control days by day-of-week, and compare April 20th to every other comparable day. The excess risk collapsed to zero. July 4th, meanwhile, remained robustly elevated across every methodological specification they tried. That's because the July 4th effect is real: alcohol sales spike, large outdoor events concentrate inexperienced or impaired drivers, and the effect replicates year after year.
+
+**The practical takeaway for data analysts**: power matters. Before claiming a pattern is real, ask whether your sample is large enough to distinguish it from noise, whether your control group actually controls for the things you think it does, and whether the same pattern appears when you change your analytical choices. If the conclusion only survives one specific framing, it probably isn't real.
+
+The media cycle didn't wait for the replication. It rarely does.
+
+```{r}
+#| label: palette-log
+#| include: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log      <- read.csv(palette_log_path)
+
+new_entry <- data.frame(
+  post_date = "2025-04-22",
+  palette   = "Vivid",
+  package   = "rcartocolor",
+  type      = "discrete"
+)
+
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append    = TRUE,
+    sep       = ",",
+    row.names = FALSE,
+    col.names = FALSE
+  )
+}
+```

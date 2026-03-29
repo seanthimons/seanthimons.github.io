@@ -1,0 +1,124 @@
+---
+title: "Sean Thimons"
+format:
+  pdf:
+    documentclass: article
+    geometry:
+      - margin=0.9cm
+    fontsize: 11pt
+    pagestyle: plain
+filters:
+  - _filters/multiple-bibliographies.lua
+bibliography_works: works.bib
+bibliography_ppp: ppp.bib
+nocite: '@*'
+csl: https://raw.githubusercontent.com/citation-style-language/styles/master/apa.csl
+---
+
+<!-- Corporate CV - render manually: quarto render _resume-corp.qmd -->
+
+::: {.center}
+[sxthimons@gmail.com](mailto:sxthimons@gmail.com) |
+[seanthimons.github.io](https://seanthimons.github.io) |
+[linkedin.com/in/seanthimons](https://www.linkedin.com/in/seanthimons/) |
+[ORCID: 0000-0002-3736-2529](https://orcid.org/0000-0002-3736-2529)
+:::
+
+## Professional Summary
+
+Highly analytical and results-oriented data professional with a Master of Science degree and over ten years of experience in data curation, advanced statistical analysis, predictive modeling, risk assessment, and developing user-facing applications (R Shiny, R Packages), with experience utilizing Generative AI for efficient data classification and summarization. Proven ability to architect, mine, analyze, and visualize complex datasets to inform critical decisions. Expertise in R (including package/Shiny development), SQL, statistical methods, and machine learning techniques.
+
+---
+
+## Technical Skills
+
+| Area | Details |
+|:-----|:--------|
+| **Programming & Databases** | R (Advanced proficiency, incl. Tidyverse, Shiny, Package Development), SQL, Python (Familiar), VBA, Database Architecture & Management (duckDB, SQLite) |
+| **Data Analysis & Modeling** | Statistical Analysis, Predictive Modeling, Machine Learning (Classification, Regression), Risk Characterization & Assessment, Cheminformatics, Data Mining & Curation |
+| **AI / Machine Learning** | Predictive Modeling, Classification, Regression, Generative AI / LLMs (Prompt Engineering, Text Classification, Summarization, Data Labeling via OpenAI API) |
+| **Visualization & Reporting** | R Shiny, ggplot2, Plotly, Quarto, Markdown, Data Storytelling |
+| **Software & Tools** | Git/GitHub, SPSS, Stata, ArcGIS/QGIS, MS Office Suite (Advanced Excel/VBA) |
+| **Methodologies & Practices** | Research Planning & Execution, Data Quality Assurance, Stakeholder Communication & Collaboration, Risk Communication, Technical Documentation (SOPs) |
+
+---
+
+## Professional Experience
+
+**Physical Scientist** [Jan 2025 -- Present]{.right}\
+US Environmental Protection Agency, Cincinnati, OH
+
+- Led data-informatics projects involving large-scale database curation, management, and analysis (e.g., *FracFocus*, >1M records) to characterize chemical compositions and spatio-temporal trends for risk assessment, leveraging NLP techniques and exploring Generative AI (LLMs) for automated text classification, data labeling, and generating high-level summaries of complex chemical information to accelerate risk assessment workflows.
+- Developed and maintain `ComptoxR`, an R package enabling programmatic access and analysis of EPA chemical data via APIs, facilitating rapid hazard screening, toxicological evaluation, and cheminformatics workflows.
+- Engineered `THREAT`, an R Shiny application integrating diverse datasets for rapid site/compound risk evaluation, source water criteria comparison, and prioritization, utilized by researchers and regional partners.
+- Applied advanced statistical methods and predictive modeling techniques for risk characterization to inform fit-for-purpose water use strategies.
+- Collaborated with inter-agency partners (DOE, USGS), regional stakeholders, and contractors on research planning and technical support, translating complex data into actionable insights.
+- Provided technical expertise on chemical/microbial risk assessment for projects including evaluation of produced water reuse, water reuse in food processing, and emerging contaminants in wastewater.
+- Developed front-end R Shiny applications incorporating machine learning models (e.g., using EJScreen data) for site prioritization and resource allocation.
+
+---
+
+**ORISE Research Fellow** [Sep 2021 -- Jan 2025]{.right}\
+US Environmental Protection Agency (via ORISE), Cincinnati, OH
+
+- Conducted foundational informatics work leading to the development of the `ComptoxR` package and `THREAT` Shiny application, focusing on data integration, API interaction, and user-interface design for rapid risk assessment.
+- Performed comprehensive data mining, cleaning, and analysis of large environmental datasets to identify patterns and inform risk models.
+- Created compelling data visualizations to communicate research findings and support decision-making for internal and external stakeholders.
+- Contributed to research planning, experimental design, and interpretation of results for multiple ORD projects.
+
+---
+
+**Data Scientist** (Volunteer) [Feb 2024 -- Present]{.right}\
+Strategies to End Homelessness, Inc. / Flywheel Social Enterprise Hub, Cincinnati, OH
+
+- Apply machine learning techniques (classification, regression, random forest) and statistical analysis to diverse datasets (survey, demographic, self-reported), including the application of Large Language Models (LLMs) via APIs (e.g., OpenAI) for classifying unstructured text data (survey responses, case notes), labeling sentiment, and generating thematic summaries to identify predictors and risk factors associated with homelessness.
+- Develop predictive models aimed at informing resource allocation, intervention strategies, and prevention efforts within the community.
+- Clean, integrate, and analyze sensitive data, presenting findings to non-technical stakeholders to support program development.
+
+---
+
+**Research Fellow / Graduate Research Assistant** [May 2020 -- Jun 2023]{.right}\
+Texas A&M University-San Antonio, San Antonio, TX
+
+- Conducted research focused on analyzing treatment efficacy for complex chemical mixtures (e.g., produced water, PFCAs/PFOAs) using novel techniques like advanced oxidation and solvation.
+- Performed data analysis using statistical methods on experimental results (TOC, ion-chromatography, wastewater characterization) to evaluate treatment performance.
+- Contributed to study design, data interpretation, and the development of new analytical techniques for water treatment assessment.
+- Assisted with laboratory management, including inventory, sample preparation, and development of Standard Operating Procedures (SOPs) for analytical equipment.
+
+---
+
+**Operation Supervisor** [Jul 2012 -- Oct 2021]{.right}\
+Marriott International, San Antonio, TX
+
+- Led and supervised a team, overseeing daily operations, scheduling, and performance management, fostering a collaborative team environment.
+- Authored operational reports, managed team communications (written and oral), and developed/updated standard procedure documentation.
+
+---
+
+## Education
+
+**Master of Science -- Water Resources, Science, and Technology** [2019 -- 2021]{.right}\
+Texas A&M University-San Antonio, San Antonio, TX
+
+- Thesis: Focused on statistical analysis and modeling of treatment efficacy for complex chemical mixtures using advanced oxidation and solvent extraction.
+- Coursework: Statistical Methods in Research (R), Pollutants in Environmental Systems, Advanced Wastewater Treatment, Groundwater Management, Data Analysis Techniques.
+
+---
+
+**Bachelor of Science -- Biology** [2016 -- 2019]{.right}\
+Texas A&M University-San Antonio, San Antonio, TX
+
+- Research Experience: Anthropogenic effects on aquatic populations, ecological field surveying, data collection, and analysis.
+- Relevant Coursework: Organic Chemistry I & II (with Lab), Statistics, Ecology.
+
+---
+
+## Selected Publications
+
+::: {#refs_works}
+:::
+
+## Presentations, Posters, and Panels
+
+::: {#refs_ppp}
+:::

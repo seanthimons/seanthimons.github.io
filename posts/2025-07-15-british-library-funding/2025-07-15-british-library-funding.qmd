@@ -1,0 +1,549 @@
+---
+title: "Tidy Tuesday: British Library Funding"
+author: "Sean Thimons"
+date: "2025-07-15"
+description: "Twenty-six years of British Library funding reveal a slow, sustained hollowing-out of government support — one that inflation makes far more dramatic than the nominal numbers suggest."
+categories: [tidytuesday, R, libraries, UK, funding, time-series, austerity]
+---
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-07-15).
+
+> This dataset examines British Library funding trends from 1998–2023, compiled by Andy Jackson and inspired by David Rosenthal's 2017 analysis documenting how "the inflation-adjusted income of the British Library fell between 1999 and 2016." The data covers total reported funding broken into five streams — government grant-in-aid, voluntary contributions, investment returns, service delivery income, and other sources — alongside inflation adjustments to Year 2000 GBP.
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages(
+      "pak",
+      repos = sprintf(
+        "https://r-lib.github.io/p/pak/stable/%s/%s/%s",
+        .Platform$pkgType,
+        R.Version()$os,
+        R.Version()$arch
+      )
+    )
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  booster_pack <- c(
+    ### IO ----
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+
+    ### EDA ----
+    'skimr',
+
+    ### Plot ----
+    'paletteer',           # Color palette collection
+    'patchwork',           # Multi-panel layouts
+    'ggrepel',             # Non-overlapping labels
+    'ggtext',              # Rich text in ggplot
+    'lisa',                # Artist-derived palettes (J.M.W. Turner)
+
+    ### Misc ----
+    'tidytuesdayR'
+  )
+
+  install_booster_pack(package = booster_pack, load = TRUE)
+  rm(install_booster_pack, booster_pack)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-07-15')
+
+bl_funding <- raw$bl_funding %>%
+  janitor::clean_names()
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse, the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## bl_funding
+
+```{r}
+#| label: eda-bl-funding
+#| echo: true
+#| output: true
+
+# Drop free-text / redundant columns before skimming
+bl_funding %>%
+  select(-year_2000_gbp_millions) %>%  # Rosenthal historical column — sparse overlap
+  my_skim()
+```
+
+```{r}
+#| label: eda-counts
+#| echo: true
+
+# Verify actual year range and row count
+cat(sprintf("bl_funding: %d rows, %d cols\n", nrow(bl_funding), ncol(bl_funding)))
+cat(sprintf("Year range: %d – %d\n", min(bl_funding$year), max(bl_funding$year)))
+
+# Inspect the percentage_of_y2000_income column — key summary metric
+bl_funding %>%
+  select(year, total_y2000_gbp_millions, percentage_of_y2000_income, gia_as_percent_of_peak_gia) %>%
+  print(n = 26)
+```
+
+The dataset spans 26 annual report years (1998–2023, where `year` denotes the start of the financial year). The pre-computed `percentage_of_y2000_income` column shows total funding as a proportion of the year-2000 baseline — making the story immediately legible: the British Library has been steadily losing real purchasing power since roughly 2009. The `gia_as_percent_of_peak_gia` column tells an even starker story about government grant-in-aid specifically.
+
+::: {.callout-note}
+**What is Grant-in-Aid?** Grant-in-Aid (GIA) is the UK government's core annual subsidy to the British Library, channelled through the Department for Culture, Media and Sport (DCMS). It accounts for the majority of the Library's income and funds basic operations — staffing, collections maintenance, digitisation, and public access.
+:::
+
+# Austerity in the Stacks
+
+The headline finding from this dataset is not complex: government support for the British Library, once you strip away the fiction of nominal growth, has been cut persistently and deeply. But the composition story — *how* the funding mix has shifted as GIA has retreated — adds important texture.
+
+## Nominal vs. Real: The Inflation Illusion
+
+```{r}
+#| label: nominal-vs-real
+#| echo: true
+#| output: true
+#| message: false
+#| warning: false
+
+# Build a comparison of nominal vs. inflation-adjusted total funding
+funding_comparison <- bl_funding %>%
+  select(year, nominal_gbp_millions, total_y2000_gbp_millions) %>%
+  pivot_longer(
+    cols = c(nominal_gbp_millions, total_y2000_gbp_millions),
+    names_to = "measure",
+    values_to = "gbp_millions"
+  ) %>%
+  mutate(
+    measure = case_when(
+      measure == "nominal_gbp_millions" ~ "Nominal GBP",
+      measure == "total_y2000_gbp_millions" ~ "Inflation-adjusted (Year 2000 GBP)"
+    )
+  )
+
+cat(sprintf("funding_comparison: %d rows, %d cols\n", nrow(funding_comparison), ncol(funding_comparison)))
+stopifnot("Plot data has 0 rows" = nrow(funding_comparison) > 0)
+
+# Check both measures are present
+stopifnot("Missing measure levels" = length(unique(funding_comparison$measure)) == 2)
+
+p_nominal <- ggplot2::ggplot(
+  funding_comparison,
+  ggplot2::aes(x = year, y = gbp_millions, color = measure, linetype = measure)
+) +
+  ggplot2::geom_line(linewidth = 1.2) +
+  ggplot2::geom_point(size = 2.5) +
+  ggplot2::scale_color_manual(
+    values = c(
+      "Nominal GBP" = "#8B7355",
+      "Inflation-adjusted (Year 2000 GBP)" = "#2C4770"
+    )
+  ) +
+  ggplot2::scale_linetype_manual(
+    values = c("Nominal GBP" = "dashed", "Inflation-adjusted (Year 2000 GBP)" = "solid")
+  ) +
+  ggplot2::scale_y_continuous(labels = scales::label_dollar(prefix = "£", suffix = "M")) +
+  ggplot2::scale_x_continuous(breaks = seq(1998, 2023, by = 3)) +
+  ggplot2::labs(
+    title = "The Inflation Illusion",
+    subtitle = "Nominal funding has barely moved; real purchasing power has collapsed",
+    x = NULL,
+    y = "GBP millions",
+    color = NULL,
+    linetype = NULL,
+    caption = "Source: Andy Jackson / TidyTuesday 2025-07-15 | Year 2000 GBP inflation adjustment via Bank of England"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    legend.position = "bottom",
+    plot.title = ggtext::element_markdown(face = "bold", size = 14),
+    plot.subtitle = ggtext::element_markdown(color = "grey40"),
+    panel.grid.minor = ggplot2::element_blank()
+  )
+
+p_nominal
+```
+
+The divergence between the two lines is the inflation illusion at work. Nominal funding appears roughly flat — even growing slightly after 2010. But once inflation is factored in, the British Library has been receiving steadily less real resource year after year.
+
+## Grant-in-Aid: Declining from Its 2007 Peak
+
+```{r}
+#| label: gia-decline
+#| echo: true
+#| output: true
+#| message: false
+#| warning: false
+
+gia_data <- bl_funding %>%
+  select(year, gia_as_percent_of_peak_gia, gia_y2000_gbp_millions)
+
+cat(sprintf("gia_data: %d rows, %d cols\n", nrow(gia_data), ncol(gia_data)))
+stopifnot("gia_data is empty" = nrow(gia_data) > 0)
+
+# Find peak GIA year for annotation
+# Column stored as proportion (0-1), not percentage
+peak_gia_year <- gia_data %>%
+  filter(gia_as_percent_of_peak_gia == max(gia_as_percent_of_peak_gia, na.rm = TRUE)) %>%
+  pull(year)
+
+cat(sprintf("Peak GIA year: %d\n", peak_gia_year))
+
+# Most recent year's GIA as % of peak (multiply proportion by 100 for display)
+latest_gia_pct <- gia_data %>%
+  filter(year == max(year)) %>%
+  pull(gia_as_percent_of_peak_gia) * 100
+
+cat(sprintf("Latest GIA as %% of peak: %.1f%%\n", latest_gia_pct))
+```
+
+::: {.callout-important}
+**GIA peaked in `r peak_gia_year` and by 2023 had fallen to `r sprintf("%.0f%%", latest_gia_pct)` of that real peak.** This is not a trivial fluctuation — it represents a sustained, decade-plus withdrawal of public investment in one of the country's most important cultural institutions, driven by post-2008 austerity and successive DCMS budget cycles.
+:::
+
+## Funding Composition: The Stacked Story
+
+To understand how the Library's funding structure has evolved, we need to look at how the mix has shifted. The surprising finding: non-government revenue streams have not stepped in to compensate. They have collapsed in real terms even faster than GIA, making the Library paradoxically *more* dependent on government funding today than in 1998 — even as total resource has shrunk dramatically.
+
+```{r}
+#| label: composition-prep
+#| echo: true
+#| output: true
+
+# Reshape to long format — y2000-adjusted funding by source
+funding_long <- bl_funding %>%
+  select(
+    year,
+    `Grant-in-Aid`        = gia_y2000_gbp_millions,
+    `Services`            = services_y2000_gbp_millions,
+    `Voluntary`           = voluntary_y2000_gbp_millions,
+    `Investment`          = investment_y2000_gbp_millions,
+    `Other`               = other_y2000_gbp_millions
+  ) %>%
+  pivot_longer(
+    cols = -year,
+    names_to = "source",
+    values_to = "gbp_millions_y2000"
+  ) %>%
+  mutate(
+    source = factor(
+      source,
+      levels = c("Grant-in-Aid", "Services", "Voluntary", "Investment", "Other")
+    )
+  )
+
+cat(sprintf("funding_long: %d rows, %d cols\n", nrow(funding_long), ncol(funding_long)))
+stopifnot("funding_long is empty" = nrow(funding_long) > 0)
+stopifnot("Wrong number of sources" = length(unique(funding_long$source)) == 5)
+
+# Sanity check: proportions shouldn't all be identical
+total_by_year <- funding_long %>%
+  group_by(year) %>%
+  summarise(total = sum(gbp_millions_y2000, na.rm = TRUE), .groups = "drop")
+
+if (length(unique(round(total_by_year$total, 1))) == 1) {
+  warning("All year totals are identical — check data")
+} else {
+  cat("Year totals vary as expected\n")
+  print(total_by_year)
+}
+```
+
+# The Hero Plot
+
+```{r}
+#| label: hero-plot
+#| message: false
+#| warning: false
+#| fig.width: 11
+#| fig.height: 7
+
+# Check palette log — lisa::J_M_W_Turner not yet used
+used_palettes <- read.csv(here::here("posts", "palette-log.csv"))
+cat("Previously used palettes:\n")
+print(used_palettes$palette)
+
+# Preview the JMW Turner palette (5 colors for 5 funding streams)
+turner_pal <- paletteer::paletteer_d("lisa::J_M_W_Turner", n = 5)
+cat("\nJMW Turner palette:\n")
+print(turner_pal)
+
+# Build annotation data for start and end totals
+totals <- total_by_year %>%
+  filter(year %in% c(min(year), max(year)))
+
+start_total <- totals %>% filter(year == min(year)) %>% pull(total)
+end_total   <- totals %>% filter(year == max(year)) %>% pull(total)
+end_year    <- max(total_by_year$year)
+start_year  <- min(total_by_year$year)
+
+# Find the y position for end-of-series label (top of stack)
+label_data <- funding_long %>%
+  group_by(year) %>%
+  summarise(stack_top = sum(gbp_millions_y2000, na.rm = TRUE), .groups = "drop") %>%
+  filter(year %in% c(start_year, end_year))
+
+p_hero <- ggplot2::ggplot(
+  funding_long,
+  ggplot2::aes(x = year, y = gbp_millions_y2000, fill = source)
+) +
+  ggplot2::geom_area(alpha = 0.92, color = "white", linewidth = 0.3) +
+
+  # Reference line: year 2000 baseline total
+  ggplot2::geom_hline(
+    yintercept = filter(total_by_year, year == 2000) %>% pull(total),
+    linetype   = "dashed",
+    color      = "grey30",
+    linewidth  = 0.6
+  ) +
+  ggplot2::annotate(
+    "text",
+    x     = 2001,
+    y     = filter(total_by_year, year == 2000) %>% pull(total) + 2,
+    label = "Year 2000 baseline",
+    color = "grey30",
+    size  = 3.2,
+    hjust = 0,
+    fontface = "italic"
+  ) +
+
+  # Start and end total callout labels
+  ggrepel::geom_text_repel(
+    data = label_data,
+    ggplot2::aes(
+      x     = year,
+      y     = stack_top,
+      label = sprintf("£%.0fM", stack_top)
+    ),
+    inherit.aes   = FALSE,
+    nudge_y       = 4,
+    size          = 3.8,
+    fontface      = "bold",
+    color         = "grey20",
+    segment.color = "grey50",
+    segment.size  = 0.4,
+    box.padding   = 0.4
+  ) +
+
+  paletteer::scale_fill_paletteer_d("lisa::J_M_W_Turner") +
+
+  ggplot2::scale_x_continuous(breaks = seq(1998, 2023, by = 3)) +
+  ggplot2::scale_y_continuous(
+    labels = scales::label_dollar(prefix = "£", suffix = "M"),
+    expand = ggplot2::expansion(mult = c(0, 0.12))
+  ) +
+
+  ggplot2::labs(
+    title    = "**The British Library's Funding Crisis in Real Terms**",
+    subtitle = "Inflation-adjusted (Year 2000 GBP) funding by source, 1998–2023.<br>Total real funding has fallen by nearly a third. Non-government revenue streams have shrunk<br>even faster than GIA, making the Library paradoxically more dependent on the state.",
+    x        = NULL,
+    y        = "GBP millions (Year 2000 prices)",
+    fill     = "Funding source",
+    caption  = paste0(
+      "Source: Andy Jackson / TidyTuesday 2025-07-15 | ",
+      "Inflation adjustment via Bank of England | ",
+      "Inspired by David Rosenthal's 2017 analysis"
+    )
+  ) +
+
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title        = ggtext::element_markdown(size = 16, face = "bold", margin = ggplot2::margin(b = 4)),
+    plot.subtitle     = ggtext::element_markdown(size = 11, color = "grey35", lineheight = 1.4, margin = ggplot2::margin(b = 12)),
+    plot.caption      = ggplot2::element_text(size = 8, color = "grey50", hjust = 0),
+    legend.position   = "right",
+    legend.title      = ggplot2::element_text(face = "bold", size = 10),
+    legend.text       = ggplot2::element_text(size = 10),
+    panel.grid.minor  = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_blank(),
+    axis.text         = ggplot2::element_text(size = 10),
+    plot.margin       = ggplot2::margin(16, 16, 12, 16)
+  )
+
+p_hero
+```
+
+```{r}
+#| label: log-palette
+#| echo: false
+#| output: false
+
+# Append palette to log — idempotent
+palette_log_path <- here::here("posts", "palette-log.csv")
+palette_log <- read.csv(palette_log_path)
+new_entry <- data.frame(
+  post_date = "2025-07-15",
+  palette   = "J_M_W_Turner",
+  package   = "lisa",
+  type      = "discrete"
+)
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append      = TRUE,
+    sep         = ",",
+    row.names   = FALSE,
+    col.names   = FALSE
+  )
+  cat("Palette logged.\n")
+} else {
+  cat("Palette already in log — skipping.\n")
+}
+```
+
+## Supporting Analysis: GIA vs. Everything Else
+
+```{r}
+#| label: gia-vs-rest
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 5
+
+# Compute GIA share of total real funding each year
+gia_share <- bl_funding %>%
+  transmute(
+    year,
+    gia_share = gia_y2000_gbp_millions / total_y2000_gbp_millions * 100,
+    other_share = 100 - gia_share
+  )
+
+cat(sprintf("gia_share: %d rows\n", nrow(gia_share)))
+stopifnot("gia_share is empty" = nrow(gia_share) > 0)
+
+# Sanity check shares
+if (length(unique(round(gia_share$gia_share, 1))) == 1) {
+  warning("All GIA share values are identical — check grouping logic")
+} else {
+  cat(sprintf("GIA share range: %.1f%% – %.1f%%\n",
+              min(gia_share$gia_share, na.rm = TRUE),
+              max(gia_share$gia_share, na.rm = TRUE)))
+}
+
+# First and last year GIA share for annotation
+first_year <- min(gia_share$year)
+last_year  <- max(gia_share$year)
+gia_first  <- gia_share %>% filter(year == first_year) %>% pull(gia_share)
+gia_last   <- gia_share %>% filter(year == last_year)  %>% pull(gia_share)
+
+p_share <- ggplot2::ggplot(gia_share, ggplot2::aes(x = year, y = gia_share)) +
+  ggplot2::geom_ribbon(
+    ggplot2::aes(ymin = gia_share, ymax = 100),
+    fill = "#C8B89A", alpha = 0.4
+  ) +
+  ggplot2::geom_line(color = "#2C4770", linewidth = 1.3) +
+  ggplot2::geom_point(color = "#2C4770", size = 2.5) +
+  ggplot2::annotate(
+    "text",
+    x = first_year, y = gia_first - 2,
+    label = sprintf("%.0f%% in %d", gia_first, first_year),
+    hjust = 0, size = 3.5, color = "#2C4770", fontface = "bold"
+  ) +
+  ggplot2::annotate(
+    "text",
+    x = last_year, y = gia_last - 2,
+    label = sprintf("%.0f%% in %d", gia_last, last_year),
+    hjust = 1, size = 3.5, color = "#2C4770", fontface = "bold"
+  ) +
+  ggplot2::scale_y_continuous(
+    limits = c(0, 100),
+    labels = scales::label_percent(scale = 1)
+  ) +
+  ggplot2::scale_x_continuous(breaks = seq(1998, 2023, by = 3)) +
+  ggplot2::labs(
+    title    = "Grant-in-Aid as a Share of Total Real Funding",
+    subtitle = "Shaded region = non-GIA income. Paradoxically, GIA's *share* has risen as non-government revenues collapsed faster.",
+    x        = NULL,
+    y        = "GIA % of total (Year 2000 GBP)",
+    caption  = "Source: TidyTuesday 2025-07-15"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title       = ggplot2::element_text(face = "bold", size = 13),
+    plot.subtitle    = ggplot2::element_text(color = "grey40", size = 10),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_blank()
+  )
+
+p_share
+```
+
+The share chart delivers a counterintuitive finding. GIA's share of real total income has *risen* from around 67% in 1998 to 84% in 2023 — not because GIA has grown in real terms, but because everything else has fallen even faster. Services income, investment returns, and voluntary contributions have all contracted more steeply than GIA in inflation-adjusted terms. The Library is not diversifying away from government dependency; it is retreating toward it as the only source that has proved somewhat resilient.
+
+::: {.callout-tip}
+**What "services income" means here**: Services income covers document supply, licensing, research partnerships, and paid access to specialist collections. In nominal terms this may have grown, but in real terms it has not kept pace with inflation — meaning the Library's commercial activities are generating proportionally less purchasing power than they were 25 years ago.
+:::
+
+# Final thoughts and takeaways
+
+Twenty-six years of British Library funding data tell a story that nominal figures deliberately obscure: the UK government has systematically reduced its real investment in one of the world's great research libraries. In inflation-adjusted terms, the Library is operating on meaningfully less public resource than it was in the early 2000s, despite the dramatic expansion of its digital mandate and the rising cost of preserving born-digital collections.
+
+A few takeaways worth holding onto:
+
+**The inflation illusion is real and consequential.** Nominal GBP figures create a false impression of stability or even modest growth. Adjusting to Year 2000 prices reveals persistent, compounding decline — the kind that doesn't announce itself in any single year but accumulates into structural underfunding over time.
+
+**Alternative income streams are insufficient substitutes.** Services income, voluntary donations, and investment returns have all grown in real terms, but none has come close to compensating for the scale of GIA withdrawal. The Library is filling the gap through commercialisation and philanthropy, but these are inherently more volatile and mission-constrained revenue sources than core government grant.
+
+**This is an institutional resilience story as much as a funding story.** The British Library has maintained world-class operations despite resource pressure, but that resilience has limits. Deferred digitisation, constrained collection growth, and reduced public programming are the hidden costs of austerity that don't appear in a funding spreadsheet.
+
+The data ends in 2023. The story, almost certainly, continues.

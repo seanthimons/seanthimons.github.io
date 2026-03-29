@@ -1,0 +1,47 @@
+
+Attaching package: 'dplyr'
+
+The following objects are masked from 'package:stats':
+
+    filter, lag
+
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+
+Warning message:
+package 'dplyr' was built under R version 4.5.2 
+Non-spam answers: 1045000 
+Computing plurality vote per hex color...
+Unique hex colors with plurality vote: 998729 
+Distribution of plurality ranks:
+
+     1      2      3      4      5 
+236175 297703 269192 123598  72061 
+
+Plurality vote breakdown by color_name:
+
+  blue  brown  green   pink purple 
+269192  72061 297703 123598 236175 
+
+Converting to HSL...
+Done
+HSL sample:
+  rank     hex n color_name canonical_hex        h         s         l
+1    1 #B942A9 1     purple       #7e1e9c 308.0672 0.4741036 0.4921569
+2    1 #660BF2 1     purple       #7e1e9c 263.6364 0.9130435 0.4960784
+3    1 #5749A8 1     purple       #7e1e9c 248.8421 0.3941909 0.4725490
+4    1 #C915AE 2     purple       #7e1e9c 309.0000 0.8108108 0.4352941
+5    1 #CC147B 1     purple       #7e1e9c 326.4130 0.8214286 0.4392157
+
+blue: n=269192, H=[0.0, 359.4], S=[0.01, 1.00], L=[0.03, 0.98]
+
+purple: n=236175, H=[0.0, 359.2], S=[0.03, 1.00], L=[0.02, 0.96]
+
+green: n=297703, H=[0.0, 359.2], S=[0.00, 1.00], L=[0.03, 0.97]
+
+pink: n=123598, H=[0.0, 359.7], S=[0.02, 1.00], L=[0.10, 0.98]
+
+brown: n=72061, H=[0.0, 359.6], S=[0.02, 1.00], L=[0.02, 0.94]
+
+Saved. Total rows: 998729 

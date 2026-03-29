@@ -16,6 +16,8 @@ $tyrian:          #5D2E8C;
 $tyrian-light:    #B8A9C9;
 $amber:           #B8860B;
 $amber-light:     #E8D4A8;
+$slate-blue:      #3D5A80;
+$slate-blue-light:#A8C0D6;
 
 // ---- Bootstrap / Quarto Variable Overrides ----
 $body-bg:         $near-white;
@@ -339,5 +341,110 @@ body.page-volunteer {
   .navbar a, .nav-link {
     color: $dark-slate !important;
     text-decoration: none;
+  }
+}
+
+// ---- CV (Slate Blue) ----
+body.page-cv {
+  #quarto-content a:not(.btn),
+  .quarto-title a:not(.btn),
+  main a:not(.btn) {
+    color: $slate-blue !important;
+    text-decoration-color: rgba($slate-blue, 0.3);
+    &:hover {
+      text-decoration-color: $slate-blue;
+      color: darken($slate-blue, 10%) !important;
+    }
+  }
+
+  #quarto-content h1,
+  #quarto-content h2,
+  #quarto-content h3,
+  .quarto-title h1 {
+    color: darken($slate-blue, 10%) !important;
+  }
+
+  .navbar a, .nav-link {
+    color: $dark-slate !important;
+    text-decoration: none;
+  }
+}
+
+// ---- CV Layout Utilities ----
+.cv-contact {
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  a {
+    text-underline-offset: 3px;
+  }
+}
+
+.cv-entry {
+  p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    margin-bottom: 0.15rem;
+  }
+}
+
+.cv-title {
+  flex: 1 1 auto;
+}
+
+.cv-date {
+  flex: 0 0 auto;
+  margin-left: auto;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.cv-note {
+  flex: 0 0 auto;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  font-size: 0.9em;
+  opacity: 0.7;
+}
+
+.cv-separator {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  width: 50%;
+  margin: 1rem 0;
+}
+
+.cv-thin-separator {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  width: 15%;
+  margin: 0.75rem 0;
+}
+
+.cv-subsection {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+// CV tables (skills, coursework) — compact
+body.page-cv {
+  table {
+    font-size: 0.92rem;
+    th, td {
+      padding: 0.35rem 0.75rem;
+    }
+  }
+}
+
+// Print-friendly styles
+@media print {
+  body.page-cv {
+    .navbar, .page-footer, #quarto-sidebar, #TOC {
+      display: none !important;
+    }
+    .cv-entry p {
+      page-break-inside: avoid;
+    }
+    font-size: 10pt;
   }
 }

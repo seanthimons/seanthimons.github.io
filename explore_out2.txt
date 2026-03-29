@@ -1,0 +1,61 @@
+=== Top 20 colors by rank ===
+          color rank     hex
+1        purple    1 #7e1e9c
+2         green    2 #15b01a
+3          blue    3 #0343df
+4          pink    4 #ff81c0
+5         brown    5 #653700
+6           red    6 #e50000
+7    light blue    7 #95d0fc
+8          teal    8 #029386
+9        orange    9 #f97306
+10  light green   10 #96f97b
+11      magenta   11 #c20078
+12       yellow   12 #ffff14
+13     sky blue   13 #75bbfd
+14         grey   14 #929591
+15   lime green   15 #89fe05
+16 light purple   16 #bf77f6
+17       violet   17 #9a0eea
+18   dark green   18 #033500
+19    turquoise   19 #06c2ac
+20     lavender   20 #c79fef
+
+=== Rank distribution in answers ===
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   2.000   2.000   2.499   3.000   5.000 
+Median rank: 2 
+
+=== Join: avg rank by colorblind status ===
+Merged rows: 1045000 
+  colorblind rank
+1          0    2
+2          1    2
+  y_chromosome rank
+1            0    2
+2            1    2
+        monitor rank
+1           CRT    2
+2           LCD    2
+3 monitor-other    2
+
+=== Colorblind proportions ===
+Overall colorblind rate: 0.03919946 
+Male (y_chrom=1) colorblind rate: 0.04987818 
+Female (y_chrom=0) colorblind rate: 0.01085058 
+
+=== Count of answers by rank (top 10 most answered) ===
+  rank n_answers
+2    2    314172
+3    3    288015
+1    1    249199
+4    4    131013
+5    5     75812
+
+=== Merge rank counts with color names ===
+  rank n_answers  color     hex
+2    2    314172  green #15b01a
+3    3    288015   blue #0343df
+1    1    249199 purple #7e1e9c
+4    4    131013   pink #ff81c0
+5    5     75812  brown #653700

@@ -1,0 +1,46 @@
+Loading answers...
+answers: 1058211 rows x 3 cols
+Cols: user_id, hex, rank 
+  user_id     hex rank
+1       1 #8240EA    1
+2       2 #4B31EA    3
+3       2 #584601    5
+
+Loading color_ranks...
+color_ranks: 949 rows x 3 cols
+Cols: color, rank, hex 
+   color rank     hex
+1 purple    1 #7e1e9c
+2  green    2 #15b01a
+3   blue    3 #0343df
+
+Loading users...
+users: 152401 rows x 5 cols
+Cols: user_id, monitor, y_chromosome, colorblind, spam_prob 
+  user_id monitor y_chromosome colorblind   spam_prob
+1       1     LCD            1          0 0.002087683
+2       2     LCD            1          0 0.074576657
+3       3     LCD            1          0 0.016403869
+
+=== users summary ===
+$user_id
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+      1   38101   76201   76201  114301  152401 
+
+$monitor
+x
+          CRT           LCD monitor-other 
+         5888        145973           540 
+
+$y_chromosome
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+ 0.0000  0.0000  1.0000  0.7138  1.0000  1.0000    7507 
+
+$colorblind
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+ 0.0000  0.0000  0.0000  0.0392  0.0000  1.0000    9848 
+
+$spam_prob
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+0.0000742 0.0049071 0.0309388 0.2223185 0.0897983 8.4286212 
+
