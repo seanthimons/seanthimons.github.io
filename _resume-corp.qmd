@@ -7,8 +7,6 @@ format:
       - margin=0.9cm
     fontsize: 11pt
     pagestyle: plain
-filters:
-  - _filters/multiple-bibliographies.lua
 bibliography_works: works.bib
 bibliography_ppp: ppp.bib
 nocite: '@*'

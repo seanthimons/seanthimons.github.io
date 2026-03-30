@@ -5,8 +5,6 @@ format:
     body-classes: page-cv
     toc: true
     toc-title: "Sections"
-filters:
-  - _filters/multiple-bibliographies.lua
 bibliography_works: works.bib
 bibliography_ppp: ppp.bib
 nocite: '@*'
