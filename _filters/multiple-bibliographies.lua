@@ -32,33 +32,23 @@ local refs_div = pandoc.Div({}, pandoc.Attr('refs'))
 -- the output format and the attributes of cs:bibliography
 local refs_div_with_properties
 
-local supports_quiet_flag = (function ()
-  -- We use pandoc instead of pandoc-citeproc starting with pandoc 2.11
-  if PANDOC_VERSION >= "2.11" then
-    return true
+--- Run citeproc on a pandoc document
+--
+-- Uses the built-in citeproc processor when available (pandoc >= 2.19.1).
+-- Falls back to shelling out to the `pandoc` or `pandoc-citeproc`
+-- executable for older versions.
+local run_citeproc = utils.citeproc
+if pcall(require, 'pandoc.log') and run_citeproc then
+  -- silence all warnings if possible
+  local log = require 'pandoc.log'
+  run_citeproc = function (...)
+    return select(2, log.silence(utils.citeproc, ...))
   end
-  local version = pandoc.pipe('pandoc-citeproc', {'--version'}, '')
-  local major, minor, patch = version:match 'pandoc%-citeproc (%d+)%.(%d+)%.?(%d*)'
-  major, minor, patch = tonumber(major), tonumber(minor), tonumber(patch)
-  return major > 0
-    or minor > 14
-    or (minor == 14 and patch >= 5)
-end)()
-
-local function run_citeproc(doc, quiet)
-  if PANDOC_VERSION >= "2.11" then
-    return run_json_filter(
-      doc,
-      'pandoc',
-      {'--from=json', '--to=json', '--citeproc', quiet and '--quiet' or nil}
-    )
-  else
-    -- doc = run_json_filter(doc, 'pandoc-citeproc')
-    return run_json_filter(
-      doc,
-      'pandoc-citeproc',
-      {FORMAT, (quiet and supports_quiet_flag) and '-q' or nil}
-    )
+elseif not run_citeproc then
+  -- Use pandoc as a citeproc processor
+  run_citeproc = function (doc)
+    local opts = {'--from=json', '--to=json', '--citeproc', '--quiet'}
+    return run_json_filter(doc, 'pandoc', opts)
   end
 end
 
