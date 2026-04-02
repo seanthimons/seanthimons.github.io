@@ -1,14 +1,14 @@
-     1|---
-     2|title: "Tidy Tuesday: Coastal Ocean Temperature by Depth"
-     3|author: "Sean Thimons"
-     4|date: "2026-04-02"
-     5|description: "Exploring vertical temperature profiles in Lunenburg County's coastal waters."
-     6|categories:
-     7|  - tidytuesday
-     8|  - R
-     9|  - oceanography
+---
+title: "Tidy Tuesday: Coastal Ocean Temperature by Depth"
+author: "Sean Thimons"
+date: "2026-04-02"
+description: "Exploring vertical temperature profiles in Lunenburg County's coastal waters."
+categories:
+  - tidytuesday
+  - R
+  - oceanography
   - climate
-    10|---
+---
     11|
     12|```{r}
     13|#| label: pseudo-hero-palette
