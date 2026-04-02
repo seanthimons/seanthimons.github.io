@@ -180,15 +180,13 @@ This is mine.
 
 ## What Gains and Loses My Trust
 
-{EXPAND: Think about the specific patterns, not just the general principles. Some questions:
+I gain trust in people who give real ownership and mean it. Early in my current role, my former boss made it clear that I had been hired for my judgment, not just to execute someone else’s plan. He trusted me to manage the work, the deadlines, and the approach even when the path forward was unclear. My trust deepens even more when someone advocates for me when I am not in the room — recommending me for projects, speaking highly of my work, and using their institutional credibility to open doors or remove friction.
 
-- What's the fastest way someone has earned your trust? What did they actually do?
-- Zhuo values "extreme ownership" — people who don't just identify problems but rally others to solve them. What's your version of the behavior you most respect in collaborators?
-- What's a dealbreaker? Is it sloppy data handling? Not documenting assumptions? Taking credit? Saying "that's not my job"?
-- How do you feel about people who ask you for help vs. people who try to figure it out themselves? Is there a balance you prefer?
-- In a federal science context, what does integrity look like day-to-day? (Not the platitude — the specific behavior.)
-- What erodes trust slowly? The kind of thing that doesn't trigger a single confrontation but accumulates?
-- How do you feel about "good enough" work from collaborators? Is there a minimum bar below which you lose respect, and where is it?}
+I also pay attention to signals of character and ownership. Sometimes that looks as simple as hearing someone described as “good people.” That kind of reputational shorthand carries weight with me. In the work itself, I trust people more when they bring a clear, actionable problem: what they have tried, what is and is not working, and what success looks like. That tells me they are not fobbing something off on me; they are actually trying to solve it and are asking for help in good faith.
+
+What loses my trust is less about human limitation than about unmanaged limitation. Everyone has uneven edges. I do too. What erodes trust is passivity, flakiness, and drift — especially when those patterns force other people to compensate. I distinguish between trusting someone's intentions and trusting their execution. If I cannot rely on someone for time-sensitive work, I start building guardrails: earlier internal deadlines, repeated check-ins, and explicit structure. That does not mean I think they are a bad person; it means I no longer trust the work to stay on track without intervention.
+
+In technical and scientific work, my trust can erode much faster. P-hacking, weak or absent QA/QC, and refusal to document process or pinch points are all immediate red flags. Those behaviors signal that the work is not meant to be inspected, reproduced, or defended. I am much more persuaded by rigor, transparency, and intellectual honesty than by polish or schmoozing, even though I know institutional life often rewards the latter.
 
 ## My Strengths
 
