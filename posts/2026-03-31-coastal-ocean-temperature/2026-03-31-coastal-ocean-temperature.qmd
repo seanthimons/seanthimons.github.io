@@ -9,203 +9,200 @@ categories:
   - oceanography
   - climate
 ---
-    11|
-    12|```{r}
-    13|#| label: pseudo-hero-palette
-    14|#| echo: false
-    15|#| message: false
-    16|#| warning: false
-    17|#| fig-width: 10
-    18|#| fig-height: 1.35
-    19|#| out-width: 100%
-    20|
-    21|if (!requireNamespace("pak", quietly = TRUE)) {
-    22|  install.packages("pak", repos = "https://cloud.r-project.org")
-    23|}
-    24|
-    25|for (pkg in c("ggplot2", "paletteer", "tibble")) {
-    26|  if (!requireNamespace(pkg, quietly = TRUE)) {
-    27|    pak::pkg_install(pkg)
-    28|  }
-    29|}
-    30|
-    31|library(ggplot2)
-    32|library(paletteer)
-    33|library(tibble)
-    34|
-    35|palette_name   <- "oslo"
-    36|palette_source <- "scico"
-    37|palette_type   <- "continuous"
-    38|palette_id     <- paste0(palette_source, "::", palette_name)
-    39|
-    40|hero_swatches <- if (palette_type %in% c("continuous", "diverging")) {
-    41|  as.character(paletteer::paletteer_c(palette_id, n = 5))
-    42|} else {
-    43|  rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
-    44|}
-    45|
-    46|swatch_df <- tibble(
-    47|  idx  = seq_along(hero_swatches),
-    48|  xmin = seq_along(hero_swatches) - 1,
-    49|  xmax = seq_along(hero_swatches),
-    50|  fill = hero_swatches
-    51|)
-    52|
-    53|p_hero <- ggplot(swatch_df) +
-    54|  geom_rect(
-    55|    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
-    56|    color = NA,
-    57|    show.legend = FALSE
-    58|  ) +
-    59|  scale_fill_identity() +
-    60|  annotate(
-    61|    "text",
-    62|    x = 0,
-    63|    y = -0.22,
-    64|    hjust = 0,
-    65|    label = paste0("Palette: ", palette_name),
-    66|    fontface = "bold",
-    67|    size = 4.1
-    68|  ) +
-    69|  annotate(
-    70|    "text",
-    71|    x = 5,
-    72|    y = -0.22,
-    73|    hjust = 1,
-    74|    label = paste0("Source: ", palette_source),
-    75|    color = "grey35",
-    76|    size = 3.6
-    77|  ) +
-    78|  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
-    79|  theme_void() +
-    80|  theme(plot.margin = margin(5.5, 0, 18, 0))
-    81|
-    82|p_hero
-    83|```
-    84|
-    85|# Preface
-    86|
-    87|From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-03-31/readme.md).
-    88|
-    89|> This dataset explores the complex relationship between ocean depth and mean water temperature in coastal monitoring sites.
-    90|
-    91|## Loading necessary packages
-    92|
-    93|My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
-    94|
-    95|```{r}
-    96|#| label: booster-pack
-    97|#| message: false
-    98|#| warning: false
-    99|#| code-fold: true
-   100|
-   101|# Packages ----------------------------------------------------------------
-   102|
-   103|{
-   104|  # Install pak if it's not already installed
-   105|  if (!requireNamespace("pak", quietly = TRUE)) {
-   106|    install.packages("pak", repos = "https://cloud.r-project.org")
-   107|  }
-   108|
-   109|  # CRAN Packages ----
-   110|  install_booster_pack <- function(package, load = TRUE) {
-   111|    for (pkg in package) {
-   112|      if (!requireNamespace(pkg, quietly = TRUE)) {
-   113|        pak::pkg_install(pkg)
-   114|      }
-   115|      if (load) {
-   116|        library(pkg, character.only = TRUE)
-   117|      }
-   118|    }
-   119|  }
-   120|
-   121|  core_packages <- c(
-   122|    'fs',
-   123|    'here',
-   124|    'janitor',
-   125|    'rio',
-   126|    'tidyverse',
-   127|    'skimr',
-   128|    'paletteer',
-   129|    'tidytuesdayR'
-   130|  )
-   131|
-   132|  optional_packages <- c('gghighlight', 'ggthemes', 'patchwork')
-   133|
-   134|  install_booster_pack(package = unique(c(core_packages, optional_packages)), load = TRUE)
-   135|  rm(install_booster_pack, core_packages, optional_packages)
-   136|
-   137|  # Custom Functions ----
-   138|
-   139|  `%ni%` <- Negate(`%in%`)
-   140|
-   141|  geometric_mean <- function(x) {
-   142|    exp(mean(log(x[x > 0]), na.rm = TRUE))
-   143|  }
-   144|
-   145|  my_skim <- skim_with(
-   146|    numeric = sfl(
-   147|      n = length,
-   148|      min = ~ min(.x, na.rm = T),
-   149|      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
-   150|      med = ~ median(.x, na.rm = T),
-   151|      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
-   152|      max = ~ max(.x, na.rm = T),
-   153|      mean = ~ mean(.x, na.rm = T),
-   154|      geo_mean = ~ geometric_mean(.x),
-   155|      sd = ~ stats::sd(., na.rm = TRUE),
-   156|      hist = ~ inline_hist(., 5)
-   157|    ),
-   158|    append = FALSE
-   159|  )
-   160|}
-   161|
-   162|
-   163|```
-   164|
-   165|# Load raw data from package
-   166|
-   167|```{r}
-   168|#| label: raw-data-load
-   169|#| echo: true
-   170|#| output: false
-   171|
-   172|raw <- tidytuesdayR::tt_load('2026-03-31')
-   173|
-   174|ocean_temp <- raw$ocean_temperature
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| out-width: 100%
+
+if (!requireNamespace("pak", quietly = TRUE)) {
+  install.packages("pak", repos = "https://cloud.r-project.org")
+}
+
+for (pkg in c("ggplot2", "paletteer", "tibble")) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    pak::pkg_install(pkg)
+  }
+}
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name   <- "oslo"
+palette_source <- "scico"
+palette_type   <- "continuous"
+palette_id     <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- if (palette_type %in% c("continuous", "diverging")) {
+  as.character(paletteer::paletteer_c(palette_id, n = 5))
+} else {
+  rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+}
+
+swatch_df <- tibble(
+  idx  = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-03-31/readme.md).
+
+> This dataset explores the complex relationship between ocean depth and mean water temperature in coastal monitoring sites.
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages("pak", repos = "https://cloud.r-project.org")
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  core_packages <- c(
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+    'skimr',
+    'paletteer',
+    'tidytuesdayR'
+  )
+
+  optional_packages <- c('gghighlight', 'ggthemes', 'patchwork')
+
+  install_booster_pack(package = unique(c(core_packages, optional_packages)), load = TRUE)
+  rm(install_booster_pack, core_packages, optional_packages)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-03-31')
+
+ocean_temp <- raw$ocean_temperature
 deployments <- raw$ocean_temperature_deployments
-   175|
-   176|```
-   177|
-   178|# Exploratory Data Analysis
-   179|
-   180|The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
-   181|
-   182|## Ocean Temperature Data
-   183|
-   184|```{r}
-   185|#| label: eda-ocean-temp
-   186|#| echo: true
-   187|#| output: true
-   188|
-   189|my_skim(ocean_temp)
-   190|
-   191|```
-   192|
-   193|The dataset contains vertical temperature measurements across multiple depths. We see a clear depth-temperature gradient.
-   194|
-   195|# Seasonal Stability vs Depth
-   196|
-   197|How does the variance (standard deviation) of temperature behave as we go deeper? We might expect deeper waters to be more thermally stable throughout the year.
-   198|
-   199|```{r}
-   200|#| label: depth-stability-plot
-   201|#| message: false
-   202|#| warning: false
-   203|#| fig.width: 10
-   204|#| fig.height: 8
-   205|
-   206|
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Ocean Temperature Data
+
+```{r}
+#| label: eda-ocean-temp
+#| echo: true
+#| output: true
+
+my_skim(ocean_temp)
+
+```
+
+The dataset contains vertical temperature measurements across multiple depths. We see a clear depth-temperature gradient.
+
+# Seasonal Stability vs Depth
+
+How does the variance (standard deviation) of temperature behave as we go deeper? We might expect deeper waters to be more thermally stable throughout the year.
+
+```{r}
+#| label: depth-stability-plot
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
 p <- ocean_temp %>%
   mutate(month = month(date, label = TRUE)) %>%
   group_by(sensor_depth_at_low_tide_m, month) %>%
@@ -230,14 +227,10 @@ p <- ocean_temp %>%
     plot.title = element_text(face = "bold"),
     panel.grid.minor = element_blank()
   )
-   207|
-   208|# IMPORTANT: The last line of this chunk MUST be the plot object name
-   209|# so that Quarto renders it. Never end with an assignment.
-   210|p
-   211|
-   212|```
-   213|
-   214|# Final thoughts and takeaways
-   215|
-   216|The data confirms that while the surface waters experience the most extreme swings, the deeper strata provide a more stable thermal environment, which is critical for local sea life during the transition seasons.
-   217|
+
+p
+```
+
+# Final thoughts and takeaways
+
+The data confirms that while the surface waters experience the most extreme swings, the deeper strata provide a more stable thermal environment, which is critical for local sea life during the transition seasons.
