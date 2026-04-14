@@ -179,9 +179,9 @@ In technical and scientific work, my trust can erode much faster. P-hacking, wea
 
 ## My Strengths
 
-My biggest strength on a project is that I can turn a messy technical, scientific, or institutional problem into something legible enough to act on. I am usually at my best when a dataset, workflow, or decision process is vague, brittle, or only half-documented: I can usually see the harmonization path, build the pipeline, and make the result reproducible enough that someone else can pick it up later.
+I am not under any illusion that I am institutionally irreplaceable. If I got hit by a bus, the government would keep moving. But at the project level, one of the first things that would degrade is pipeline continuity. I maintain fragile ETL and analysis workflows that break every time somebody changes an upstream file, and while there is nothing mystical or bespoke about that work, there is also no guarantee that anyone around me will rebuild it once it fails.
 
-I care about both rigor and usability, so I tend to notice when the analysis is technically sound but operationally hard to maintain, or when the system works but nobody can actually use it. People do not usually come to me just for code. They come to me when they need structure, clarity, and a defensible way through the mess.
+So the practical strength is not that I am uniquely brilliant. It is that I am willing to stay dissatisfied with brittle systems long enough to make them hold together. When a project is vague, fragile, or under-maintained, I am usually the person who keeps pulling on the thread until the logic is explicit, the pipeline works, and the result can survive contact with other people.
 
 ## My Growth Areas
 
