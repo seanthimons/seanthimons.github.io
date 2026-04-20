@@ -179,9 +179,9 @@ In technical and scientific work, my trust can erode much faster. P-hacking, wea
 
 ## My Strengths
 
-I am not under any illusion that I am institutionally irreplaceable. If I got hit by a bus, the government would keep moving. But at the project level, one of the first things that would degrade is pipeline continuity. I maintain fragile ETL and analysis workflows that break every time somebody changes an upstream file, and while there is nothing mystical or bespoke about that work, there is also no guarantee that anyone around me will rebuild it once it fails.
+One of my clearest strengths is that I can take work that is vague, fragile, or under-maintained and make it legible enough for other people to trust and continue. I tend to stay with a problem long enough to expose the hidden assumptions, stabilize the pipeline, and make the logic explicit. In practice, that often means I am the person who notices where an ETL or analysis workflow will break when an upstream file changes, then keeps pulling on the thread until the result is reproducible and maintainable.
 
-So the practical strength is not that I am uniquely brilliant. It is that I am willing to stay dissatisfied with brittle systems long enough to make them hold together. When a project is vague, fragile, or under-maintained, I am usually the person who keeps pulling on the thread until the logic is explicit, the pipeline works, and the result can survive contact with other people.
+I do not think of that as brilliance so much as persistence in service of continuity. I care a lot about making work survivable by other people. If a project depends too heavily on memory, personal heroics, or one person's private understanding of the system, I usually feel compelled to keep working until the structure is clear enough that someone else can pick it up and keep going.
 
 ## My Growth Areas
 
