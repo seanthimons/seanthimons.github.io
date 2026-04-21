@@ -191,13 +191,19 @@ Relatedly, my ADHD can make prioritization harder than it looks from the outside
 
 ## How I Give and Receive Feedback
 
-I prefer feedback as soon as possible. If something is off, I’d rather hear it close to the event, while it’s still actionable, than have it stored up for a formal review months later. I always disliked how interpersonal feedback in previous roles would be deferred into six-month increments; by that point, the signal is stale and the trust required for behavior change has often eroded. 
+I prefer feedback as soon as possible. If something is off, I’d rather hear it close to the event, while it’s still actionable, than have it stored up for a formal review months later. I always disliked how interpersonal feedback in previous roles would be deferred into six-month increments; by that point, the signal is stale and the trust required for behavior change has often eroded.
+
+I also tend to respond best to challenge when it is informed rather than performative. If someone questions a technical choice in a way that shows they understand the tradeoff, the scope, or the constraint I was working under, I usually find that energizing. I like being pushed. What lands badly is the hindsight version of skepticism that treats every untested path as an obvious omission rather than a function of scope, money, time, or simple human limits.
 
 I’ve had both private and public praise, and they land differently. Increasingly, public recognition matters to me. It helps my peers understand what I’m contributing, confirms that I’m being a team player, and ensures management actually understands my value. I’ve learned that while hard work is the baseline, people skills and organizational politics have real dividends. Autonomy and trust are rewards in their own right, but at a certain level they stop feeling like special praise and start feeling like the baseline expectation of the role.
 
 ## What I Expect From Collaborators
 
 The best collaborators for me are usually people who complement my skill set rather than mirroring it. I do well with people who bring strong taste, perspective, or definitive judgment where I might be over-indexing on caution. I also work best when I don't have to originate every vector; I am often happy to be "along for the ride" as a strong second or a sharp finisher for someone else who knows what they want and is willing to drive.
+
+One of the fastest ways to get my attention is to make clear why you are coming to me specifically. A vague "any thoughts?" ask is hard for me to engage with. A much better opening is one that names the subject, the deadline, the decision at stake, and the reason my judgment matters here. What really motivates me is not flattery for its own sake; it is knowing that my work might materially help decide what happens next.
+
+That also means I respond well when someone treats my unfinished work as usable judgment rather than waiting for everything to be formally blessed. In my world, draft and deliberative work is often the best available picture of reality. If a collaborator can say, in effect, "this is not fully settled yet, but it is our best chance at understanding what is going on," I am likely to lean in hard.
 
 What makes collaboration easier for me is clear expectations: due dates, victory conditions, and regular review points. I tend to do best with a roughly two-week rhythm—enough time to get real work done, but not so much that the work disappears into the background. If something is sticky, I often benefit from a dedicated working session with no distractions, just enough time to hammer it out with another person in the room.
 
