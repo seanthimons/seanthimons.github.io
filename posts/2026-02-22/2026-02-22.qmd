@@ -1,7 +1,7 @@
 ---
 title: "A User Guide to Working With Sean"
 author: "Sean Thimons"
-description: "What makes me tick, what ticks me off, and everything in between."
+description: "A practical guide to how I work, communicate, and collaborate."
 date: "2026-02-22"
 draft: true
 categories: [essay, management, collaboration]
