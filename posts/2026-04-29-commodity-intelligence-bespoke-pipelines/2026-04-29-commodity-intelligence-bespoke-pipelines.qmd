@@ -17,7 +17,11 @@ From there, the model commoditization argument gets sharper, not weaker. If inte
 
 ## The model is not the product
 
-{EXPAND: Explain why cheap intelligence does not eliminate differentiation. Argue that when the same or similar models are available to everyone, advantage shifts toward the surrounding system: problem framing, prompt architecture, retrieval, evaluation, QA/QC, and integration with real workflows.}
+One thing that troubles me about the current AI moment is that we talk about the commoditization of intelligence as if that automatically means stable abundance. Right now, a lot of this capability feels cheap, almost ambient. But that is not the same thing as saying it will remain cheap, or that access will remain evenly available. If a provider can unilaterally change the price, the limits, or the terms of use, then some of what looks like abundance is really rented leverage.
+
+That changes the strategic picture. If intelligence at the model layer can be repriced or withdrawn, then the durable asset is not the fleeting moment when raw generation feels nearly free. The durable asset is everything you build around it that lets you survive provider churn: local data, portable workflows, evaluation logic, retrieval systems, QA/QC, and enough architectural discipline that swapping one model for another does not collapse the whole operation.
+
+So yes, I think Hamel is right that the model is not the whole product. But I would push the point further: the surrounding system is not just where differentiation lives. It is also where resilience lives. In a world where cheap intelligence may turn out to be contingent rather than guaranteed, the harness is what keeps your work from being held hostage by somebody else's pricing decision.
 
 ## The harness is where trust lives
 
