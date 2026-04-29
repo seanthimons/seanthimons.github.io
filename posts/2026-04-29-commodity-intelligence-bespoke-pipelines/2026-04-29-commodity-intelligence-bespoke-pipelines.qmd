@@ -1,0 +1,50 @@
+---
+title: "Commodity Intelligence, Bespoke Pipelines"
+author: "Sean Thimons"
+description: "If models become commodities, the durable advantage shifts to the harness: data, evals, retrieval, and the pipelines that make judgment legible."
+date: "2026-04-29"
+draft: true
+categories: [ai, data-science, opinion]
+---
+
+In scientific and regulatory work, the hard part is rarely producing *an* answer. The hard part is producing an answer you can defend.
+
+That means being able to show where the evidence came from, what assumptions shaped the result, what quality checks were applied, and where the limits still are. In other words: provenance, reproducibility, and trust are not nice extras layered on top of analysis. They are the work.
+
+That is why Hamel Husain's ["The Revenge of the Data Scientists"](https://hamel.dev/blog/posts/revenge/) lands for me. His argument about the harness matters, but I think it matters most because scientific computing and public-sector analysis have already been living inside that truth for years. A system is not valuable because it can generate plausible text or code on demand. It is valuable because it can produce outputs that are legible, reproducible, and defensible under scrutiny.
+
+From there, the model commoditization argument gets sharper, not weaker. If intelligence becomes cheaper and more widely available, the scarce value does not disappear. It moves into the harness — the data, the evaluation logic, the retrieval layer, the workflow design, and the domain judgment that decides whether the output deserves to be trusted. That is a pipeline problem as much as a model problem.
+
+## The model is not the product
+
+{EXPAND: Explain why cheap intelligence does not eliminate differentiation. Argue that when the same or similar models are available to everyone, advantage shifts toward the surrounding system: problem framing, prompt architecture, retrieval, evaluation, QA/QC, and integration with real workflows.}
+
+## The harness is where trust lives
+
+{EXPAND: Build on Hamel's "harness is data science" argument. Show that the harness is where trust actually gets built: benchmark design, failure handling, provenance, observability, and the ability to explain why a given output should be believed.}
+
+## Scientific computing already knows this
+
+In scientific and regulatory work, speed is only impressive up to the point where someone asks, "Can you defend that?" Once that question lands, the glamour drains out of instant output and the old disciplines come back into view: provenance, versioned methods, explicit assumptions, QA/QC, and enough documentation that another person can rerun the work without relying on your memory.
+
+That is why I think a lot of public-sector and research computing is already post-naive about AI. We have lived too long with invisible failure modes to confuse fluency with reliability. A plausible answer is not a result. A result is something you can inspect, reproduce, and explain to someone whose job is to challenge it.
+
+That does not mean these fields are hostile to automation. It means they are structurally allergic to black boxes that cannot survive scrutiny. In that environment, the valuable system is not the one that merely produces output fastest. It is the one that keeps the chain of evidence intact while still helping humans move faster.
+
+## Serapeum is an argument in software form
+
+{EXPAND: Explain how Serapeum fits this thesis. It is not just an app that wraps a model. It is an attempt to make literature review and evidence synthesis more durable by putting retrieval, organization, local storage, and structured judgment ahead of generic text generation.}
+
+## This is not anti-model. It is pro-system.
+
+{EXPAND: Avoid sounding like a contrarian who thinks models are unimportant. The point is that models are powerful but insufficient. Real value comes from systems that make them usable, inspectable, and accountable.}
+
+---
+
+{EXPAND: Closing thought. If intelligence becomes cheap, then judgment, structure, and trust-bearing workflow become more valuable, not less. The future belongs less to the people who can summon a model response and more to the people who can build a harness that makes the response worth using.}
+
+## Decisions Log
+- Post type: Response / thesis-building essay
+- Source anchor: Hamel Husain, "The Revenge of the Data Scientists"
+- Central claim: scientific and public-sector computing live or die on trust, provenance, and defensibility; model commoditization makes the surrounding harness even more important
+- Sean-specific bridge: Serapeum, DuckDB, RAG, reproducible scientific workflows, and defensible public-sector analysis
