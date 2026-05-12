@@ -25,7 +25,13 @@ So yes, I think Hamel is right that the model is not the whole product. But I wo
 
 ## The harness is where trust lives
 
-{EXPAND: Build on Hamel's "harness is data science" argument. Show that the harness is where trust actually gets built: benchmark design, failure handling, provenance, observability, and the ability to explain why a given output should be believed.}
+The harness is where a system becomes more than a clever answer machine. It is where evidence gets organized, failure modes get named, and judgment becomes inspectable. In that sense, the harness is not just "data science around the model." It is the part of the system that lets someone ask, "Why did it choose this?" and get a real answer.
+
+A concrete example from chemical curation made this visible for me. In an older workflow, a record with the compound name "sand" could resolve to "17 beta estradiol." The pipeline had compared names, identifiers, and candidate resolutions, but the intermediate reasoning was effectively overwritten by the final curated value. You could see the answer that survived. You could not reliably see why that answer won.
+
+The newer workflow changes that. It records the parent term, the candidate resolutions, the suspect identifier path, the blocked or deprioritized terms, and the deterministic evidence used to choose the final value. If a bad CASRN-driven path points toward estradiol while the source term is plainly "sand," that conflict is no longer hidden inside a final overwrite. It becomes part of the audit trail.
+
+That is the difference between automation that merely cleans data and automation that can be defended. The valuable part is not only that the final answer changes from "17 beta estradiol" back to "sand." The valuable part is that the reason for the choice is visible, reproducible, and open to challenge.
 
 ## Scientific computing already knows this
 
