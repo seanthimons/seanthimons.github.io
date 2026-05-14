@@ -8,19 +8,16 @@ website:
   navbar:
     left:
       - href: index.qmd
-        text: Home
+        text: About
       - blog.qmd
       - href: projects.qmd
         text: Work
+      - href: presentations/index.qmd
+        text: Presentations
       - href: posts/2026-02-22/2026-02-22.qmd
         text: Working With Me
-      - href: project_management_model.qmd
-        text: Mental Model
-      - volunteer.qmd
       - href: resume.qmd
         text: CV
-      - href: color-palette.html
-        text: "Colors"
   page-footer:
     center: "© 2026 Sean Thimons · Built with Quarto"
 

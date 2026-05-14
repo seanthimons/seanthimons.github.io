@@ -12,3 +12,7 @@
 # GSD planning docs
 /.planning/
 
+
+# Generated notebook intermediates and reveal.js assets from targeted renders
+**/*.quarto_ipynb
+/_freeze/site_libs/

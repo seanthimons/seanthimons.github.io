@@ -1,0 +1,58 @@
+---
+title: "Presentations"
+format:
+  html:
+    body-classes: page-presentations
+page-layout: full
+title-block-banner: false
+---
+
+A public archive of talks, slide decks, posters, and panels. These are treated as professional artifacts, not blog posts: the blog is for narrative; this page is for the record.
+
+## Featured decks
+
+::: {.grid}
+
+::: {.g-col-12 .g-col-md-6}
+::: {.card}
+### The Good, The Bad, and The Ugly
+
+*Workflows Are Not All You Need*
+
+A field report on Serapeum, GSD, Claude Code, and the difference between prompting an assistant and operating an autonomous development workflow.
+
+[View slides](good-bad-ugly/good-bad-ugly.html){.btn .btn-primary}
+:::
+:::
+
+::: {.g-col-12 .g-col-md-6}
+::: {.card}
+### Triumph, Trouble, Trainwreck
+
+*Workflows Are Not All You Need*
+
+A ground-truth account of structured AI workflows: what they buy, what they cost, and where the guardrails start becoming their own system.
+
+[View slides](triumph-trouble-trainwreck/triumph-trouble-trainwreck.html){.btn .btn-primary}
+:::
+:::
+
+:::
+
+## Selected talks, posters, and panels
+
+- Davis, C., Butler, J., Redman, A., Danforth, C., *Thimons, S*., Jahne, M., Xu, P. “Towards a Transparent Framework for Risk-based Evaluation of Treated Produced Water in the Permian.” SETAC North America 44th Annual Meeting, November 12–16, 2023, Louisville, KY.
+
+- Jahne, M., King, D., Kovalcik, K., Donohue, M., Pfaller, S., Helmick, K., Eades, G., Pait, M., Nye, M., *Thimons, S*., and Garland, J. “Water Quality Assessment of AC Condensate for Onsite Collection and Use.” 2023 WateReuse Symposium, March 5–8, 2023, Atlanta, GA.
+
+- Schoen, M., Jahne, M., Soller, J., Garland, J., and *Thimons, S*. “Updated Pathogen Log-Reduction Targets for Onsite Non-Potable Water Reuse.” 2023 WateReuse Symposium, March 5–8, 2023, Atlanta, GA.
+
+- *Thimons, S*., Danforth, C., Xu, P., Butler, J., and Jahne, M. “[Risk-Based Guidance for Treated Produced Water Reuse — Progress and Opportunities](https://watereuse.org/watereuse-2023-symposium/session-8-risk-based-guidance-for-treated-oil-gas-produced-water-reuse/).” 2023 WateReuse Symposium, March 5–8, 2023, Atlanta, GA.
+
+- Hightower, M., Reible, D., Rosenblum, J., Stringfellow, W., and *Thimons, S*. “Panel on State Produced Water Treatment and Reuse Approaches.” 2023 WateReuse Symposium, March 5–8, 2023.
+
+- *Thimons, S.* “Development and Implementation of a Quantitative Hazard, Risk, and Toxicological Evaluation Tool (QHRTET) for Regionally Focused Issues.” Annual Meeting of the New Mexico Produced Water Research Consortium, Las Cruces, NM, USA, December 6–7, 2022.
+
+- *Thimons, S.*, Saxena, S., Den, W. “Treatment and Desalination of Hydraulic Fracturing Produced Water Using Ferrate and Directional Solvent Extraction.” ACS Fall 2021, Atlanta, GA, August 22–26, 2021.
+
+- *Thimons, S.X.*, K.R. Cradock, and M.M.F. Lutnesky. “Preliminary Characterization of Fish Survivorship in Backwater Pools on the Pecos River, NM USA.” Joint Meeting of Ichthyologists and Herpetologists, Snowbird, UT, 2019.
