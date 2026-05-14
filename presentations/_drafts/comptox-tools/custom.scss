@@ -1,0 +1,82 @@
+/*-- scss:defaults --*/
+
+$body-bg: #0f172a;
+$body-color: #e5edf5;
+$link-color: #67e8f9;
+$selection-bg: #2563eb;
+
+$font-family-sans-serif: "Inter", "Source Sans Pro", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+$presentation-heading-font: "Inter", "Source Sans Pro", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+$presentation-heading-color: #f8fafc;
+$code-color: #bfdbfe;
+$code-block-bg: #111827;
+$presentation-font-size-root: 35px;
+
+/*-- scss:rules --*/
+
+.reveal {
+  color: #e5edf5;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3 {
+  letter-spacing: -0.025em;
+  text-transform: none;
+  font-weight: 700;
+}
+
+.reveal h2 {
+  color: #93c5fd;
+  border-bottom: 2px solid #1e3a8a;
+  padding-bottom: 0.25em;
+}
+
+.reveal h3 {
+  color: #bae6fd;
+}
+
+.reveal strong {
+  color: #facc15;
+}
+
+.reveal a {
+  color: #67e8f9;
+}
+
+.reveal .slide-logo {
+  max-height: 5rem;
+}
+
+.reveal .callout-important,
+.reveal .callout-warning,
+.reveal .callout-note {
+  border-left: 0.35rem solid #38bdf8;
+  background: rgba(15, 23, 42, 0.72);
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.35rem;
+}
+
+.reveal .callout-important {
+  border-left-color: #facc15;
+}
+
+.reveal .callout-warning {
+  border-left-color: #fb7185;
+}
+
+.reveal table {
+  font-size: 0.72em;
+}
+
+.reveal .smaller {
+  font-size: 0.78em;
+}
+
+.reveal code {
+  color: #bfdbfe;
+}
+
+.reveal pre code {
+  max-height: 520px;
+}
