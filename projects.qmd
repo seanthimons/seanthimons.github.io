@@ -12,9 +12,8 @@ nocite: |
 
 ## Open Source Tools
 
-::: {.grid}
+::: {.work-card-grid}
 
-::: {.g-col-12 .g-col-md-6 .g-col-xl-3}
 ::: {.card}
 ![](assets/logos/comptoxr.png){.project-logo fig-alt="ComptoxR logo"}
 
@@ -24,33 +23,27 @@ R package for accessing US EPA CompTox Chemistry Dashboard APIs and related chem
 
 [GitHub](https://github.com/seanthimons/ComptoxR){.btn .btn-primary}
 :::
-:::
 
-::: {.g-col-12 .g-col-md-6 .g-col-xl-3}
 ::: {.card}
-![](assets/logos/threat.svg){.project-logo fig-alt="THREAT logo"}
+![](assets/logos/chorus.png){.project-logo fig-alt="CHORUS logo"}
 
-### THREAT
+### CHORUS
 
-R Shiny application for site and compound evaluation using toxicological, hazard, and risk-based endpoints. Integrates ComptoxR and curated benchmark datasets to support water-quality screening and prioritization.
+Constituent Hazard, Occurrence, Regulatory, and Uncertainty Screening. A screening framework for prioritizing environmental constituents by combining hazard and fate signals, occurrence evidence, regulatory benchmarks, and uncertainty-aware decision logic.
 
-[GitHub](https://github.com/seanthimons/THREAT){.btn .btn-primary}
+[GitHub](https://github.com/seanthimons/chorus){.btn .btn-primary}
 :::
-:::
 
-::: {.g-col-12 .g-col-md-6 .g-col-xl-3}
 ::: {.card}
-![](assets/logos/concert.png){.project-logo fig-alt="concert logo"}
+![](assets/logos/concert.png){.project-logo fig-alt="CONCERT logo"}
 
-### concert
+### CONCERT
 
-Chemical-identifier cleaning and curation toolkit, replacing the older ChemReg / Chemical Janitor naming. Designed for defensible harmonization of messy chemical names, identifiers, and source records before they enter downstream analysis.
+Chemical ontology harmonization and entity-resolution toolkit for identifier crosswalking, canonicalization, data reconciliation, and defensible transformation of messy source records into analysis-ready chemical data.
 
 [GitHub](https://github.com/seanthimons/concert){.btn .btn-primary}
 :::
-:::
 
-::: {.g-col-12 .g-col-md-6 .g-col-xl-3}
 ::: {.card}
 ![](assets/logos/serapeum.png){.project-logo fig-alt="Serapeum logo"}
 
@@ -59,7 +52,6 @@ Chemical-identifier cleaning and curation toolkit, replacing the older ChemReg /
 Local-first literature-review and research assistant built with R, Shiny, DuckDB, OpenAlex, and LLM-assisted analysis. Intended to make paper triage, metadata capture, and evidence synthesis reproducible instead of chat-log archaeology.
 
 [GitHub](https://github.com/seanthimons/serapeum){.btn .btn-primary}
-:::
 :::
 
 :::
