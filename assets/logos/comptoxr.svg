@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title desc">
+  <title id="title">ComptoxR logo</title>
+  <desc id="desc">A hexagonal chemical-ring mark with a small R monogram.</desc>
+  <rect width="120" height="120" rx="24" fill="#F3ECFA"/>
+  <path d="M60 16 98 38v44L60 104 22 82V38Z" fill="none" stroke="#5D2E8C" stroke-width="7" stroke-linejoin="round"/>
+  <circle cx="60" cy="16" r="6" fill="#43B3AE"/>
+  <circle cx="98" cy="38" r="6" fill="#43B3AE"/>
+  <circle cx="98" cy="82" r="6" fill="#43B3AE"/>
+  <circle cx="60" cy="104" r="6" fill="#43B3AE"/>
+  <circle cx="22" cy="82" r="6" fill="#43B3AE"/>
+  <circle cx="22" cy="38" r="6" fill="#43B3AE"/>
+  <text x="60" y="72" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" fill="#5D2E8C">R</text>
+</svg>

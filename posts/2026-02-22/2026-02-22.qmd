@@ -3,7 +3,7 @@ title: "A User Guide to Working With Sean"
 author: "Sean Thimons"
 description: "A practical guide to how I work, communicate, and collaborate."
 date: "2026-02-22"
-draft: true
+draft: false
 categories: [essay, management, collaboration]
 image: "hero.png"
 format:
@@ -145,6 +145,14 @@ I finally decided to write this because too much collaborative friction comes fr
 
 This is mine.
 
+## Working With Me in 30 Seconds
+
+- Give me the ask, the deadline, the decision at stake, and what "done" means.
+- Bring me real ownership or a clearly bounded role. Ambiguous responsibility is where work starts to rot.
+- Surface problems early and concretely: what happened, what is off-spec, and what decision you need from me.
+- Push back when you understand the tradeoff. Vague skepticism lands badly; informed challenge usually makes the work better.
+- If I start rebuilding the universe, tell me. The magic words are: "that is not in spec; solve the task in front of us first."
+
 ## How I View Success
 
 When a project goes well for me, the center of gravity is that the work is durable, defensible, and deterministic. Durable work survives the weather around it: political pressure, brittle infrastructure, shifting priorities, or my own need to put it down for six months and come back without having to rediscover the whole thing. Defensible work stands on its own; it can be inspected, reproduced, and justified without me having to personally intercede on its behalf. And when I call something deterministic, I mean it does not depend on memory, mood, luck, or hidden state. Given the same inputs and conditions, it should produce the same result — or a bounded, expected variation you can explain in advance.
@@ -158,6 +166,14 @@ I don’t operate at maximum output every hour of every day, and I think that’
 In day-to-day interactions, I prefer brevity and substance over decorative status. If something is blocked, I want to know exactly what the friction is and what you think the next move should be. Knowing what is blocking a project or the recommended next action is far more useful to me than a chronological narrative of past progress. What is least helpful to me is vague hand-waving—updates that imply motion without conveying technical or operational substance.
 
 I also work best when expectations are explicit: due dates, victory conditions, and a clear sense of what done looks like. In practice, I tend to do well with a roughly two-week review rhythm—frequent enough that work does not drift out of focus, but not so frequent that every update turns into churn. If something is sticky, a dedicated working session with no distractions can be more effective than another vague status meeting.
+
+## Software and Tools I Use
+
+Most of my technical work happens in R. I usually reach for the tidyverse for data wrangling, ggplot2 for visualization, Shiny and bslib for interactive tools, Quarto for writing and reporting, and package structure when a workflow needs to survive beyond one analysis. I use DuckDB and SQL when the data or reproducibility problem needs a local analytical database instead of another pile of CSVs.
+
+I use Python when it is the right glue: automation, scraping, API work, document parsing, and agent/tooling integration. I am comfortable moving between R, SQL, Python, the shell, Git, GitHub, and GitHub Actions, but I care more about whether the workflow is reproducible than which language got used to make it happen.
+
+My day-to-day operating layer is deliberately boring: Git for version control, GitHub for collaboration and issue tracking, Obsidian for durable notes, Quarto for public artifacts, and AI coding agents when they can accelerate bounded work without making the process less inspectable. If a tool creates hidden state, magic configuration, or results that cannot be replayed, I get suspicious fast.
 
 ## Things I Do That May Annoy You
 

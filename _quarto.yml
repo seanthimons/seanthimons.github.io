@@ -12,6 +12,8 @@ website:
       - blog.qmd
       - href: projects.qmd
         text: Work
+      - href: posts/2026-02-22/2026-02-22.qmd
+        text: Working With Me
       - href: project_management_model.qmd
         text: Mental Model
       - volunteer.qmd

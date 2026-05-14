@@ -193,6 +193,16 @@ img[src*="headshot"] {
   }
 }
 
+// Project logo marks
+.project-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin: 0 0 1rem 0;
+  border-radius: 18px;
+  box-shadow: 0 4px 14px rgba($phthalo-deep, 0.08);
+}
+
 // Grid cards equal height
 .grid {
   .g-col-12 {

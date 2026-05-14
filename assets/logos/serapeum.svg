@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title desc">
+  <title id="title">Serapeum logo</title>
+  <desc id="desc">A library-column mark over a search aperture.</desc>
+  <rect width="120" height="120" rx="24" fill="#F3ECFA"/>
+  <path d="M24 42h72L60 18Z" fill="#5D2E8C"/>
+  <rect x="31" y="47" width="10" height="38" rx="3" fill="#5D2E8C"/>
+  <rect x="55" y="47" width="10" height="38" rx="3" fill="#5D2E8C"/>
+  <rect x="79" y="47" width="10" height="38" rx="3" fill="#5D2E8C"/>
+  <rect x="24" y="91" width="72" height="8" rx="4" fill="#5D2E8C"/>
+  <circle cx="60" cy="64" r="17" fill="none" stroke="#78CDD7" stroke-width="6"/>
+  <path d="M72 76l14 14" stroke="#78CDD7" stroke-width="6" stroke-linecap="round"/>
+</svg>

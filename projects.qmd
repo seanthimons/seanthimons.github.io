@@ -14,9 +14,11 @@ nocite: |
 
 ::: {.g-col-12 .g-col-md-4}
 ::: {.card}
-### CompToxR
+![](assets/logos/comptoxr.svg){.project-logo fig-alt="ComptoxR logo"}
 
-R package for accessing EPA's CompTox Chemistry Dashboard API. Enables programmatic retrieval of chemical properties, hazard data, and exposure predictions for risk evaluation workflows.
+### ComptoxR
+
+R package for accessing US EPA CompTox Chemistry Dashboard APIs and related chemistry products. Supports programmatic retrieval of chemical identifiers, properties, hazard information, exposure predictions, and cheminformatics data for risk-evaluation workflows.
 
 [GitHub](https://github.com/seanthimons/ComptoxR){.btn .btn-primary}
 :::
@@ -24,9 +26,11 @@ R package for accessing EPA's CompTox Chemistry Dashboard API. Enables programma
 
 ::: {.g-col-12 .g-col-md-4}
 ::: {.card}
+![](assets/logos/threat.svg){.project-logo fig-alt="THREAT logo"}
+
 ### THREAT
 
-R Shiny application for comparing observational water quality data against toxicological benchmarks. Integrates CompToxR and curated reference datasets to support environmental risk screening.
+R Shiny application for site and compound evaluation using toxicological, hazard, and risk-based endpoints. Integrates ComptoxR and curated benchmark datasets to support water-quality screening and prioritization.
 
 [GitHub](https://github.com/seanthimons/THREAT){.btn .btn-primary}
 :::
@@ -34,15 +38,39 @@ R Shiny application for comparing observational water quality data against toxic
 
 ::: {.g-col-12 .g-col-md-4}
 ::: {.card}
-### Curation
+![](assets/logos/concert.svg){.project-logo fig-alt="concert logo"}
 
-R scripts and workflows for aggregating chemical and toxicological data from public sources into analysis-ready datasets.
+### concert
 
-[GitHub](https://github.com/seanthimons/curation){.btn .btn-primary}
+Chemical-identifier cleaning and curation toolkit, replacing the older ChemReg / Chemical Janitor naming. Designed for defensible harmonization of messy chemical names, identifiers, and source records before they enter downstream analysis.
+
+[GitHub](https://github.com/seanthimons/concert){.btn .btn-primary}
+:::
+:::
+
+::: {.g-col-12 .g-col-md-4}
+::: {.card}
+![](assets/logos/serapeum.svg){.project-logo fig-alt="Serapeum logo"}
+
+### Serapeum
+
+Local-first literature-review and research assistant built with R, Shiny, DuckDB, OpenAlex, and LLM-assisted analysis. Intended to make paper triage, metadata capture, and evidence synthesis reproducible instead of chat-log archaeology.
+
+[GitHub](https://github.com/seanthimons/serapeum){.btn .btn-primary}
 :::
 :::
 
 :::
+
+## Software and Tools I Use
+
+| Area | Tools |
+|:--|:--|
+| **Analysis and visualization** | R, tidyverse, ggplot2, plotly, Quarto |
+| **Applications and packages** | Shiny, bslib, R package development, pak, renv |
+| **Databases and pipelines** | DuckDB, SQL, reproducible ETL, FAIR/DRY data curation |
+| **Automation and integration** | Python, shell scripting, GitHub Actions, APIs |
+| **Scientific and collaboration layer** | Git, GitHub, Obsidian, Markdown, citation workflows, AI coding agents when the work is bounded and reviewable |
 
 ## Research Focus
 
@@ -83,18 +111,20 @@ My EPA research spans risk characterization for water reuse, chemical safety dat
 
 ## Presentations, Posters, and Panels
 
-Davis, C., Butler, J., Redman, A., Danforth, C., *Thimons, S*., Jahne, M., Xu, P. “Towards a Transparent Framework for Risk-based Evaluation of Treated Produced Water in the Permian.” SETAC North America 44th Annual Meeting, November 12–16, 2023, Louisville, KY.
+Selected older talks and panels, linked where a public archive is available.
 
-Jahne, M., King, D., Kovalcik, K., Donohue, M., Pfaller, S., Helmick, K., Eades, G., Pait, M., Nye, M., *Thimons, S*., and Garland, J. “Water Quality Assessment of AC Condensate for Onsite Collection and Use.” 2023 WateReuse Symposium, March 5–8, 2023, Atlanta, GA.
+- Davis, C., Butler, J., Redman, A., Danforth, C., *Thimons, S*., Jahne, M., Xu, P. “Towards a Transparent Framework for Risk-based Evaluation of Treated Produced Water in the Permian.” SETAC North America 44th Annual Meeting, November 12–16, 2023, Louisville, KY.
 
-Schoen, M., Jahne, M., Soller, J., Garland, J., and *Thimons, S*. “Updated Pathogen Log-Reduction Targets for Onsite Non-Potable Water Reuse.” 2023 WateReuse Symposium, March 5–8, 2023, Atlanta, GA.
+- Jahne, M., King, D., Kovalcik, K., Donohue, M., Pfaller, S., Helmick, K., Eades, G., Pait, M., Nye, M., *Thimons, S*., and Garland, J. “Water Quality Assessment of AC Condensate for Onsite Collection and Use.” 2023 WateReuse Symposium, March 5–8, 2023, Atlanta, GA.
 
-*Thimons, S*., Danforth, C., Xu, P., Butler, J., and Jahne, M. “Risk-Based Guidance for Treated Produced Water Reuse - Progress and Opportunities.” 2023 WateReuse Symposium, March 5–8, 2023, Atlanta, GA.
+- Schoen, M., Jahne, M., Soller, J., Garland, J., and *Thimons, S*. “Updated Pathogen Log-Reduction Targets for Onsite Non-Potable Water Reuse.” 2023 WateReuse Symposium, March 5–8, 2023, Atlanta, GA.
 
-Hightower, M., Reible, D., Rosenblum, J., Stringfellow, W., and *Thimons, S*. Panel on State Produced Water Treatment and Reuse Approaches, 2023 WateReuse Symposium, March 5–8, 2023
+- *Thimons, S*., Danforth, C., Xu, P., Butler, J., and Jahne, M. “[Risk-Based Guidance for Treated Produced Water Reuse — Progress and Opportunities](https://watereuse.org/watereuse-2023-symposium/session-8-risk-based-guidance-for-treated-oil-gas-produced-water-reuse/).” 2023 WateReuse Symposium, March 5–8, 2023, Atlanta, GA.
 
-*Thimons, S.*. Development and Implementation of a Quantitative Hazard, Risk, and Toxicological Evaluation Tool (QHRTET) for Regionally Focused Issues. Presented at Annual Meeting of the New Mexico Produced Water Research Consortium, Las Cruces, NM, USA, Dec 6-7, 2022.
+- Hightower, M., Reible, D., Rosenblum, J., Stringfellow, W., and *Thimons, S*. “Panel on State Produced Water Treatment and Reuse Approaches.” 2023 WateReuse Symposium, March 5–8, 2023.
 
-*Thimons, S.*, Saxena, S., Den, W., Treatment and desalination of hydraulic fracturing produced water using ferrate and directional solvent extraction. Presented at ACS Fall 2021, Atlanta, GA, August 22-26, 2021
+- *Thimons, S.* “Development and Implementation of a Quantitative Hazard, Risk, and Toxicological Evaluation Tool (QHRTET) for Regionally Focused Issues.” Annual Meeting of the New Mexico Produced Water Research Consortium, Las Cruces, NM, USA, December 6–7, 2022.
 
-*Thimons, S.X.*, K.R. Cradock, and M.M.F. Lutnesky, Preliminary Characterization of Fish Survivorship in Backwater Pools on the Pecos River, NM USA. Joint meeting of Ichthyologists and Herpetologists (American Society of Ichthyologists and Herpetologists), Snowbird, UT, 2019
+- *Thimons, S.*, Saxena, S., Den, W. “Treatment and Desalination of Hydraulic Fracturing Produced Water Using Ferrate and Directional Solvent Extraction.” ACS Fall 2021, Atlanta, GA, August 22–26, 2021.
+
+- *Thimons, S.X.*, K.R. Cradock, and M.M.F. Lutnesky. “Preliminary Characterization of Fish Survivorship in Backwater Pools on the Pecos River, NM USA.” Joint Meeting of Ichthyologists and Herpetologists, Snowbird, UT, 2019.
