@@ -3,6 +3,7 @@ title: "Work"
 format:
   html:
     body-classes: page-work
+page-layout: full
 bibliography: works.bib
 nocite: |
   @*
@@ -12,7 +13,7 @@ nocite: |
 
 ::: {.grid}
 
-::: {.g-col-12 .g-col-md-4}
+::: {.g-col-12 .g-col-md-6 .g-col-xl-3}
 ::: {.card}
 ![](assets/logos/comptoxr.svg){.project-logo fig-alt="ComptoxR logo"}
 
@@ -24,7 +25,7 @@ R package for accessing US EPA CompTox Chemistry Dashboard APIs and related chem
 :::
 :::
 
-::: {.g-col-12 .g-col-md-4}
+::: {.g-col-12 .g-col-md-6 .g-col-xl-3}
 ::: {.card}
 ![](assets/logos/threat.svg){.project-logo fig-alt="THREAT logo"}
 
@@ -36,7 +37,7 @@ R Shiny application for site and compound evaluation using toxicological, hazard
 :::
 :::
 
-::: {.g-col-12 .g-col-md-4}
+::: {.g-col-12 .g-col-md-6 .g-col-xl-3}
 ::: {.card}
 ![](assets/logos/concert.svg){.project-logo fig-alt="concert logo"}
 
@@ -48,7 +49,7 @@ Chemical-identifier cleaning and curation toolkit, replacing the older ChemReg /
 :::
 :::
 
-::: {.g-col-12 .g-col-md-4}
+::: {.g-col-12 .g-col-md-6 .g-col-xl-3}
 ::: {.card}
 ![](assets/logos/serapeum.svg){.project-logo fig-alt="Serapeum logo"}
 
