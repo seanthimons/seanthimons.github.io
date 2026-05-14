@@ -7,7 +7,7 @@ page-layout: full
 title-block-banner: false
 ---
 
-A public archive of talks, slide decks, posters, and panels. These are treated as professional artifacts, not blog posts: the blog is for narrative; this page is for the record.
+Public archive of talks that I've given, posters I've presented, and panels I've participated in. 
 
 ## Featured decks
 

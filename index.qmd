@@ -24,7 +24,3 @@ Outside of work, I volunteer as a **data scientist** for a research group focuse
 
 - M.S., *Water Resources, Science & Technology*, Texas A&M University – San Antonio, 2021
 - B.S., *Biology*, Texas A&M University – San Antonio, 2019
-
-## Work Experience
-
-I'm currently a Physical Scientist in EPA's Office of Water, working on wastewater technology and analytics. Previously, I spent four years with the Office of Research and Development (first as an ORISE Fellow, then as a Physical Scientist), where I focused on risk characterization for water reuse and chemical safety data curation.

@@ -3,18 +3,20 @@ title: "Work"
 format:
   html:
     body-classes: page-work
+page-layout: full
 bibliography: works.bib
 nocite: |
   @*
 ---
 
+
 ## Open Source Tools
 
 ::: {.grid}
 
-::: {.g-col-12 .g-col-md-4}
+::: {.g-col-12 .g-col-md-6 .g-col-xl-3}
 ::: {.card}
-![](assets/logos/comptoxr.svg){.project-logo fig-alt="ComptoxR logo"}
+![](assets/logos/comptoxr.png){.project-logo fig-alt="ComptoxR logo"}
 
 ### ComptoxR
 
@@ -24,7 +26,7 @@ R package for accessing US EPA CompTox Chemistry Dashboard APIs and related chem
 :::
 :::
 
-::: {.g-col-12 .g-col-md-4}
+::: {.g-col-12 .g-col-md-6 .g-col-xl-3}
 ::: {.card}
 ![](assets/logos/threat.svg){.project-logo fig-alt="THREAT logo"}
 
@@ -36,9 +38,9 @@ R Shiny application for site and compound evaluation using toxicological, hazard
 :::
 :::
 
-::: {.g-col-12 .g-col-md-4}
+::: {.g-col-12 .g-col-md-6 .g-col-xl-3}
 ::: {.card}
-![](assets/logos/concert.svg){.project-logo fig-alt="concert logo"}
+![](assets/logos/concert.png){.project-logo fig-alt="concert logo"}
 
 ### concert
 
@@ -48,9 +50,9 @@ Chemical-identifier cleaning and curation toolkit, replacing the older ChemReg /
 :::
 :::
 
-::: {.g-col-12 .g-col-md-4}
+::: {.g-col-12 .g-col-md-6 .g-col-xl-3}
 ::: {.card}
-![](assets/logos/serapeum.svg){.project-logo fig-alt="Serapeum logo"}
+![](assets/logos/serapeum.png){.project-logo fig-alt="Serapeum logo"}
 
 ### Serapeum
 
