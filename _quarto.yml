@@ -8,10 +8,12 @@ website:
   navbar:
     left:
       - href: index.qmd
-        text: Home
+        text: About
       - blog.qmd
       - href: projects.qmd
         text: Work
+      - href: presentations/index.qmd
+        text: Presentations
       - href: project_management_model.qmd
         text: Mental Model
       - volunteer.qmd

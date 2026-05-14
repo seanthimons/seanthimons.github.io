@@ -26,7 +26,6 @@ format:
     width: 1280
     height: 720
     margin: 0.1
-    logo: ""
     footer: "Triumph, Trouble, Trainwreck | Sean Thimons"
     title-slide-attributes:
       data-background-color: "#0f172a"
@@ -127,7 +126,7 @@ Walk through the lifecycle briefly. Emphasize that each slash command kicks off 
 
 ----
 
-## {background-color="#166534" background-image="" data-background-opacity="0.3"}
+## {background-color="#166534" data-background-opacity="0.3"}
 
 ::: {.r-fit-text}
 ACT I: THE TRIUMPH
