@@ -1,0 +1,127 @@
+/*-- scss:defaults --*/
+
+$body-bg: #0f172a;
+$body-color: #e2e8f0;
+$link-color: #60a5fa;
+$selection-bg: #2563eb;
+
+$font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+$presentation-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+$presentation-heading-color: #f1f5f9;
+$code-color: #fbbf24;
+$code-block-bg: #1e293b;
+
+$presentation-font-size-root: 36px;
+
+/*-- scss:rules --*/
+
+.reveal {
+  h1, h2, h3 {
+    text-transform: none;
+    font-weight: 700;
+  }
+
+  h2 {
+    border-bottom: 2px solid #334155;
+    padding-bottom: 0.3em;
+    margin-bottom: 0.6em;
+  }
+}
+
+.reveal table {
+  font-size: 0.65em;
+  margin: 0.5em auto;
+
+  th {
+    background-color: #1e293b;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.05em;
+  }
+
+  td, th {
+    border-color: #334155;
+    padding: 0.4em 0.8em;
+  }
+
+  tbody tr:nth-child(odd) {
+    background-color: rgba(30, 41, 59, 0.5);
+  }
+}
+
+.reveal .slide-number {
+  color: #64748b;
+  font-size: 0.5em;
+}
+
+.reveal .footer {
+  color: #475569;
+  font-size: 0.4em;
+}
+
+.reveal blockquote {
+  background: rgba(37, 99, 235, 0.1);
+  border-left: 4px solid #2563eb;
+  padding: 0.8em 1.2em;
+  font-style: italic;
+  color: #cbd5e1;
+  margin: 0.8em 0;
+  font-size: 0.85em;
+}
+
+.reveal code {
+  background: #1e293b;
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+.reveal pre code {
+  padding: 1em;
+  border-radius: 8px;
+  font-size: 0.55em;
+  line-height: 1.4;
+  max-height: 500px;
+}
+
+.reveal .smaller {
+  font-size: 0.8em;
+}
+
+.reveal .columns {
+  gap: 2em;
+}
+
+.reveal ul, .reveal ol {
+  margin-left: 0.5em;
+
+  li {
+    margin-bottom: 0.3em;
+    line-height: 1.4;
+  }
+}
+
+.reveal .incremental li {
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.reveal .incremental li.visible {
+  opacity: 1;
+}
+
+.highlight-red {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.highlight-blue {
+  color: #60a5fa;
+  font-weight: 700;
+}
+
+.r-fit-text {
+  line-height: 1.2;
+}

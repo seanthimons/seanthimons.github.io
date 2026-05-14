@@ -1,0 +1,717 @@
+---
+title: "The Good, The Bad, and The Ugly"
+subtitle: "Workflows Are Not All You Need"
+author: "Sean Thimons"
+date: "2026-04-21"
+format:
+  revealjs:
+    embed-resources: true
+    theme: [dark, custom.scss]
+    transition: fade
+    slide-number: true
+    hash-type: number
+    center: true
+    code-line-numbers: false
+    highlight-style: monokai
+    width: 1280
+    height: 720
+    margin: 0.1
+    logo: ""
+    footer: "The Good, The Bad, and The Ugly | Sean Thimons"
+    title-slide-attributes:
+      data-background-color: "#0f172a"
+---
+
+----
+
+## About This Talk {.smaller}
+
+:::: {.columns}
+
+::: {.column width="60%"}
+
+**The project:** Serapeum --- an R/Shiny research tool with RAG pipelines, citation networks, slide generation, and PDF extraction.
+
+**The experiment:** Use Claude Code as an autonomous workflow engine via a custom framework called GSD (Get Stuff Done).
+
+**The numbers:**
+
+- 256 sessions over 26 days
+- 1,568 messages, ~60/day
+- 91 commits, 587 files touched
+- +56,491 / -3,594 lines
+
+:::
+
+::: {.column width="40%"}
+
+::: {style="font-size: 4.5em;"}
+```
+/gsd-discuss-phase
+/gsd-plan-phase
+/gsd-execute-phase
+/gsd-verify-work
+/gsd-audit-milestone
+/gsd-complete-milestone
+```
+:::
+
+::: {.fragment}
+*"Don't prompt Claude to write code. Prompt Claude to run a software team."*
+:::
+
+:::
+
+::::
+
+::: {.notes}
+Introduce yourself, the project, the scale. This is a real production tool, not a toy demo.
+Emphasize that 60 messages/day means Claude is doing most of the work.
+:::
+
+----
+
+## What Is GSD? {.smaller}
+
+A **phase-based development framework** built entirely from custom Claude Code slash commands.
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### The Lifecycle
+
+```{mermaid}
+%%{init: {'theme': 'dark', 'flowchart': {'rankSpacing': 12, 'nodeSpacing': 10, 'padding': 20}, 'themeVariables': {'fontSize': '26px'}}}%%
+flowchart TD
+    D["/gsd-discuss-phase"] --> P["/gsd-plan-phase"]
+    P --> E["/gsd-execute-phase"]
+    E --> V["/gsd-verify-work"]
+    V --> A["/gsd-audit-milestone"]
+    A --> C["/gsd-complete-milestone"]
+```
+
+:::
+
+::: {.column width="50%"}
+
+### What Happens Under the Hood
+
+Each command **orchestrates subagents**:
+
+- Research agents explore the codebase
+- Pattern mappers find analogous code
+- Plan checkers validate before execution
+- Executors work in parallel waves
+- Verifiers confirm goal achievement
+
+Milestones group phases into versioned releases (v12--v20 in one month).
+
+:::
+
+::::
+
+::: {.notes}
+Walk through the lifecycle briefly. Emphasize that each slash command kicks off a multi-agent pipeline, not a simple prompt.
+:::
+
+----
+
+## {background-color="#166534" background-image="" data-background-opacity="0.3"}
+
+::: {.r-fit-text}
+ACT I: THE GOOD
+:::
+
+----
+
+## The Numbers That Worked 
+
+| Metric | Value |
+|---|---|
+| Fully achieved outcomes | **73 / 91 (80%)** |
+| Multi-file changes | 56 sessions |
+| Parallel sessions (multi-clauding) | 54 events, 15% of messages |
+| Dissatisfied signals | Only 8 |
+
+::: {.fragment}
+These aren't *rename this variable* tasks.
+
+These are multi-file, multi-step, plan-execute-verify pipelines.
+:::
+
+::: {.notes}
+Hammer home that 80% fully achieved is remarkable given the complexity. These are real features, not trivial changes.
+:::
+
+----
+
+## Win: Autonomous Content Pipeline {.smaller}
+
+**Tidy Tuesday blog posts:** 26 sessions, 20+ complete QMD posts
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### One Slash Command =
+
+1. Fetch this week's dataset
+2. Exploratory data analysis
+3. Three visualizations
+4. Written narrative
+5. Quarto render
+6. Smoke test
+7. Git commit
+
+:::
+
+::: {.column width="50%"}
+
+### Self-Correction
+
+Claude handles without intervention:
+
+- Palette errors
+- Column name mismatches
+- Windows path issues
+- Broken formatting
+
+::: {.fragment}
+*This is what workflows buy you: **repeatability at scale**.*
+:::
+
+:::
+
+::::
+
+::: {.notes}
+This is the poster child for the Good. One command, a finished blog post most of the time.
+Mention that the self-correction is genuine --- Claude catches and fixes its own mistakes mid-pipeline.
+:::
+
+----
+
+## Win: Phase Orchestration {.smaller}
+
+**Phase 35 example:** discussion -> planning -> UI spec -> execution -> **80 passing tests**
+
+:::: {.columns}
+
+::: {.column width="60%"}
+
+Multi-wave subagent architecture:
+
+- Wave 1: Research + pattern mapping
+- Wave 2: Planning with checker validation
+- Wave 3: Parallel execution in isolated tasks
+- Wave 4: Verification against plan goals
+
+Each wave has **gates** --- the next wave doesn't start until the previous one passes.
+
+:::
+
+::: {.column width="40%"}
+
+### Bug Bash Discipline
+::: {style="font-size: 3.5em;"}
+```
+plan
+  -> fix
+    -> Codex cross-audit
+      -> Copilot review
+        -> merge
+```
+:::
+
+::: {.fragment}
+The plan artifact does real work --- it's a **contract** between you and the agent about what "done" means.
+:::
+
+:::
+
+::::
+
+::: {.notes}
+Emphasize the verification gates. The plan is not ceremony, it's load-bearing.
+:::
+
+----
+
+## The Good: Summary
+
+::: {.r-fit-text}
+Workflows transform an AI assistant from a **pair programmer** into a **project manager with commit access**.
+:::
+
+. . .
+
+Three things that worked:
+
+1. **Reusable skill templates** --- encode hard-won knowledge once, reuse forever
+2. **Phase gates** --- verify between stages, prevent compound errors
+3. **Parallel orchestration** --- three things at once, safely
+
+. . .
+
+::: {.fragment .fade-in}
+> ...or so I thought.
+:::
+
+----
+
+## {background-color="#991b1b"}
+
+::: {.r-fit-text}
+ACT II: THE BAD
+:::
+
+----
+
+## Friction by the Numbers
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+| Friction Type | Count |
+|---|---|
+| Buggy generated code | 25 |
+| Wrong initial approach | 18 |
+| Misunderstood request | 7 |
+| Environment issues | 4 |
+| User rejected action | 3 |
+
+:::
+
+::: {.column width="50%"}
+
+| Error Type | Count |
+|---|---|
+| Command failed | 222 |
+| User rejected tool call | 40 |
+| File too large | 29 |
+| File not found | 20 |
+| Edit failed | 7 |
+
+:::
+
+::::
+
+::: {.fragment}
+The workflow doesn't eliminate mistakes --- it changes **where** they happen.
+:::
+
+::: {.notes}
+The raw numbers are sobering. 222 command failures is almost one per session.
+:::
+
+----
+
+## The Inverted Narrative {.smaller}
+
+The most common bug class: **Claude assumes things about data it hasn't seen.**
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### Recurring Data Bugs
+
+- Column names after `janitor::clean_names()` --- guessed wrong
+- Proportions (0--1) vs. percentages (0--100) --- broken filters
+- `quantile()` returns double, `sprintf %d` expects integer --- crash
+
+:::
+
+::: {.column width="50%"}
+
+### The British Library Post
+
+Claude wrote: *"GIA funding share **decreased**"*
+
+The data showed: it **increased**.
+
+::: {.fragment}
+
+Every workflow step **passed**:
+
+- EDA ran
+- Visualization rendered
+- Smoke test succeeded
+- Commit created
+:::
+
+:::
+
+::::
+
+::: {.fragment}
+**Structural correctness &ne; semantic correctness.**
+
+The workflow ran perfectly. The conclusion was backwards.
+:::
+
+::: {.notes}
+This is the key moment of the talk. The workflow was structurally flawless. The content was wrong.
+Pause here for effect.
+:::
+
+----
+
+## Claude Overreach {.smaller}
+
+When you give an agent autonomy, it *uses* that autonomy:
+
+. . .
+
+**Scope creep:** Proposed dropping an embedding column without checking downstream usage. The research refiner needed it.
+
+. . .
+
+**Not listening:** Asked about merge strategy. Got a milestone proposal instead.
+
+. . .
+
+**Premature claims:** Claimed 12 issues were closed before finishing. *"Did something stop?"* became a recurring question.
+
+. . .
+
+**Broken tools:** The AskUserQuestion tool rendered blank questions 3 times in a row. Had to reject and switch to plain text.
+
+. . .
+
+> Autonomy requires trust. Trust requires boundaries. The more autonomous the workflow, the more damage a wrong autonomous decision causes.
+
+::: {.notes}
+These are trust-erosion events. Individually small, cumulatively they force you to audit everything, which defeats the purpose of autonomy.
+:::
+
+----
+
+## The Bad: Summary
+
+::: {.r-fit-text}
+Workflows solve the **process** problem but not the **judgment** problem.
+:::
+
+. . .
+
+- The agent doesn't say *"I'm not sure about this column name"* --- it just uses the wrong one
+- The more structured the workflow, the more **confidently** it executes wrong steps
+
+. . .
+
+> Better workflows can mask worse judgment.
+
+----
+
+## {background-color="#78350f"}
+
+::: {.r-fit-text}
+ACT III: THE UGLY
+:::
+
+----
+
+## The Setup: Six Parallel Milestones {.smaller}
+
+Mid-March. Six milestones. Six branches. Six Claude sessions. Each running the full GSD pipeline independently.
+
+| PR | Milestone | Created | Merged |
+|---|---|---|---|
+| #156 | v12 UX Polish & Onboarding | Mar 13 | Mar 20 |
+| #161 | v13 Search & Discovery | Mar 17 | Mar 20 |
+| #168 | v14 Citation Network Evolution | Mar 19 | Mar 20 |
+| #162 | v15 AI Infrastructure | Mar 18 | Mar 20 |
+| #221 | v16 Content & Output Quality | Mar 21 | [**never merged**]{.fragment .highlight-red} |
+| #163 | v17 PDF Image Pipeline | Mar 19 | Mar 21 |
+
+::: {.fragment}
+Each milestone: individually disciplined. Full discuss-plan-execute-verify lifecycle.
+
+All six needed to merge in the **same 48-hour window**.
+:::
+
+::: {.notes}
+Set the scene. Each of these was a real, substantial milestone. v15 alone was provider abstraction, model routing, latency tracking. v17 was a full PDF image extraction pipeline. They were all in-flight simultaneously.
+:::
+
+----
+
+## The Anatomy of the Disaster {.smaller}
+
+::: {.incremental}
+1. **v12 merged into integration** --- fine.
+2. **v13 merged** --- 8 review issues fixed first, but ok.
+3. **v14 merged, then immediately reverted.**
+   - Namespace scope bugs + missing FWCI scaffold discovered post-merge.
+   - Had to fix and re-merge.
+4. **v15 merged** --- only after a dedicated *"resolve conflicts with integration"* commit.
+5. **v17 had to absorb v12--v15 INTO ITSELF** before it could merge.
+   - The feature branch swallowed four other milestones.
+6. **v16 never merged as a PR.** PR #221 closed.
+   - Changes rescued via a separate "uncommitted integration" fix PR the next day.
+:::
+
+::: {.notes}
+Walk through each step. Let the audience feel the escalation.
+The v17 absorbing four milestones is the jaw-drop moment.
+:::
+
+----
+
+## The Git Graph {background-color="#0f172a"}
+
+::: {style="font-size: 1.4em;"}
+```
+*   d834744 merge: v17 + v16 into integration
+|\
+| *   6beabed v17.0 PDF image pipeline
+| |\
+| | *   202b90c merge: integration (v12-v15) INTO v17
+| | |\
+| | |/
+| |/|
+* | |   0f2ad9a merge: v16 Content & Output Quality
+|\ \ \
+| |/ /
+|/| |
+| * | 4322df7 fix: address PR #221 review feedback
+* |     4e299ca Merge PR #162 (v15-ai-infrastructure)
+| * |   69b9b32 merge: resolve conflicts with integration
+|/
+*       4c1516b Merge v14 into integration
+*       da06085 Revert "Merge PR #168 (v14)"  <-- THE REVERT
+*       152ffdb Merge PR #168 (v14-citation-network)
+*       3b1fde3 Merge PR #161 (v13-search-discovery)
+*       05852b6 Merge v12-ux-polish into integration
+```
+:::
+
+::: {.fragment style="text-align: right;"}
+**135 files. +28,656 lines. -1,261 lines.**
+:::
+
+::: {.notes}
+If you can, show the actual git log --graph output. The visual spaghetti tells the story better than words.
+:::
+
+----
+
+## The Aftermath
+
+The next week was **integration debris**:
+
+| PR | What Broke | Days After |
+|---|---|---|
+| #233 | v16 uncommitted changes salvaged | +1 |
+| #237 | Document download broken | +2 |
+| #241 | **v18 Bug Bash: 13 issues, 5 fix sessions** | +3 |
+| #253 | Missing community column migration | +4 |
+| #262 | Citation network bind length mismatch | +4 |
+
+::: {.fragment}
+The **v18 Bug Bash** wasn't planned work.
+
+It was cleanup. Five sessions (A through E) to fix what the integration broke.
+:::
+
+::: {.fragment}
+> *"The workflows produced code faster than I could integrate it. I was assembling six sets of IKEA furniture that all shared the same screws."*
+:::
+
+::: {.notes}
+The IKEA line usually gets a laugh. Let it land.
+The key insight: the v18 bug bash was an UNPLANNED milestone created entirely by the integration mess.
+:::
+
+----
+
+## Why the Workflow Couldn't Save Me
+
+The GSD framework had **no concept of**:
+
+::: {.incremental}
+- **Cross-milestone coordination** --- no shared integration cadence; branches diverged for days
+- **File overlap awareness** --- `rag.R`, `mod_settings.R`, `mod_slides.R`, `db.R` all touched by 3+ milestones
+- **Migration collision** --- numbered migrations from parallel branches *guaranteed* conflicts
+- **An integration agent** --- the one role that doesn't exist in the framework
+:::
+
+::: {.fragment}
+
+> Each agent was a perfectly disciplined soldier executing a flawless plan. But nobody was the general.
+
+:::
+
+::: {.notes}
+This is the thesis of the talk in one slide. The framework orchestrates individual pipelines perfectly. It has zero concept of coordination between pipelines.
+:::
+
+----
+
+## The Windows Tax {.smaller}
+
+And then there's the unglamorous stuff:
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+- Claude uses `/tmp/` paths
+- Windows R can't access `/tmp/`
+- This happened in **5+ separate sessions**
+- R segfaults on network calls on Windows
+- File locking blocks `git worktree remove`
+
+:::
+
+::: {.column width="50%"}
+
+I have this rule in:
+
+- My CLAUDE.md
+- My skill templates
+- My memory system
+- My hooks
+
+::: {.fragment}
+Claude **still** uses `/tmp/`.
+:::
+
+:::
+
+::::
+
+::: {.fragment}
+**Instruction adherence degrades with context length.**
+
+By the time Claude is deep in a multi-stage pipeline, the guardrails have scrolled off its priority list.
+:::
+
+::: {.notes}
+This gets a rueful laugh from anyone who's worked with LLMs at scale. The forgetting is real and persistent.
+:::
+
+----
+
+## {background-color="#1e40af"}
+
+::: {.r-fit-text}
+THE LESSONS
+:::
+
+----
+
+## What Workflows Buy You (And What They Don't) {.smaller}
+
+**Workflows are a floor, not a ceiling.**
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### What They Buy
+
+- Repeatability
+- Parallelism
+- Institutional knowledge
+- Scale (56K lines / month)
+
+:::
+
+::: {.column width="50%"}
+
+### What They Don't
+
+- Semantic correctness
+- Cross-workflow coordination
+- Judgment under ambiguity
+- Self-awareness about confidence
+
+:::
+
+::::
+
+::: {.fragment}
+The uncomfortable truth: **the maintenance burden of the workflow system is itself a significant time investment.** Every mistake adds a new guardrail. Every guardrail adds context length. Context length degrades guardrail adherence.
+:::
+
+::: {.notes}
+Point out the vicious cycle: mistakes -> guardrails -> longer context -> forgotten guardrails -> mistakes.
+:::
+
+----
+
+## What You Actually Need Beyond Workflows {.smaller}
+
+::: {.incremental}
+1. **Semantic verification gates** --- "Is this trend going up or down?" *before* writing the narrative
+2. **Cross-workflow coordination** --- if two agents touch the same files, they need sequencing, not parallelism
+3. **Hooks over instructions** --- hooks actually *block* bad behavior; instructions get forgotten at context length
+4. **A convergence strategy** --- regular integration merges, not a big bang at the end
+5. **Honest accounting** --- report net productivity after subtracting the error correction and integration tax
+:::
+
+::: {.notes}
+These are actionable. The audience should leave with these five things.
+:::
+
+----
+
+## The Maturity Model
+
+| Level | Description | Where It Breaks |
+|---|---|---|
+| 1. Prompting | Ask the AI to write code | Quality of each prompt |
+| 2. Templates | Reusable prompt patterns | Doesn't adapt to context |
+| 3. Skills / Workflows | Multi-step pipelines | Semantic errors, overreach |
+| 4. Verification loops | Workflows + runtime validation | Maintenance burden |
+| [**5. Coordinated fleets**]{.fragment .highlight-blue} | [Parallel agents with shared state]{.fragment} | [We're not here yet]{.fragment} |
+
+::: {.fragment}
+I'm at Level 3--4.
+
+Level 5 requires solving Level 3's problems first.
+:::
+
+----
+
+## {background-color="#0f172a"}
+
+::: {.r-fit-text}
+**The Good:** Workflows made me 5x more productive on a good day.
+:::
+
+. . .
+
+::: {.r-fit-text}
+**The Bad:** The agent doesn't know what it doesn't know.
+:::
+
+. . .
+
+::: {.r-fit-text}
+**The Ugly:** Six perfect pipelines, one catastrophic merge.
+:::
+
+----
+
+## {background-color="#0f172a"}
+
+::: {.r-fit-text}
+Workflows are not all you need.
+:::
+
+::: {.fragment}
+You also need **verification**, **coordination**, **humility** about what autonomy actually means, and a willingness to **maintain the machine that maintains your code**.
+:::
+
+. . .
+
+::: {style="font-size: 0.8em; color: #94a3b8; margin-top: 2em;"}
+Sean Thimons
+
+github.com/seanthimons
+:::
