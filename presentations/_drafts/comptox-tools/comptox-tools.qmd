@@ -443,35 +443,42 @@ This is the setup for the R example. Emphasize that APIs do not make the data mo
 ## API pattern: retrieve, cache, normalize {.smaller}
 
 ```r
-library(httr2)
-library(jsonlite)
-library(purrr)
-library(tibble)
-library(dplyr)
+library(ComptoxR)
 
-base_url <- "https://api-ccte.epa.gov"
-accessed <- Sys.Date()
+# Direct examples from ComptoxR package documentation
+ct_chemical_search_equal_bulk(
+  query = c("DTXSID7020182", "DTXSID9020112")
+)
 
-# Use the live Swagger/OpenAPI docs for current route names and parameters:
-# https://api-ccte.epa.gov/docs/
+ct_chemical_detail_search(
+  dtxsid = "DTXSID7020182"
+)
 
-query_record <- function(dtxsid) {
-  req <- request(base_url) %>%
-    req_url_path_append("<current-endpoint-from-docs>") %>%
-    req_url_query(dtxsid = dtxsid)
+ct_chemical_property_search(
+  dtxsid = "DTXSID7020182"
+)
 
-  resp <- req_perform(req)
-  list(
-    dtxsid = dtxsid,
-    url = req_url(req),
-    accessed = accessed,
-    raw = resp_body_json(resp, simplifyVector = FALSE)
-  )
-}
+ct_exposure_product_data_search(
+  dtxsid = "DTXSID0020232"
+)
+
+ct_exposure_functional_use_search(
+  dtxsid = "DTXSID0020232"
+)
+
+ct_hazard_toxval_search(
+  dtxsid = "DTXSID0021125"
+)
 ```
 
+::: {.callout-note}
+**Follow-up before delivery:** run the package examples live, pick one coherent demo chemical/set, then wrap the tested calls with explicit access-date and cache logic.
+:::
+
 ::: {.notes}
-This intentionally avoids hard-coding an endpoint that may drift. For a live training, open the official API docs and copy the current route. The durable lesson is the pattern: retrieve, cache, normalize, record URL and access date.
+These examples are taken from the local `ComptoxR` package roxygen/Rd examples on thoth-box, not invented scaffold code. Keep this slide as the honest package-facing version.
+
+If the final training needs a reproducible report demo, add the workflow wrapper only after testing the package examples against the live API: define the demo chemical set, run the relevant `ComptoxR` calls, inspect returned columns, save raw outputs, and record access date/query assumptions in the report. Do not present wrapper code as package code.
 :::
 
 ----
