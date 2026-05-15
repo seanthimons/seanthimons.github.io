@@ -24,6 +24,9 @@ format:
     footer: "EPA CompTox Tools | Sean Thimons"
     title-slide-attributes:
       data-background-color: "#0f172a"
+  pptx:
+    slide-level: 2
+    toc: false
 ---
 
 ----
@@ -105,15 +108,9 @@ Make the “which tool for which question?” point early. Dashboard is excellen
 
 ## The decision-support ladder
 
-```{mermaid}
-%%{init: {'theme': 'dark', 'flowchart': {'rankSpacing': 28, 'nodeSpacing': 20}, 'themeVariables': {'fontSize': '24px'}}}%%
-flowchart LR
-  A[Chemical identity] --> B[Context]
-  B --> C[Evidence]
-  C --> D[Comparison]
-  D --> E[Reproducible record]
-  E --> F[Decision support]
-```
+::: {.r-fit-text}
+**Chemical identity → Context → Evidence → Comparison → Reproducible record → Decision support**
+:::
 
 . . .
 
@@ -365,17 +362,12 @@ Do not oversell CAM as a decision engine. Frame it as a comparison workbench tha
 
 ## CAM workflow {.smaller}
 
-```{mermaid}
-%%{init: {'theme': 'dark', 'flowchart': {'rankSpacing': 20, 'nodeSpacing': 16}, 'themeVariables': {'fontSize': '22px'}}}%%
-flowchart TD
-  A[Resolve identities in Dashboard or batch search]
-  B[Define the chemical set]
-  C[Compare structures and properties]
-  D[Compare hazard-relevant evidence]
-  E[Flag data gaps and uncertainty]
-  F[Return to source records]
-  A --> B --> C --> D --> E --> F
-```
+1. Resolve identities in Dashboard or batch search
+2. Define the chemical set
+3. Compare structures and properties
+4. Compare hazard-relevant evidence
+5. Flag data gaps and uncertainty
+6. Return to source records
 
 ::: {.fragment}
 If the chemical set is poorly defined, CAM cannot rescue it.
