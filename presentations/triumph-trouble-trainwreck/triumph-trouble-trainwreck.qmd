@@ -2,7 +2,7 @@
 title: "Triumph, Trouble, Trainwreck"
 subtitle: "Workflows Are Not All You Need"
 author: "Sean Thimons"
-date: "TBD"
+date: "2026-05-26"
 description: |
   One developer. Six parallel milestones. 256 Claude Code sessions. 3,500+
   tool calls. 56,000 lines of code in a month. What happens when you stop
@@ -90,15 +90,26 @@ A **phase-based development framework** built entirely from custom Claude Code s
 
 ### The Lifecycle
 
-```{mermaid}
-%%{init: {'theme': 'dark', 'flowchart': {'rankSpacing': 12, 'nodeSpacing': 10, 'padding': 20}, 'themeVariables': {'fontSize': '26px'}}}%%
-flowchart TD
-    D["/gsd-discuss-phase"] --> P["/gsd-plan-phase"]
-    P --> E["/gsd-execute-phase"]
-    E --> V["/gsd-verify-work"]
-    V --> A["/gsd-audit-milestone"]
-    A --> C["/gsd-complete-milestone"]
-```
+::: {.gsd-pipeline}
+::: {.gsd-step}
+/gsd-discuss-phase
+:::
+::: {.gsd-step}
+/gsd-plan-phase
+:::
+::: {.gsd-step}
+/gsd-execute-phase
+:::
+::: {.gsd-step}
+/gsd-verify-work
+:::
+::: {.gsd-step}
+/gsd-audit-milestone
+:::
+::: {.gsd-step}
+/gsd-complete-milestone
+:::
+:::
 
 :::
 
@@ -271,9 +282,9 @@ The raw numbers are sobering. 222 command failures is almost one per session.
 
 ----
 
-## The Inverted Narrative {.smaller}
+## When Verification Passes and the Answer Is Wrong {.smaller}
 
-The most common bug class: **Claude assumes things about data it hasn't seen.**
+The most common bug class: **the workflow's green checkmark and the data's actual state don't agree.**
 
 :::: {.columns}
 
@@ -289,40 +300,63 @@ The most common bug class: **Claude assumes things about data it hasn't seen.**
 
 ::: {.column width="50%"}
 
-### The British Library Post
+### Wyoming Goes Missing
 
-Claude wrote: *"GIA funding share **decreased**"*
+Wyoming had **one hit** in the curated dataset.
 
-The data showed: it **increased**.
+The dedup step collapsed rows by analyte name and lost the 1:many mapping.
 
 ::: {.fragment}
 
 Every workflow step **passed**:
 
-- EDA ran
-- Visualization rendered
-- Smoke test succeeded
-- Commit created
+- Pipeline ran clean
+- Schema validation succeeded
+- Tests went green
+- Output committed
+
+**WY went from 355 rows to 4. The workflow never noticed.**
 :::
 
 :::
 
 ::::
 
-::: {.fragment}
-**Structural correctness &ne; semantic correctness.**
-
-The workflow ran perfectly. The conclusion was backwards.
-:::
-
 ::: {.notes}
-This is the key moment of the talk. The workflow was structurally flawless. The content was wrong.
-Pause here for effect.
+The catch came from human eyes --- "wait, why does Wyoming only have one hit?" --- not from any verification gate.
+The dedup_step row-loss bug is real, from the ChemReg work.
+The punchline lands on the next slide --- don't pre-empt it here.
 :::
 
 ----
 
-## Claude Overreach {.smaller}
+##
+
+::: {.r-fit-text}
+Structural correctness &ne; semantic correctness.
+:::
+
+. . .
+
+::: {style="text-align: center; font-size: 1.2em; margin-top: 1em;"}
+The workflow ran perfectly. The data was gutted.
+:::
+
+. . .
+
+::: {style="text-align: center; font-size: 1em; color: #94a3b8; margin-top: 1em; font-style: italic;"}
+I caught it by squinting at a number.
+:::
+
+::: {.notes}
+This is the human-bottleneck thesis in one image, callback to slide "Two Mistakes."
+Three reveals. Let each one breathe.
+The "squinting at a number" line is the human-eyes catch --- delivered quietly, on purpose.
+:::
+
+----
+
+## Going Off-Script {.smaller}
 
 When you give an agent autonomy, it *uses* that autonomy:
 
@@ -340,14 +374,21 @@ When you give an agent autonomy, it *uses* that autonomy:
 
 . . .
 
-**Broken tools:** The AskUserQuestion tool rendered blank questions 3 times in a row. Had to reject and switch to plain text.
+**Guessing:** Applied a speculative `shinyjs::delay()` fix with no evidence. When challenged, admitted it was guessing. *"Don't guess! I'll start the process over... again."*
 
 . . .
 
 > Autonomy requires trust. Trust requires boundaries. The more autonomous the workflow, the more damage a wrong autonomous decision causes.
 
 ::: {.notes}
-These are trust-erosion events. Individually small, cumulatively they force you to audit everything, which defeats the purpose of autonomy.
+These are trust-erosion events. Individually small, cumulatively they force you to audit
+everything, which defeats the purpose of autonomy.
+
+The "Don't guess!" quote is verbatim from a real session, flagged in the post-session insight
+report as the single most frustrating pattern. It's the cleanest illustration of why the
+operator is the bottleneck --- only the user's pushback distinguished a guess from a fix.
+
+Tool-rendering and Windows/bash issues are covered on "The Windows Tax" slide --- don't double up here.
 :::
 
 ----
@@ -366,6 +407,35 @@ Workflows solve the **process** problem but not the **judgment** problem.
 . . .
 
 > Better workflows can mask worse judgment.
+
+----
+
+## One Month Is Not a Sigmoid {.smaller}
+
+::: {.fragment}
+Before Act III: the trouble is real. The trouble is also **one month of data**.
+:::
+
+::: {.fragment}
+Calling a permanent ceiling from one month is the same forecasting error a team at Wharton made when they fit a sigmoid to the METR graph two weeks before the next model release ran the curve right past their projection.
+:::
+
+::: {.fragment}
+The trouble in this talk is evidence of a *correctable* problem.
+
+Not a fatal one.
+:::
+
+::: {style="font-size: 0.5em; color: #94a3b8; margin-top: 2em;"}
+Sigmoid fit: Ge, Bastani & Bastani (2026), [arxiv.org/abs/2602.04836](https://arxiv.org/abs/2602.04836). Story via Scott Alexander, ["The Sigmoids Won't Save You,"](https://www.astralcodexten.com/p/the-sigmoids-wont-save-you) *Astral Codex Ten*, May 2026.
+:::
+
+::: {.notes}
+Inoculation beat between Trouble Summary and Act III.
+Don't let the audience reach the trainwreck thinking "workflows are broken, period."
+The Wharton/METR reference is the cleanest concrete example from Alexander's piece.
+Three fragment reveals. Land each one. Then let Act III hit.
+:::
 
 ----
 
@@ -424,7 +494,7 @@ The v17 absorbing four milestones is the jaw-drop moment.
 
 ----
 
-## The Git Graph {background-color="#0f172a"}
+## The Git Graph
 
 ::: {style="font-size: 1.4em;"}
 ```
@@ -574,6 +644,63 @@ THE LESSONS
 
 ----
 
+## Two Mistakes I'm Trying Not to Make {.smaller}
+
+After the trainwreck, the two tempting conclusions are both wrong.
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### Mistake 1: "Workflows hit a ceiling"
+
+Reading the trouble as evidence that structured AI development is doomed.
+
+::: {.fragment}
+I've been doing this for **one month**. Calling the sigmoid now is the single most common forecasting error in this field.
+:::
+
+:::
+
+::: {.column width="50%"}
+
+### Mistake 2: "Mythos will fix it"
+
+Waiting for the next frontier model to dissolve the judgment and coordination problems.
+
+::: {.fragment}
+Frontier capability keeps climbing. Frontier *prices* climb with it. For most users, the next model is either out of budget or wildly overkill for the actual task.
+:::
+
+:::
+
+::::
+
+::: {.fragment}
+> The model is not the bottleneck.
+> **The harness is. And so am I.**
+:::
+
+::: {.fragment}
+The harness side: context engineering, hooks, verification, coordination.
+
+The human side: patience, judgment, knowing when *not* to launch the sixth parallel agent.
+:::
+
+::: {.notes}
+Nodding at Scott Alexander's "X Won't Save You" pieces (Sigmoids, New Paradigms).
+Both mistakes are forms of sigmoid-misidentification --- declaring the flattening
+exactly when the analyst becomes uncomfortable.
+
+The three-legged framing (model / harness / human) is the actual thesis.
+The trainwreck wasn't a model failure or a pure framework failure --- it was me
+trying to be the general for six parallel armies. The human capacity to
+oversee N parallel agents is the silent ceiling. The "sixth parallel agent"
+line is a deliberate callback to Act III.
+:::
+
+----
+
 ## What Workflows Buy You (And What They Don't) {.smaller}
 
 **Workflows are a floor, not a ceiling.**
@@ -598,7 +725,7 @@ THE LESSONS
 - Semantic correctness
 - Cross-workflow coordination
 - Judgment under ambiguity
-- Self-awareness about confidence
+- Audit at the rate of production
 
 :::
 
@@ -608,8 +735,28 @@ THE LESSONS
 The uncomfortable truth: **the maintenance burden of the workflow system is itself a significant time investment.** Every mistake adds a new guardrail. Every guardrail adds context length. Context length degrades guardrail adherence.
 :::
 
+::: {.fragment}
+That cycle isn't a verdict --- it's a design problem. And it's the design problem with the most leverage: of the three bottlenecks, the **harness is the only one you can grow.**
+:::
+
+::: {.fragment}
+*Vibeslop coding is the 3D printer of software. I'm not printing my house with it.*
+:::
+
 ::: {.notes}
-Point out the vicious cycle: mistakes -> guardrails -> longer context -> forgotten guardrails -> mistakes.
+"Of the three bottlenecks" is a deliberate callback to "Two Mistakes I'm Trying Not to Make."
+Model is locked (cost, capability). Operator is a hard ceiling (attention doesn't scale, and
+we're producing faster than anyone can read). Harness is what you can actually build today ---
+skill templates, hooks, verification gates, coordination protocol.
+
+**Material to riff on for the vibeslop / 3D printer line:**
+
+Right tool for some jobs --- prototypes, throwaway scripts, the proof-of-concept you'd rewrite
+anyway. Wrong tool for the load-bearing parts --- production systems, data integrity, anything
+where Wyoming going missing matters. The mistake isn't using vibeslop; it's treating it as the
+default for everything. Same with fast food: fine in a pinch, toxic as a diet. The harness is
+what makes the distinction operational --- it's how you decide where the slop is acceptable
+and where the structure has to hold.
 :::
 
 ----
@@ -638,7 +785,7 @@ These are actionable. The audience should leave with these five things.
 | 2. Templates | Reusable prompt patterns | Doesn't adapt to context |
 | 3. Skills / Workflows | Multi-step pipelines | Semantic errors, overreach |
 | 4. Verification loops | Workflows + runtime validation | Maintenance burden |
-| [**5. Coordinated fleets**]{.fragment .highlight-blue} | [Parallel agents with shared state]{.fragment} | [We're not here yet]{.fragment} |
+| [**5. Coordinated fleets**]{.fragment .highlight-blue} | [Parallel agents with shared state]{.fragment} | [Not yet --- but not generational]{.fragment} |
 
 ::: {.fragment}
 I'm at Level 3--4.
@@ -646,9 +793,36 @@ I'm at Level 3--4.
 Level 5 requires solving Level 3's problems first.
 :::
 
+::: {.fragment}
+Per Scott Alexander's Lindy argument, AI paradigms turn over on practitioner timescales, not generational ones. Harnesses turn over even faster --- this style is two years old. The next level isn't a decade away.
+:::
+
+::: {.fragment}
+Which is where the harness investment goes next.
+:::
+
+::: {style="font-size: 0.5em; color: #94a3b8; margin-top: 1em;"}
+Scott Alexander, ["New Paradigms Won't Save You,"](https://www.astralcodexten.com/p/new-paradigms-wont-save-you) *Astral Codex Ten*, May 2026.
+:::
+
+::: {.notes}
+The Lindy argument is from Alexander's "New Paradigms Won't Save You" (linked at bottom of slide).
+
+**Sean's expanded thesis to riff on:** As frontier models hit sigmoid limits at the high end
+and local models commoditize at the low end, the moat isn't the model itself --- it's the
+surrounding stuff: RL, harness, IDE integration, more human content to train against.
+The practitioner-relevant reading of Alexander's argument is that the action moves to
+where the leverage is, and right now that's the harness layer. This is also what the
+industry is converging on --- the moat is the surrounding scaffold, not the weights.
+
+The "harness investment goes next" line points forward to ongoing work --- the actionable
+items on the previous slide ("What You Actually Need Beyond Workflows") are the concrete
+shape of that investment.
+:::
+
 ----
 
-## {background-color="#0f172a"}
+##
 
 ::: {.r-fit-text}
 **The Triumph:** Workflows made me 5x more productive on a good day.
@@ -668,20 +842,74 @@ Level 5 requires solving Level 3's problems first.
 
 ----
 
-## {background-color="#0f172a"}
+## What I'll Be Changing {.smaller}
+
+What I'm building into GSD before I run six milestones in parallel again:
+
+::: {.incremental}
+- **An integration agent** --- the role the framework didn't have. Owns cross-milestone awareness, file overlap, migration collisions
+- **A merge cadence** --- daily integration during multi-milestone work, not a big-bang at the end
+- **A Windows detection hook** --- because instructions get forgotten and `/tmp/` keeps coming back
+- **A parallel-agent budget** --- a hard rule that caps how many concurrent sessions I'll launch
+- **Honest productivity accounting** --- net lines after correction tax, with the correction tax broken out
+:::
+
+::: {.fragment}
+The harness is the only thing I can grow. So I'm growing it.
+:::
+
+::: {.notes}
+This is the personal-commitments slide. Distinct from "What You Actually Need Beyond Workflows,"
+which is general advice. This is the specific, GSD-grounded version --- what I will actually build.
+
+Each item maps to a specific failure mode from earlier:
+- Integration agent → "no concept of cross-milestone coordination" from "Why the Workflow Couldn't Save Me"
+- Merge cadence → the convergence point from the same slide
+- Windows hook → the Windows Tax slide
+- Parallel-agent budget → "knowing when not to launch the sixth parallel agent" callback from "Two Mistakes"
+- Honest accounting → the maintenance-burden vicious cycle observation
+
+The closing line is a deliberate first-person restatement of the slide #1 thesis.
+:::
+
+----
+
+##
 
 ::: {.r-fit-text}
 Workflows are not all you need.
 :::
 
 ::: {.fragment}
-You also need **verification**, **coordination**, **humility** about what autonomy actually means, and a willingness to **maintain the machine that maintains your code**.
+Neither is the next model.
 :::
 
-. . .
+::: {.fragment}
+The model is locked. The operator is a ceiling. **The harness is the only thing you can grow.**
+:::
 
-::: {style="font-size: 0.8em; color: #94a3b8; margin-top: 2em;"}
+::: {.fragment}
+So grow it.
+:::
+
+::: {style="font-size: 0.6em; color: #94a3b8; margin-top: 2em;"}
+With apologies to Scott Alexander, whose "X Won't Save You" pieces named the rhetorical move I just spent an hour borrowing.
+:::
+
+::: {style="font-size: 0.8em; color: #94a3b8; margin-top: 1em;"}
 Sean Thimons
 
 github.com/seanthimons
+:::
+
+::: {.notes}
+The four fragments are deliberately escalating:
+1. "Workflows are not all you need" --- title subtitle callback
+2. "Neither is the next model" --- the Mythos callback to "Two Mistakes"
+3. "Model is locked, operator is a ceiling, harness is what you grow" --- the three-bottleneck spine
+4. "So grow it" --- the imperative close
+
+The Alexander acknowledgment is self-deprecating on purpose --- acknowledges the rhetorical
+debt without making the closing feel borrowed. The audience that reads ACX will smile; the
+audience that doesn't will read it as a polite citation.
 :::

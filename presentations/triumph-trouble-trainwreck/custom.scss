@@ -125,3 +125,46 @@ $presentation-font-size-root: 36px;
 .r-fit-text {
   line-height: 1.2;
 }
+
+.reveal .gsd-pipeline {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 0.4em 2em 0.4em 0;
+
+  .gsd-step {
+    display: inline-block;
+    position: relative;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-left: 4px solid #60a5fa;
+    border-radius: 6px;
+    color: #fbbf24;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 1.3em;
+    font-weight: 500;
+    padding: 0.25em 0.8em;
+    text-align: left;
+    white-space: nowrap;
+
+    p {
+      margin: 0;
+      line-height: 1.15;
+    }
+  }
+
+  .gsd-step + .gsd-step {
+    margin-top: 0.85em;
+  }
+
+  .gsd-step + .gsd-step::before {
+    content: "\2193";
+    position: absolute;
+    top: -0.75em;
+    left: 0.6em;
+    color: #60a5fa;
+    font-size: 0.9em;
+    font-weight: 700;
+    line-height: 1;
+  }
+}
