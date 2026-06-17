@@ -15,9 +15,9 @@ nocite: |
 ::: {.work-card-grid}
 
 ::: {.card}
-![](assets/logos/comptoxr.png){.project-logo fig-alt="ComptoxR logo"}
+![](assets/logos/comptoxr.png){.project-logo fig-alt="CompToxR hex sticker"}
 
-### ComptoxR
+### CompToxR
 
 R package for accessing US EPA CompTox Chemistry Dashboard APIs and related chemistry products. Supports programmatic retrieval of chemical identifiers, properties, hazard information, exposure predictions, and cheminformatics data for risk-evaluation workflows.
 
@@ -25,9 +25,9 @@ R package for accessing US EPA CompTox Chemistry Dashboard APIs and related chem
 :::
 
 ::: {.card}
-![](assets/logos/chorus.png){.project-logo fig-alt="CHORUS logo"}
+![](assets/logos/chorus.png){.project-logo fig-alt="Chorus hex sticker"}
 
-### CHORUS
+### Chorus
 
 Constituent Hazard, Occurrence, Regulatory, and Uncertainty Screening. A screening framework for prioritizing environmental constituents by combining hazard and fate signals, occurrence evidence, regulatory benchmarks, and uncertainty-aware decision logic.
 
@@ -35,9 +35,9 @@ Constituent Hazard, Occurrence, Regulatory, and Uncertainty Screening. A screeni
 :::
 
 ::: {.card}
-![](assets/logos/concert.png){.project-logo fig-alt="CONCERT logo"}
+![](assets/logos/concert.png){.project-logo fig-alt="Concert hex sticker"}
 
-### CONCERT
+### Concert
 
 Chemical ontology harmonization and entity-resolution toolkit for identifier crosswalking, canonicalization, data reconciliation, and defensible transformation of messy source records into analysis-ready chemical data.
 
@@ -45,7 +45,7 @@ Chemical ontology harmonization and entity-resolution toolkit for identifier cro
 :::
 
 ::: {.card}
-![](assets/logos/serapeum.png){.project-logo fig-alt="Serapeum logo"}
+![](assets/logos/serapeum.png){.project-logo fig-alt="Serapeum hex sticker"}
 
 ### Serapeum
 
