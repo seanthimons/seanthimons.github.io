@@ -1,0 +1,571 @@
+---
+title: "From Chemical Identity to Decision Support"
+subtitle: "Practical Use of EPA CompTox Tools"
+author: "Sean Thimons"
+date: "TBD"
+draft: true
+description: |
+  A 15–20 minute continuing education presentation introducing practical,
+  defensible workflows across the CompTox Chemicals Dashboard, Cheminformatics
+  Analysis Modules, and EPA Computational Toxicology and Exposure APIs.
+format:
+  revealjs:
+    embed-resources: true
+    theme: [dark, custom.scss]
+    transition: fade
+    slide-number: true
+    hash-type: number
+    center: true
+    code-line-numbers: false
+    highlight-style: monokai
+    width: 1280
+    height: 720
+    margin: 0.1
+    footer: "EPA CompTox Tools | Sean Thimons"
+    title-slide-attributes:
+      data-background-color: "#0f172a"
+  pptx:
+    slide-level: 2
+    toc: false
+---
+
+----
+
+## The thesis
+
+::: {.r-fit-text}
+CompTox is most useful when you treat it as a **workflow ecosystem**, not a lookup site.
+:::
+
+. . .
+
+**Identity first. Evidence second. Decision support last.**
+
+::: {.notes}
+Open by framing the talk around practical use. The common failure mode is jumping straight to a toxicity value, hazard flag, or model output before confirming that the chemical identity is correct.
+
+For timing: this talk is built for 15–20 minutes. Keep the opening under one minute.
+:::
+
+----
+
+## Learning objectives {.smaller}
+
+After this session, participants should be able to:
+
+1. Navigate the CompTox Chemicals Dashboard for identity, lists, exposure, bioactivity, and toxicity-relevant information.
+2. Use batch search and chemical lists for screening and prioritization workflows.
+3. Recognize when the Cheminformatics Analysis Modules help with chemical comparison and hazard review.
+4. Describe how CTX APIs support reproducible retrieval and reporting.
+5. Apply cautions around provenance, screening-level interpretation, and regulatory defensibility.
+
+::: {.notes}
+These match the proposed learning objectives. Do not linger here; this is the contract for the session.
+:::
+
+----
+
+## The ecosystem map {.smaller}
+
+:::: {.columns}
+
+::: {.column width="38%"}
+### Point-and-click
+- **CompTox Chemicals Dashboard**
+- Single-chemical lookup
+- Batch search
+- Chemical lists
+- Product/use and exposure context
+:::
+
+::: {.column width="32%"}
+### Compare and screen
+- **Cheminformatics Analysis Modules**
+- Chemical set review
+- Structural/property comparison
+- Hazard-context comparison
+:::
+
+::: {.column width="30%"}
+### Automate
+- **CTX APIs**
+- Reproducible retrieval
+- Reports and dashboards
+- Larger-scale analyses
+:::
+
+::::
+
+::: {.fragment}
+Same ecosystem. Different interface for different questions.
+:::
+
+::: {.notes}
+Make the “which tool for which question?” point early. Dashboard is excellent for review and exploration. CAM helps compare sets. APIs are for reproducible workflows and scale.
+:::
+
+----
+
+## The decision-support ladder
+
+::: {.r-fit-text}
+**Chemical identity → Context → Evidence → Comparison → Reproducible record → Decision support**
+:::
+
+. . .
+
+**Do not skip rungs.** A wrong identity can make every downstream answer look precise and still be wrong.
+
+::: {.notes}
+This is the recurring structure for the talk. It also gives you a way to keep the live demo organized if the interface changes.
+:::
+
+----
+
+## Use case 1: resolve chemical identity {.smaller}
+
+Start with the boring question:
+
+::: {.callout-important}
+Am I looking at the chemical I think I am looking at?
+:::
+
+**Dashboard identity checks**
+
+- Search by name, CASRN, DTXSID, DTXCID, InChIKey, SMILES, or synonym.
+- Prefer **DTXSID** for substance-level joins across Dashboard/API data.
+- Use **DTXCID** when the specific structure matters.
+- Preserve the original input identifier and the matched CompTox identifier.
+
+::: {.notes}
+This is where you explain DTXSID versus DTXCID without going too deep. DTXSID is the substance identifier; DTXCID is the structure identifier. CAS numbers and names are useful, but not enough for a defensible record.
+:::
+
+----
+
+## Identity pitfalls are not edge cases {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+### Watch for
+- Synonym collisions
+- Deprecated or alternate CASRNs
+- Salts and hydrates
+- Mixtures and UVCBs
+- Stereochemistry
+- Polymers or poorly defined substances
+:::
+
+::: {.column width="50%"}
+### Document
+- Input identifier
+- Matched DTXSID / DTXCID
+- Match method
+- Ambiguities reviewed
+- Date accessed
+- Source/version context when available
+:::
+
+::::
+
+::: {.fragment}
+Identifier resolution is a **quality-control step**, not clerical overhead.
+:::
+
+::: {.notes}
+Push this a little. A lot of screening workflows fail quietly at chemical identity. This is also the bridge to batch search.
+:::
+
+----
+
+## Dashboard workflow: single chemical {.smaller}
+
+For one chemical, scan in this order:
+
+1. **Identity** — preferred name, identifiers, synonyms, structure.
+2. **Lists** — inventory, regulatory, monitoring, or curated list memberships.
+3. **Properties** — experimental and predicted physicochemical values.
+4. **Exposure/use** — product/use categories and exposure-relevant context.
+5. **Bioactivity/toxicity** — available assay, hazard, or toxicity-relevant evidence.
+6. **Sources** — where did each value come from?
+
+::: {.fragment}
+The Dashboard is an evidence console. It is not a magic “is this safe?” button.
+:::
+
+::: {.notes}
+Use this as the first live demo path. Pick a familiar chemical for demonstration. If you use a controversial chemical, keep the point operational: navigation and documentation, not policy conclusions.
+:::
+
+----
+
+## Live demo 1: chemical lookup {.smaller}
+
+**Demonstrate**
+
+- Search a chemical by common name or CASRN.
+- Confirm the preferred Dashboard record.
+- Locate DTXSID / DTXCID.
+- Review synonyms and structure.
+- Open list membership and property sections.
+- Point to source/provenance fields before interpreting values.
+
+::: {.callout-note}
+Suggested demo chemical: use something familiar enough that people can follow the interface, but not so politically loaded that it steals the room.
+:::
+
+::: {.notes}
+Candidate chemicals: caffeine for a low-friction interface tour; bisphenol A for more environmental health relevance; PFOA if PFAS context is useful but you can keep the discussion disciplined.
+
+Timebox: 2–3 minutes.
+:::
+
+----
+
+## Batch search: when one chemical becomes a list {.smaller}
+
+**Typical workflow**
+
+1. Paste or upload names, CASRNs, InChIKeys, SMILES, or existing DTXSIDs.
+2. Review match quality and ambiguous records.
+3. Export matched identifiers and selected fields.
+4. Use DTXSIDs as the join key for downstream analysis.
+5. Keep the match report with the project record.
+
+::: {.fragment}
+Batch search is where “quick lookup” becomes **screening workflow**.
+:::
+
+::: {.notes}
+Emphasize that the export is not just a convenience. It is the audit trail that lets someone else reconstruct how the chemical universe was defined.
+:::
+
+----
+
+## Chemical lists: context, not conclusion {.smaller}
+
+Dashboard lists can help answer:
+
+- Is this chemical part of a curated inventory or monitoring list?
+- Is it in a chemical category relevant to my question?
+- Are there related chemicals I should include in the screen?
+- Is this a plausible candidate for prioritization?
+
+. . .
+
+::: {.callout-warning}
+List membership is not a hazard determination. Absence from a list is not evidence of absence.
+:::
+
+::: {.notes}
+This is a defensibility slide. Lists are useful, but easy to overinterpret. Say that plainly.
+:::
+
+----
+
+## Product/use and exposure context {.smaller}
+
+Use Dashboard exposure and product/use information to ask:
+
+:::: {.columns}
+
+::: {.column width="50%"}
+### Where might it occur?
+- Product categories
+- Functional uses
+- Consumer or industrial context
+- Exposure-related models or predictions
+:::
+
+::: {.column width="50%"}
+### What does that not prove?
+- Measured exposure concentration
+- Use frequency
+- Population-specific exposure
+- Current market presence
+- Risk by itself
+:::
+
+::::
+
+::: {.fragment}
+Presence in a product/use source is a **lead**, not an exposure estimate.
+:::
+
+::: {.notes}
+Name CPDat and ExpoCast if useful, but do not turn this into a database taxonomy lecture. The practical message: exposure context helps prioritize where to look next.
+:::
+
+----
+
+## Bioactivity and toxicity-relevant evidence {.smaller}
+
+CompTox can surface evidence across domains:
+
+- High-throughput bioactivity data, including ToxCast/Tox21-style assay information.
+- Toxicity values and hazard-relevant summaries where available.
+- Physicochemical properties that shape fate, transport, exposure, and interpretation.
+- Links back to original or contributing sources.
+
+. . .
+
+::: {.callout-important}
+In vitro activity is not the same thing as an adverse effect. A prediction is not a measurement. A screening value is not a final assessment.
+:::
+
+::: {.notes}
+This is another place to be blunt. These tools are powerful because they aggregate evidence. They are dangerous if people treat aggregated evidence as regulatory truth without reviewing the underlying source and applicability.
+:::
+
+----
+
+## Live demo 2: from lookup to screening record {.smaller}
+
+Build a small evidence table live:
+
+| Field | What to capture |
+|---|---|
+| Identity | Input identifier, DTXSID, DTXCID, preferred name |
+| Context | Lists, product/use categories, exposure notes |
+| Evidence | Properties, bioactivity/toxicity-relevant fields |
+| Provenance | Source names, links, date accessed |
+| Caveats | Ambiguity, missing data, screening limits |
+
+::: {.notes}
+This is the practical payoff. The goal is not to show every Dashboard tab. The goal is to show participants what a defensible note or screening worksheet should capture.
+
+Timebox: 2 minutes.
+:::
+
+----
+
+## CAM: when comparison is the question {.smaller}
+
+Use the **Cheminformatics Analysis Modules** when you need to compare chemicals or chemical sets:
+
+- Candidate alternatives.
+- Analog or category exploration.
+- Property and structure similarity.
+- Hazard-context review across a set.
+- Transparent prioritization support.
+
+::: {.fragment}
+CAM is best used to organize comparison evidence, not to declare a winner by itself.
+:::
+
+::: {.notes}
+Do not oversell CAM as a decision engine. Frame it as a comparison workbench that helps make differences visible and reviewable.
+:::
+
+----
+
+## CAM workflow {.smaller}
+
+1. Resolve identities in Dashboard or batch search
+2. Define the chemical set
+3. Compare structures and properties
+4. Compare hazard-relevant evidence
+5. Flag data gaps and uncertainty
+6. Return to source records
+
+::: {.fragment}
+If the chemical set is poorly defined, CAM cannot rescue it.
+:::
+
+::: {.notes}
+This slide is the operational bridge between Dashboard and CAM. The same identity discipline applies.
+:::
+
+----
+
+## Alternatives assessment use case {.smaller}
+
+**Question:** Which candidate replacement chemicals deserve deeper review?
+
+**Practical sequence**
+
+1. Resolve all candidates to DTXSIDs.
+2. Confirm the candidate set and remove bad matches.
+3. Compare properties and hazard-relevant signals in CAM.
+4. Identify data-rich, data-poor, and potentially concerning candidates.
+5. Pull original sources for any claim that will matter.
+6. Document assumptions before recommending next steps.
+
+::: {.notes}
+Keep this as a realistic “decision support” example. The output is not “chemical A is safe.” The output is a transparent prioritization record: what looks better, what looks worse, what needs verification.
+:::
+
+----
+
+## CTX APIs: why leave the browser? {.smaller}
+
+Use APIs when the task needs:
+
+:::: {.columns}
+
+::: {.column width="50%"}
+### Reproducibility
+- Same query can be rerun.
+- Raw responses can be cached.
+- Transformations can be versioned.
+- Reports can cite exact access dates.
+:::
+
+::: {.column width="50%"}
+### Scale
+- Hundreds or thousands of chemicals.
+- Repeated monitoring.
+- Dashboards and automated reports.
+- Consistent joins to local datasets.
+:::
+
+::::
+
+::: {.fragment}
+Point-and-click is exploration. APIs are infrastructure.
+:::
+
+::: {.notes}
+This is the setup for the R example. Emphasize that APIs do not make the data more authoritative. They make the retrieval more reproducible.
+:::
+
+----
+
+## API pattern: retrieve, cache, normalize {.smaller}
+
+```r
+library(ComptoxR)
+
+# Direct examples from ComptoxR package documentation
+ct_chemical_search_equal_bulk(
+  query = c("DTXSID7020182", "DTXSID9020112")
+)
+
+ct_chemical_detail_search(
+  dtxsid = "DTXSID7020182"
+)
+
+ct_chemical_property_search(
+  dtxsid = "DTXSID7020182"
+)
+
+ct_exposure_product_data_search(
+  dtxsid = "DTXSID0020232"
+)
+
+ct_exposure_functional_use_search(
+  dtxsid = "DTXSID0020232"
+)
+
+ct_hazard_toxval_search(
+  dtxsid = "DTXSID0021125"
+)
+```
+
+::: {.callout-note}
+**Follow-up before delivery:** run the package examples live, pick one coherent demo chemical/set, then wrap the tested calls with explicit access-date and cache logic.
+:::
+
+::: {.notes}
+These examples are taken from the local `ComptoxR` package roxygen/Rd examples on thoth-box, not invented scaffold code. Keep this slide as the honest package-facing version.
+
+If the final training needs a reproducible report demo, add the workflow wrapper only after testing the package examples against the live API: define the demo chemical set, run the relevant `ComptoxR` calls, inspect returned columns, save raw outputs, and record access date/query assumptions in the report. Do not present wrapper code as package code.
+:::
+
+----
+
+## API pattern: defend the output {.smaller}
+
+A reproducible CompTox pull should preserve:
+
+- Exact API URL and query parameters.
+- Access date.
+- Input identifier and matched DTXSID / DTXCID.
+- Raw response or immutable cache.
+- Normalized analysis table.
+- Source/provenance fields retained from the response.
+- Notes on missing data, ambiguity, and screening-level limits.
+
+::: {.fragment}
+If another analyst cannot rerun or audit the retrieval, it is not decision-support infrastructure. It is just a spreadsheet with better lighting.
+:::
+
+::: {.notes}
+This is the data-pipeline version of the earlier Dashboard note. Sean's angle should be defensible environmental health workflows, not API cleverness.
+:::
+
+----
+
+## What “defensible use” means {.smaller}
+
+::: {.r-fit-text}
+CompTox can support decisions. It should not silently become the decision.
+:::
+
+. . .
+
+**Defensible practice**
+
+- Separate identity, evidence, interpretation, and recommendation.
+- Treat predictions and high-throughput data as screening-level unless justified otherwise.
+- Cite original sources for consequential claims.
+- Record assumptions and exclusions.
+- State uncertainty and data gaps.
+
+::: {.notes}
+This is the heart of the talk. CompTox is powerful precisely because it centralizes so much information. That also means you need explicit guardrails.
+:::
+
+----
+
+## Tool-selection crosswalk {.smaller}
+
+| Question | Start with | Output |
+|---|---|---|
+| “What chemical is this?” | Dashboard search | Matched DTXSID / DTXCID + notes |
+| “What is in this list?” | Batch search | Match table + unresolved inputs |
+| “What context exists?” | Dashboard lists/product/use/exposure | Screening context + caveats |
+| “How do these candidates compare?” | CAM | Comparison record + data gaps |
+| “Can I repeat this next month?” | CTX APIs | Scripted retrieval + cached raw data |
+
+::: {.notes}
+This is a useful closing slide because it gives participants a mental routing table.
+:::
+
+----
+
+## Suggested 15–20 minute run-of-show {.smaller}
+
+| Segment | Time |
+|---|---:|
+| Why identity-first workflows matter | 2 min |
+| Dashboard single-chemical lookup | 4 min |
+| Batch search, lists, exposure/use, bioactivity | 4 min |
+| CAM comparison workflow | 3 min |
+| CTX API reproducibility pattern | 3 min |
+| Defensibility checklist and questions | 2–4 min |
+
+::: {.notes}
+This slide can be hidden or kept as a presenter anchor. If time is short, cut the second live demo first, not the identity warning.
+:::
+
+----
+
+## Official resources {.smaller}
+
+- CompTox Chemicals Dashboard: <https://comptox.epa.gov/dashboard/>
+- CompTox Tools hub: <https://www.epa.gov/comptox-tools>
+- Batch Search: <https://comptox.epa.gov/dashboard/batch-search>
+- Chemical Lists: <https://comptox.epa.gov/dashboard/chemical-lists>
+- Cheminformatics Analysis Modules: <https://www.epa.gov/comptox-tools/cheminformatics-analysis-modules-cam>
+- Computational Toxicology and Exposure APIs: <https://www.epa.gov/comptox-tools/computational-toxicology-and-exposure-apis>
+- API documentation: <https://api-ccte.epa.gov/docs/>
+- DSSTox: <https://www.epa.gov/chemical-research/distributed-structure-searchable-toxicity-dsstox-database>
+- ToxCast data: <https://www.epa.gov/chemical-research/toxicity-forecaster-toxcasttm-data>
+- CPDat: <https://www.epa.gov/chemical-research/chemical-and-products-database-cpdat>
+- ExpoCast: <https://www.epa.gov/chemical-research/exposure-forecaster-expocasttm>
+
+::: {.notes}
+Final slide. Mention that interface details and API schemas can change, so current docs are the source of truth for live training.
+:::

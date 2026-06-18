@@ -3,61 +3,55 @@ title: "Work"
 format:
   html:
     body-classes: page-work
+page-layout: full
 bibliography: works.bib
 nocite: |
   @*
 ---
 
+
 ## Open Source Tools
 
-::: {.grid}
+::: {.work-card-grid}
 
-::: {.g-col-12 .g-col-md-4}
 ::: {.card}
-![](assets/logos/comptoxr.svg){.project-logo fig-alt="ComptoxR logo"}
+![](assets/logos/comptoxr.png){.project-logo fig-alt="CompToxR hex sticker"}
 
-### ComptoxR
+### CompToxR
 
 R package for accessing US EPA CompTox Chemistry Dashboard APIs and related chemistry products. Supports programmatic retrieval of chemical identifiers, properties, hazard information, exposure predictions, and cheminformatics data for risk-evaluation workflows.
 
 [GitHub](https://github.com/seanthimons/ComptoxR){.btn .btn-primary}
 :::
-:::
 
-::: {.g-col-12 .g-col-md-4}
 ::: {.card}
-![](assets/logos/threat.svg){.project-logo fig-alt="THREAT logo"}
+![](assets/logos/chorus.png){.project-logo fig-alt="Chorus hex sticker"}
 
-### THREAT
+### Chorus
 
-R Shiny application for site and compound evaluation using toxicological, hazard, and risk-based endpoints. Integrates ComptoxR and curated benchmark datasets to support water-quality screening and prioritization.
+Constituent Hazard, Occurrence, Regulatory, and Uncertainty Screening. A screening framework for prioritizing environmental constituents by combining hazard and fate signals, occurrence evidence, regulatory benchmarks, and uncertainty-aware decision logic.
 
-[GitHub](https://github.com/seanthimons/THREAT){.btn .btn-primary}
+[GitHub](https://github.com/seanthimons/chorus){.btn .btn-primary}
 :::
-:::
 
-::: {.g-col-12 .g-col-md-4}
 ::: {.card}
-![](assets/logos/concert.svg){.project-logo fig-alt="concert logo"}
+![](assets/logos/concert.png){.project-logo fig-alt="Concert hex sticker"}
 
-### concert
+### Concert
 
-Chemical-identifier cleaning and curation toolkit, replacing the older ChemReg / Chemical Janitor naming. Designed for defensible harmonization of messy chemical names, identifiers, and source records before they enter downstream analysis.
+Chemical ontology harmonization and entity-resolution toolkit for identifier crosswalking, canonicalization, data reconciliation, and defensible transformation of messy source records into analysis-ready chemical data.
 
 [GitHub](https://github.com/seanthimons/concert){.btn .btn-primary}
 :::
-:::
 
-::: {.g-col-12 .g-col-md-4}
 ::: {.card}
-![](assets/logos/serapeum.svg){.project-logo fig-alt="Serapeum logo"}
+![](assets/logos/serapeum.png){.project-logo fig-alt="Serapeum hex sticker"}
 
 ### Serapeum
 
 Local-first literature-review and research assistant built with R, Shiny, DuckDB, OpenAlex, and LLM-assisted analysis. Intended to make paper triage, metadata capture, and evidence synthesis reproducible instead of chat-log archaeology.
 
 [GitHub](https://github.com/seanthimons/serapeum){.btn .btn-primary}
-:::
 :::
 
 :::

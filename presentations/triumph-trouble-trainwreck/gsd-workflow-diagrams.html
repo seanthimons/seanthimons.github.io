@@ -1,0 +1,362 @@
+<!-- Copied from /tmp/gsd-workflow-preview/index.html; source diagrams came from GSD docs/USER-GUIDE.md. -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GSD Workflow Diagrams | Triumph, Trouble, Trainwreck</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #0b1220;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: #334155;
+      --accent: #60a5fa;
+      --accent-2: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #1e3a8a 0, transparent 32rem), var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    header {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 2rem 1rem 1rem;
+    }
+    h1 { margin: 0 0 .4rem; font-size: clamp(1.8rem, 4vw, 3.2rem); letter-spacing: -0.04em; }
+    .subtitle { color: var(--muted); max-width: 68rem; margin: 0; }
+    main { max-width: 1220px; margin: 0 auto; padding: 1rem; display: grid; gap: 1rem; }
+    .card {
+      background: color-mix(in srgb, var(--panel) 92%, transparent);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.28);
+      overflow: hidden;
+    }
+    .card-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.1rem; border-bottom:1px solid var(--border); }
+    h2 { margin: 0; font-size: 1.15rem; color: #f8fafc; }
+    .diagram-wrap {
+      overflow: auto;
+      padding: 1rem;
+      background: #f8fafc;
+    }
+    .mermaid {
+      min-width: 920px;
+      background: #f8fafc;
+      color: #0f172a;
+      margin: 0;
+      text-align: center;
+    }
+    details { border-top: 1px solid var(--border); background: var(--panel-2); }
+    summary { cursor: pointer; padding: .8rem 1rem; color: var(--muted); }
+    .raw { margin: 0; padding: 1rem; overflow: auto; color: #d1d5db; }
+    .copy {
+      border: 1px solid var(--border);
+      background: #172033;
+      color: var(--text);
+      border-radius: 999px;
+      padding: .45rem .8rem;
+      cursor: pointer;
+    }
+    .copy:hover { border-color: var(--accent); color: white; }
+    .note { margin-top: .7rem; font-size: .9rem; color: var(--muted); }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>GSD Workflow Diagrams</h1>
+    <p class="subtitle">Rendered from <code>docs/USER-GUIDE.md</code> in the local <code>get-shit-done</code> repo. This page is a standalone rendered reference for the updated Mermaid workflow diagrams.</p>
+    <p class="note">Normal spine: <code>/gsd-help → /gsd-new-project → /gsd-discuss-phase → /gsd-plan-phase → /gsd-execute-phase → /gsd-verify-work → /gsd-ship → /gsd-complete-milestone</code>.</p>
+  </header>
+  <main>
+    
+      <section class="card">
+        <div class="card-header">
+          <h2>Day One Path</h2>
+          <button class="copy" data-target="raw-0">Copy Mermaid</button>
+        </div>
+        <div class="diagram-wrap">
+          <pre class="mermaid">flowchart TB
+    A[New user] --&gt; H[/gsd-help/]
+    H --&gt; NP[/gsd-new-project/]
+    H --&gt; NW[/gsd-new-workspace/]
+
+    NP --&gt; D[/gsd-discuss-phase/]
+    NP -. optional .-&gt; SP[/gsd-spec-phase/]
+    SP -. clarifies WHAT .-&gt; D
+
+    D --&gt; PL[/gsd-plan-phase/]
+    PL --&gt; EX[/gsd-execute-phase/]
+    EX --&gt; VW[/gsd-verify-work/]
+    VW --&gt; SH[/gsd-ship/]
+    SH --&gt; CM[/gsd-complete-milestone/]
+
+    VW --&gt; NX[/gsd-next/]
+    NX --&gt; PL
+
+    subgraph Learn[Learn the surfaces]
+      D --&gt; UI[/gsd-ui-phase/]
+      PL --&gt; RE[/gsd-research-phase/]
+      PL --&gt; PR[/gsd-plan-review-convergence/]
+      EX --&gt; SR[/gsd-session-report/]
+    end
+
+    subgraph Small[Shortcuts you can reach for early]
+      H --&gt; FT[/gsd-fast/]
+      H --&gt; QK[/gsd-quick/]
+      H --&gt; DO[/gsd-do/]
+      H --&gt; NT[/gsd-note/]
+      H --&gt; EXPL[/gsd-explore/]
+    end</pre>
+        </div>
+        <details>
+          <summary>Raw Mermaid</summary>
+          <pre id="raw-0" class="raw">flowchart TB
+    A[New user] --&gt; H[/gsd-help/]
+    H --&gt; NP[/gsd-new-project/]
+    H --&gt; NW[/gsd-new-workspace/]
+
+    NP --&gt; D[/gsd-discuss-phase/]
+    NP -. optional .-&gt; SP[/gsd-spec-phase/]
+    SP -. clarifies WHAT .-&gt; D
+
+    D --&gt; PL[/gsd-plan-phase/]
+    PL --&gt; EX[/gsd-execute-phase/]
+    EX --&gt; VW[/gsd-verify-work/]
+    VW --&gt; SH[/gsd-ship/]
+    SH --&gt; CM[/gsd-complete-milestone/]
+
+    VW --&gt; NX[/gsd-next/]
+    NX --&gt; PL
+
+    subgraph Learn[Learn the surfaces]
+      D --&gt; UI[/gsd-ui-phase/]
+      PL --&gt; RE[/gsd-research-phase/]
+      PL --&gt; PR[/gsd-plan-review-convergence/]
+      EX --&gt; SR[/gsd-session-report/]
+    end
+
+    subgraph Small[Shortcuts you can reach for early]
+      H --&gt; FT[/gsd-fast/]
+      H --&gt; QK[/gsd-quick/]
+      H --&gt; DO[/gsd-do/]
+      H --&gt; NT[/gsd-note/]
+      H --&gt; EXPL[/gsd-explore/]
+    end</pre>
+        </details>
+      </section>
+    
+      <section class="card">
+        <div class="card-header">
+          <h2>When Things Go Sideways</h2>
+          <button class="copy" data-target="raw-1">Copy Mermaid</button>
+        </div>
+        <div class="diagram-wrap">
+          <pre class="mermaid">flowchart TB
+    A[Something broke] --&gt; P[/gsd-progress/]
+    A --&gt; F[/gsd-forensics/]
+    A --&gt; H[/gsd-health/]
+    A --&gt; D[/gsd-debug/]
+
+    P --&gt; Q{What is wrong?}
+    Q --&gt;|workflow state| F
+    Q --&gt;|planning dir health| H
+    Q --&gt;|bug or failing behavior| D
+    Q --&gt;|you need to stop and hand off| PW[/gsd-pause-work/]
+
+    PW --&gt; RWK[/gsd-resume-work/]
+    RWK --&gt; P
+
+    F --&gt; UND[/gsd-undo/]
+    F --&gt; REP[/gsd-reapply-patches/]
+    F --&gt; CL[/gsd-cleanup/]
+    F --&gt; IMP[/gsd-import/]
+
+    H --&gt; ST[/gsd-stats/]
+    H --&gt; CT[/gsd-check-todos/]
+    H --&gt; AT[/gsd-add-todo/]
+    H --&gt; IDOC[/gsd-ingest-docs/]
+
+    D --&gt; ADT[/gsd-add-tests/]
+    D --&gt; UAT[/gsd-audit-uat/]
+    D --&gt; SEC[/gsd-secure-phase/]
+
+    UND --&gt; P
+    REP --&gt; P
+    CL --&gt; P
+    IMP --&gt; P
+    ADT --&gt; P
+    UAT --&gt; P
+    SEC --&gt; P
+
+    subgraph KeepMoving[If you just need to reduce friction]
+      QK[/gsd-quick/]
+      FT[/gsd-fast/]
+      DO[/gsd-do/]
+      NT[/gsd-note/]
+      AUT[/gsd-autonomous/]
+    end
+
+    P --&gt; QK
+    P --&gt; FT
+    P --&gt; DO
+    P --&gt; NT
+    P --&gt; AUT</pre>
+        </div>
+        <details>
+          <summary>Raw Mermaid</summary>
+          <pre id="raw-1" class="raw">flowchart TB
+    A[Something broke] --&gt; P[/gsd-progress/]
+    A --&gt; F[/gsd-forensics/]
+    A --&gt; H[/gsd-health/]
+    A --&gt; D[/gsd-debug/]
+
+    P --&gt; Q{What is wrong?}
+    Q --&gt;|workflow state| F
+    Q --&gt;|planning dir health| H
+    Q --&gt;|bug or failing behavior| D
+    Q --&gt;|you need to stop and hand off| PW[/gsd-pause-work/]
+
+    PW --&gt; RWK[/gsd-resume-work/]
+    RWK --&gt; P
+
+    F --&gt; UND[/gsd-undo/]
+    F --&gt; REP[/gsd-reapply-patches/]
+    F --&gt; CL[/gsd-cleanup/]
+    F --&gt; IMP[/gsd-import/]
+
+    H --&gt; ST[/gsd-stats/]
+    H --&gt; CT[/gsd-check-todos/]
+    H --&gt; AT[/gsd-add-todo/]
+    H --&gt; IDOC[/gsd-ingest-docs/]
+
+    D --&gt; ADT[/gsd-add-tests/]
+    D --&gt; UAT[/gsd-audit-uat/]
+    D --&gt; SEC[/gsd-secure-phase/]
+
+    UND --&gt; P
+    REP --&gt; P
+    CL --&gt; P
+    IMP --&gt; P
+    ADT --&gt; P
+    UAT --&gt; P
+    SEC --&gt; P
+
+    subgraph KeepMoving[If you just need to reduce friction]
+      QK[/gsd-quick/]
+      FT[/gsd-fast/]
+      DO[/gsd-do/]
+      NT[/gsd-note/]
+      AUT[/gsd-autonomous/]
+    end
+
+    P --&gt; QK
+    P --&gt; FT
+    P --&gt; DO
+    P --&gt; NT
+    P --&gt; AUT</pre>
+        </details>
+      </section>
+    
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Phase & Milestone Management</h2>
+          <button class="copy" data-target="raw-phase-management">Copy Mermaid</button>
+        </div>
+        <div class="diagram-wrap">
+          <pre class="mermaid">flowchart TB
+    A[Need to change roadmap scope] --&gt; Q{What kind of change?}
+
+    Q --&gt;|append new future work| ADD[/gsd-add-phase/]
+    Q --&gt;|urgent work between phases| INS[/gsd-insert-phase N/]
+    Q --&gt;|remove unstarted future work| REM[/gsd-remove-phase N/]
+    Q --&gt;|inspect assumed approach| LPA[/gsd-list-phase-assumptions N/]
+    Q --&gt;|dependency concern| DEP[/gsd-analyze-dependencies/]
+    Q --&gt;|gap after milestone audit| GAP[/gsd-plan-milestone-gaps/]
+
+    ADD --&gt; RM[ROADMAP.md updated]
+    INS --&gt; DEC[Decimal phase created&lt;br/&gt;example: 3.1]
+    REM --&gt; REN[Future phases renumbered]
+    LPA --&gt; ASSUMP[Assumptions surfaced before planning]
+    DEP --&gt; ORDER[Phase ordering/dependency report]
+    GAP --&gt; GPLAN[Gap-fix planning work]
+
+    RM --&gt; NEXT[/gsd-next/]
+    DEC --&gt; NEXT
+    REN --&gt; NEXT
+    ASSUMP --&gt; DISC[/gsd-discuss-phase/]
+    ORDER --&gt; PLAN[/gsd-plan-phase/]
+    GPLAN --&gt; PLAN
+
+    classDef key fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#111827;
+    class INS key;</pre>
+        </div>
+        <details>
+          <summary>Raw Mermaid</summary>
+          <pre id="raw-phase-management" class="raw">flowchart TB
+    A[Need to change roadmap scope] --&gt; Q{What kind of change?}
+
+    Q --&gt;|append new future work| ADD[/gsd-add-phase/]
+    Q --&gt;|urgent work between phases| INS[/gsd-insert-phase N/]
+    Q --&gt;|remove unstarted future work| REM[/gsd-remove-phase N/]
+    Q --&gt;|inspect assumed approach| LPA[/gsd-list-phase-assumptions N/]
+    Q --&gt;|dependency concern| DEP[/gsd-analyze-dependencies/]
+    Q --&gt;|gap after milestone audit| GAP[/gsd-plan-milestone-gaps/]
+
+    ADD --&gt; RM[ROADMAP.md updated]
+    INS --&gt; DEC[Decimal phase created&lt;br/&gt;example: 3.1]
+    REM --&gt; REN[Future phases renumbered]
+    LPA --&gt; ASSUMP[Assumptions surfaced before planning]
+    DEP --&gt; ORDER[Phase ordering/dependency report]
+    GAP --&gt; GPLAN[Gap-fix planning work]
+
+    RM --&gt; NEXT[/gsd-next/]
+    DEC --&gt; NEXT
+    REN --&gt; NEXT
+    ASSUMP --&gt; DISC[/gsd-discuss-phase/]
+    ORDER --&gt; PLAN[/gsd-plan-phase/]
+    GPLAN --&gt; PLAN
+
+    classDef key fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#111827;
+    class INS key;</pre>
+        </details>
+      </section>
+  </main>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      securityLevel: 'loose',
+      flowchart: { htmlLabels: true, curve: 'basis' },
+      themeVariables: {
+        primaryColor: '#dbeafe',
+        primaryTextColor: '#0f172a',
+        primaryBorderColor: '#2563eb',
+        lineColor: '#475569',
+        secondaryColor: '#fef3c7',
+        tertiaryColor: '#ecfeff',
+        fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'
+      }
+    });
+    document.querySelectorAll('.copy').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const target = document.getElementById(button.dataset.target);
+        await navigator.clipboard.writeText(target.textContent);
+        const old = button.textContent;
+        button.textContent = 'Copied';
+        setTimeout(() => button.textContent = old, 1200);
+      });
+    });
+  </script>
+</body>
+</html>

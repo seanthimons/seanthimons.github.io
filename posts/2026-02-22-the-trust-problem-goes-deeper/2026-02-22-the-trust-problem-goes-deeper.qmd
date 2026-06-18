@@ -4,6 +4,7 @@ description: "Julie Zhuo is right that AI shifts the bottleneck from execution t
 date: 2026-02-22
 categories: [ai, data-science, opinion]
 image: hero.png
+draft: true
 ---
 
 ```{=html}

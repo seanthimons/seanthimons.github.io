@@ -203,6 +203,35 @@ img[src*="headshot"] {
   box-shadow: 0 4px 14px rgba($phthalo-deep, 0.08);
 }
 
+// Work page project-card grid
+.work-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+
+  > .card {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .work-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .work-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+body.page-work .project-logo {
+  border-radius: 0;
+  box-shadow: none;
+}
+
 // Grid cards equal height
 .grid {
   .g-col-12 {
