@@ -1,0 +1,430 @@
+---
+title: "Tidy Tuesday: Global Health Spending"
+author: "Sean Thimons"
+date: "2026-04-21"
+description: "WHO Global Health Expenditure data — and the stubborn divide in who pays the bill for health care."
+categories:
+  - tidytuesday
+  - R
+  - health
+  - economics
+  - global development
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| out-width: 100%
+#| dpi: 200
+
+if (!requireNamespace("pak", quietly = TRUE)) {
+  install.packages("pak", repos = "https://cloud.r-project.org")
+}
+
+for (pkg in c("ggplot2", "paletteer", "tibble")) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    pak::pkg_install(pkg)
+  }
+}
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name   <- "FridaKahlo"
+palette_source <- "lisa"
+palette_type   <- "discrete"
+palette_id     <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- if (palette_type %in% c("continuous", "diverging")) {
+  as.character(paletteer::paletteer_c(palette_id, n = 5))
+} else {
+  rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+}
+
+swatch_df <- tibble(
+  idx  = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-04-21).
+
+> This week we're exploring global health spending data. The WHO Global Health Expenditure Database (GHED) provides comparable data on health expenditure for 195 countries and territories since 2000. The data tracks how much countries spend on health care, where the money comes from (government, private, or external sources), how it is channelled through financing schemes (e.g. government programmes, voluntary insurance, out-of-pocket payments), and what it is spent on (e.g. curative care, preventive care, medical goods).
+>
+> Suggested questions include: Which countries rely most heavily on out-of-pocket payments for health care? How has the balance between government, private, and external aid changed over time? What is the split between curative and preventive care spending across countries? How did the COVID-19 pandemic impact health spending patterns?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages("pak", repos = "https://cloud.r-project.org")
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  core_packages <- c(
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+    'skimr',
+    'paletteer',
+    'tidytuesdayR'
+  )
+
+  optional_packages <- c('ggtext', 'ggrepel', 'scales')
+
+  install_booster_pack(package = unique(c(core_packages, optional_packages)), load = TRUE)
+  rm(install_booster_pack, core_packages, optional_packages)
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-04-21')
+
+health_spending   <- raw$health_spending
+financing_schemes <- raw$financing_schemes
+spending_purpose  <- raw$spending_purpose
+```
+
+# Exploratory Data Analysis
+
+Three tidy long-format tables, each row a `(country, year, indicator)` triplet. The `_che` suffix on `indicator_code` means "% of current health expenditure"; the `_usd2023` suffix means "constant 2023 US dollars". That dual-unit packing is convenient — same shape, just filter on the suffix.
+
+## health_spending
+
+```{r}
+#| label: eda-health-spending
+#| echo: true
+#| output: true
+
+health_spending %>%
+  select(-iso3_code) %>%
+  my_skim()
+
+health_spending %>% count(expenditure_type)
+```
+
+195 countries × 24 years × 7 indicators ≈ 30,900 rows. Coverage runs **2000–2023**. Four expenditure types: total Current Health Expenditure (CHE), and three mutually-exclusive funding sources — domestic government (GGHE-D), domestic private (PVT-D), and external/aid (EXT). The `_che` shares within a country-year sum to ~100%.
+
+## financing_schemes
+
+```{r}
+#| label: eda-financing
+#| echo: true
+#| output: true
+
+financing_schemes %>%
+  select(-iso3_code) %>%
+  my_skim()
+
+financing_schemes %>% count(financing_scheme)
+```
+
+Same shape, but cuts the spending pie a different way — by *how* the money is channelled rather than *whose* money it is. Government/compulsory schemes (`hf1`), voluntary insurance (`hf2`), household out-of-pocket payments (`hf3`), rest-of-world (`hf4`), and a small unspecified bucket. **`hf3` — out-of-pocket — is the indicator of interest** for this analysis. It is the single best summary of "do households face financial hardship when they get sick?"
+
+## spending_purpose
+
+```{r}
+#| label: eda-purpose
+#| echo: true
+#| output: true
+
+spending_purpose %>%
+  select(-iso3_code) %>%
+  my_skim()
+
+spending_purpose %>% count(spending_purpose)
+```
+
+Functional breakdown — curative care, medical goods, preventive care, etc. Note this table only starts in **2016**, so trend windows are shorter here than in the other two.
+
+# The out-of-pocket divide
+
+Out-of-pocket (OOP) spending is the WHO's headline indicator for financial protection. When a country's OOP share is high, getting sick means writing a cheque at the point of care — and that's the mechanism that pushes households into poverty.
+
+::: {.callout-note}
+## Why focus on the share, not the dollar amount
+
+A wealthy country can spend $500/person out-of-pocket and barely notice it; a low-income country spending $40/person OOP may be impoverishing tens of millions. **Share of current health expenditure** is the comparable risk indicator across very different economies.
+:::
+
+I want to see two things side-by-side: **where the OOP burden sits today**, and **which countries are moving in which direction**. A dumbbell of 2010 → 2023 for both the worst current cases and the biggest movers does that in one frame.
+
+```{r}
+#| label: build-oop
+#| echo: true
+#| output: true
+
+oop_wide <- financing_schemes %>%
+  filter(indicator_code == "hf3_che", year %in% c(2010, 2023)) %>%
+  select(country_name, iso3_code, year, value) %>%
+  pivot_wider(names_from = year, values_from = value, names_prefix = "y") %>%
+  drop_na(y2010, y2023) %>%
+  mutate(
+    delta = y2023 - y2010,
+    direction = case_when(
+      delta >  5 ~ "Got worse (+5pp or more)",
+      delta < -5 ~ "Got better (−5pp or more)",
+      TRUE       ~ "Roughly stable"
+    )
+  )
+
+cat(sprintf("Countries with both 2010 and 2023 OOP data: %d\n", nrow(oop_wide)))
+stopifnot("OOP panel is empty" = nrow(oop_wide) > 0)
+
+oop_wide %>% count(direction)
+
+worst_now <- oop_wide %>% slice_max(y2023, n = 12) %>% mutate(panel = "Highest OOP burden in 2023")
+biggest_drop <- oop_wide %>% slice_min(delta, n = 12) %>% mutate(panel = "Biggest decreases since 2010")
+biggest_rise <- oop_wide %>% slice_max(delta, n = 12) %>% mutate(panel = "Biggest increases since 2010")
+
+plot_df <- bind_rows(worst_now, biggest_drop, biggest_rise) %>%
+  mutate(panel = factor(panel, levels = c(
+    "Highest OOP burden in 2023",
+    "Biggest increases since 2010",
+    "Biggest decreases since 2010"
+  )))
+
+stopifnot("plot_df is empty" = nrow(plot_df) > 0)
+cat(sprintf("plot_df: %d rows across %d panels\n", nrow(plot_df), n_distinct(plot_df$panel)))
+```
+
+A quick sanity check on the global picture before plotting:
+
+```{r}
+#| label: global-summary
+#| echo: true
+#| output: true
+
+global_summary <- financing_schemes %>%
+  filter(indicator_code == "hf3_che", year %in% c(2010, 2023)) %>%
+  group_by(year) %>%
+  summarise(
+    n_countries = n(),
+    median_oop  = median(value, na.rm = TRUE),
+    mean_oop    = mean(value, na.rm = TRUE),
+    p90         = quantile(value, 0.9, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+global_summary
+```
+
+The global median OOP share fell by roughly 2.5 percentage points between 2010 and 2023 — modest progress in aggregate. But the median hides everything interesting. The dumbbell below shows where the real motion is.
+
+## Hero plot — who pays, and how it's changed
+
+```{r}
+#| label: oop-dumbbell
+#| message: false
+#| warning: false
+#| fig-width: 11
+#| fig-height: 11
+
+frida <- paletteer::paletteer_d("lisa::FridaKahlo")
+col_2010   <- frida[3]
+col_2023   <- frida[5]
+col_better <- frida[2]
+col_worse  <- frida[5]
+
+plot_df_ord <- plot_df %>%
+  group_by(panel) %>%
+  mutate(country_name = fct_reorder(country_name, y2023)) %>%
+  ungroup() %>%
+  mutate(
+    seg_color = if_else(delta >= 0, col_worse, col_better),
+    delta_lbl = sprintf("%+0.0f pp", delta)
+  )
+
+p <- ggplot(plot_df_ord, aes(y = country_name)) +
+  geom_segment(
+    aes(x = y2010, xend = y2023, yend = country_name, color = seg_color),
+    linewidth = 1.4,
+    lineend = "round",
+    show.legend = FALSE
+  ) +
+  geom_point(aes(x = y2010), color = col_2010, size = 3.6) +
+  geom_point(aes(x = y2023), color = col_2023, size = 3.6) +
+  geom_text(
+    aes(x = pmax(y2010, y2023) + 2, label = delta_lbl, color = seg_color),
+    hjust = 0, size = 3.2, fontface = "bold", show.legend = FALSE
+  ) +
+  scale_color_identity() +
+  scale_x_continuous(
+    labels = scales::label_percent(scale = 1),
+    limits = c(0, 100),
+    breaks = c(0, 25, 50, 75, 100),
+    expand = expansion(mult = c(0.01, 0.10))
+  ) +
+  facet_wrap(~ panel, ncol = 1, scales = "free_y") +
+  labs(
+    title = "Who pays when you get sick?",
+    subtitle = glue::glue(
+      "Out-of-pocket payments as share of current health expenditure, ",
+      "<span style='color:{col_2010}'>**2010**</span> → ",
+      "<span style='color:{col_2023}'>**2023**</span>. ",
+      "Bar color marks whether the share rose (<span style='color:{col_worse}'>**worse**</span>) ",
+      "or fell (<span style='color:{col_better}'>**better**</span>)."
+    ),
+    caption = "Source: WHO Global Health Expenditure Database (GHED) · TidyTuesday 2026-04-21",
+    x = "Out-of-pocket share of current health expenditure",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18),
+    plot.subtitle = ggtext::element_markdown(size = 11, margin = margin(b = 12)),
+    plot.caption = element_text(color = "grey45", size = 9, hjust = 0),
+    strip.text = element_text(face = "bold", hjust = 0, size = 12, margin = margin(b = 6, t = 8)),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "grey90"),
+    axis.text.y = element_text(face = "bold"),
+    plot.background = element_rect(fill = "white", color = NA),
+    plot.margin = margin(14, 14, 10, 14)
+  )
+
+p
+```
+
+## Reading the chart
+
+Three panels, one story:
+
+- **Top panel — Highest OOP burden in 2023.** A cluster of fragile and conflict-affected states sit at 60–80% OOP: Afghanistan, Yemen, Sudan, Syria, Nigeria, Myanmar. In these systems, the formal public financing function is small or broken, and households fill the gap from their own pockets. Movement since 2010 is mostly the wrong way.
+- **Middle panel — Biggest increases since 2010.** **Iraq (+28pp), Mongolia (+21pp), Liberia (+21pp), Syria (+20pp), Haiti (+19pp)** — most of these are countries where public health financing has shrunk relative to total spending, often because total spending has grown faster than government commitment, or because conflict and political crisis have eroded the state's capacity to channel funds. Algeria, Burkina Faso, Gambia, Angola all show double-digit OOP increases too.
+- **Bottom panel — Biggest decreases since 2010.** Real progress: **Indonesia (−30pp), Cyprus (−25pp), Côte d'Ivoire (−25pp), Comoros (−24pp), Zimbabwe (−24pp), India (−21pp), Maldives (−22pp).** Indonesia's drop tracks the rollout of *Jaminan Kesehatan Nasional* — the national single-payer scheme launched in 2014 and now the world's largest. Cyprus introduced its GHS general health system in 2019. India's decrease reflects the expansion of Ayushman Bharat / PM-JAY. These are policy stories visible in the data.
+
+::: {.callout-important}
+## The pattern that should bother you
+
+Almost every country in the "got worse" panel is a low- or middle-income country, often one experiencing conflict, sanctions, or political upheaval. Almost every country in the "got better" panel is a country that built or expanded a *compulsory* health financing scheme. The lesson is not subtle: out-of-pocket spending falls when governments choose to pool risk, and it rises when they don't.
+:::
+
+# Final thoughts and takeaways
+
+The GHED data lets us see, with rare cross-country comparability, the choice every health system makes about who carries financial risk. Three things stand out:
+
+1. **The global median is misleading.** A 2.5-percentage-point fall in median OOP share since 2010 obscures double-digit shifts — in both directions — across dozens of countries. Country-level dispersion is the story.
+2. **Policy works, when it happens.** Indonesia, India, Cyprus, the Maldives all reduced OOP share substantially after introducing or expanding compulsory pooled financing. There is no mystery about the mechanism — it just requires sustained political commitment to actually fund the scheme.
+3. **Fragility compounds.** The countries with the highest OOP burden today are largely the same ones whose share rose the most since 2010. Conflict, sanctions, and state capacity collapse reinforce each other — exactly the contexts where households are least able to afford a private health bill.
+
+A few caveats: these are spending shares, not population-weighted exposure. A 50% OOP share in India and in the Maldives are very different in scale of human consequence. The GHED also captures *what was paid*, not *what was needed* — countries with very low total health spending can show modest OOP shares simply because almost nothing is being spent at all. And 2023 is the cleanest recent year; provisional 2024 numbers are not yet in this snapshot.
+
+```{r}
+#| label: palette-log
+#| echo: false
+#| message: false
+#| warning: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+if (!file.exists(palette_log_path)) {
+  writeLines("post_date,palette,package,type", palette_log_path)
+}
+
+palette_log <- read.csv(palette_log_path)
+new_entry <- data.frame(
+  post_date = "2026-04-21",
+  palette   = "FridaKahlo",
+  package   = "lisa",
+  type      = "discrete"
+)
+
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette  == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+  )
+}
+```
