@@ -1,0 +1,409 @@
+---
+title: "Tidy Tuesday: Bird Sightings at Sea"
+author: "Sean Thimons"
+date: "2026-04-14"
+description: "Which Southern Ocean seabirds chase ships, and which ones just fly on by? A look at three decades of pelagic bird observations from research vessels in the Australasian seas."
+categories:
+  - tidytuesday
+  - R
+  - birds
+  - ecology
+  - ocean
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.6
+#| dpi: 200
+#| out-width: 100%
+
+if (!requireNamespace("pak", quietly = TRUE)) {
+  install.packages("pak", repos = "https://cloud.r-project.org")
+}
+
+for (pkg in c("ggplot2", "paletteer", "tibble")) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    pak::pkg_install(pkg)
+  }
+}
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name   <- "Hokusai1"
+palette_source <- "MetBrewer"
+palette_type   <- "discrete"
+palette_id     <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- if (palette_type %in% c("continuous", "diverging")) {
+  as.character(paletteer::paletteer_c(palette_id, n = 5))
+} else {
+  rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+}
+
+swatch_df <- tibble(
+  idx  = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-04-14).
+
+> Between 1969 and 1990, naturalists aboard New Zealand and Australian research vessels recorded every seabird they could spot from the deck, along with the ship's position, weather, sea state, and what the birds were doing. The result is a remarkable archive of pelagic seabird behavior in the Southern Ocean — albatrosses, petrels, shearwaters, and gulls — across more than 12,000 ship records and 49,000 individual sightings. Each row tells you not just *what* was seen, but *whether it was following the ship, sitting on the water, flying past, or feeding.*
+
+The four tables in this week's release split the work neatly: `ships` carries the position/time/weather context, `birds` carries the sightings keyed back to each ship record, and the two small lookup tables encode the Beaufort wind scale and World Meteorological Organization sea-state class.
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages("pak", repos = "https://cloud.r-project.org")
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  core_packages <- c(
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+    'skimr',
+    'paletteer',
+    'tidytuesdayR'
+  )
+
+  optional_packages <- c('ggtext', 'ggrepel', 'scales', 'lubridate')
+
+  install_booster_pack(package = unique(c(core_packages, optional_packages)), load = TRUE)
+  rm(install_booster_pack, core_packages, optional_packages)
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-04-14')
+
+ships          <- raw$ships
+birds          <- raw$birds
+beaufort_scale <- raw$beaufort_scale
+sea_states     <- raw$sea_states
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of `skimr::skim()` that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Ships
+
+```{r}
+#| label: eda-ships
+#| echo: true
+#| output: true
+
+ships %>%
+  select(-record_id, -observer) %>%
+  my_skim()
+
+ships %>%
+  count(season, name = "n_ship_records") %>%
+  arrange(desc(n_ship_records))
+
+ships %>%
+  summarise(
+    first_voyage = min(date, na.rm = TRUE),
+    last_voyage  = max(date, na.rm = TRUE),
+    n_records    = n(),
+    lat_min      = min(latitude,  na.rm = TRUE),
+    lat_max      = max(latitude,  na.rm = TRUE),
+    lon_min      = min(longitude, na.rm = TRUE),
+    lon_max      = max(longitude, na.rm = TRUE)
+  )
+```
+
+The fleet works almost exclusively in the **eastern hemisphere** (`hemisphere == "E"`), wedged between roughly 19°S and 69°S — that's the swath from sub-tropical Tasman waters down through the Roaring Forties, Furious Fifties, and into the Antarctic Convergence. Records span **late July 1969 through December 1990** and are evenly spread across all four seasons, with a slight lean toward spring and summer when the southern weather permits more deck time.
+
+## Birds
+
+```{r}
+#| label: eda-birds
+#| echo: true
+#| output: true
+
+birds %>%
+  select(species_common_name, age, plumage_phase, count,
+         following_ship, flying_past, sitting_on_water, feeding) %>%
+  my_skim()
+
+birds %>%
+  count(species_common_name, sort = TRUE) %>%
+  head(10)
+
+birds %>%
+  summarise(
+    pct_following = mean(following_ship, na.rm = TRUE),
+    pct_flying    = mean(flying_past,    na.rm = TRUE),
+    pct_sitting   = mean(sitting_on_water, na.rm = TRUE),
+    pct_feeding   = mean(feeding,        na.rm = TRUE)
+  )
+```
+
+The bird table is dominated by **tubenoses** — albatrosses, petrels, shearwaters, and prions. The single most-sighted "species" is the *wandering albatross sensu lato* in plumage phase 2, with over 3,000 records. (The "sensu lato" tag and `PL1`–`PL5` codes flag that field observers were grouping look-alike sub-taxa and ageing them by their plumage transition, since wandering albatrosses take roughly a decade to reach definitive adult white.)
+
+Roughly **42% of behaviorally-scored sightings record a bird actively following the ship** — an extraordinary fraction, but consistent with what mariners have reported since the age of sail: certain seabirds, especially albatrosses, treat a vessel as a slow-moving feeding opportunity (offal, prop wash, disturbed plankton). The behavior is not uniform, though — and that variation is the story.
+
+# Which seabirds follow ships?
+
+::: {.callout-note}
+## The "ship-follower" trade-off
+Following a vessel costs energy — sustained flight, sometimes for hours — but pays out in the form of galley scraps, churned-up prey, and easy soaring on the ship's wake-edge updrafts. Species that evolved to scavenge over vast empty ocean (albatrosses, giant petrels) take that bet readily. Species that pluck prey from the water surface in fast dives or that follow specific schooling fish (shearwaters, gannets) tend to ignore the ship entirely.
+:::
+
+I want to rank species by the fraction of **individual birds** observed actively following the ship — not just the fraction of sightings, because flocks of dozens are common and one record can represent very different numbers of birds. To avoid the noise of rarely-seen species, I'll restrict to species with at least 250 records on file, and collapse the wandering-albatross plumage codes into a single species group.
+
+```{r}
+#| label: ship-followers
+#| message: false
+#| warning: false
+
+bird_ship <- birds %>%
+  inner_join(ships, by = "record_id") %>%
+  filter(!is.na(species_common_name)) %>%
+  mutate(
+    species_grp = species_common_name %>%
+      str_replace(" sensu lato.*$", "") %>%
+      str_replace("\\s+(AD|JUV|SUB.*|PL\\d+).*$", "") %>%
+      str_trim()
+  )
+
+follow_summary <- bird_ship %>%
+  group_by(species_grp) %>%
+  summarise(
+    n_records          = n(),
+    total_birds        = sum(count, na.rm = TRUE),
+    birds_following    = sum(n_following_ship, na.rm = TRUE),
+    birds_flying_past  = sum(n_flying_past,    na.rm = TRUE),
+    birds_sitting      = sum(n_sitting_on_water, na.rm = TRUE),
+    birds_feeding      = sum(n_feeding,        na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(n_records >= 250, total_birds > 0) %>%
+  mutate(
+    pct_following = birds_following   / total_birds,
+    pct_flying    = birds_flying_past / total_birds,
+    pct_sitting   = birds_sitting     / total_birds
+  ) %>%
+  arrange(desc(pct_following))
+
+cat(sprintf("follow_summary: %d species after filtering\n", nrow(follow_summary)))
+stopifnot("follow_summary is empty — check joins/filters" = nrow(follow_summary) > 0)
+
+follow_summary %>%
+  select(species_grp, n_records, total_birds, pct_following, pct_flying, pct_sitting) %>%
+  print(n = Inf)
+```
+
+The ranking is striking. The wandering albatross, southern giant petrel, and cape petrel are the **devoted shadows**: half or more of every individual recorded was actively chasing the ship. At the other end, shearwaters and gannets — fast, prey-specialized fliers — barely register the vessel at all. The black-browed albatross sits in the middle, behaviorally as well as taxonomically; it'll follow when convenient but doesn't make a career of it.
+
+## Hero plot: the ship-follower spectrum
+
+```{r}
+#| label: viz-follower-spectrum
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+plot_df <- follow_summary %>%
+  slice_max(n_records, n = 15) %>%
+  mutate(
+    species_label = species_grp %>%
+      str_replace_all("\\s+/\\s+", " / ") %>%
+      str_wrap(width = 32),
+    species_label = fct_reorder(species_label, pct_following)
+  )
+
+hokusai <- as.character(paletteer::paletteer_d("MetBrewer::Hokusai1"))
+ink_blue   <- hokusai[7]   # deep ocean
+crest_teal <- hokusai[6]   # foam green
+warm_mid   <- hokusai[5]   # sandy
+warm_hi    <- hokusai[2]   # rust
+warm_max   <- hokusai[1]   # dark wave-shadow
+
+p <- ggplot(plot_df, aes(x = pct_following, y = species_label)) +
+  geom_segment(
+    aes(x = 0, xend = pct_following, yend = species_label, color = pct_following),
+    linewidth = 1.2,
+    lineend = "round"
+  ) +
+  geom_point(aes(size = total_birds, color = pct_following)) +
+  geom_text(
+    aes(label = scales::percent(pct_following, accuracy = 1)),
+    hjust = -0.4, size = 3.5, color = "grey20", fontface = "bold"
+  ) +
+  scale_x_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    limits = c(0, max(plot_df$pct_following) * 1.20),
+    expand = expansion(mult = c(0, 0.02))
+  ) +
+  scale_size_continuous(
+    range = c(3, 11),
+    labels = scales::comma_format(),
+    name = "Total birds\nobserved"
+  ) +
+  scale_color_gradientn(
+    colors = c(ink_blue, crest_teal, warm_mid, warm_hi, warm_max),
+    guide = "none"
+  ) +
+  labs(
+    title    = "Which seabirds bother to chase a ship?",
+    subtitle = "Share of individual birds recorded actively following the vessel,\nby species (Southern Ocean research voyages, 1969–1990).",
+    x        = NULL,
+    y        = NULL,
+    caption  = "Source: TidyTuesday 2026-04-14 · Bird Sightings at Sea  |  Top 15 most-sighted species, plumage variants merged."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17, color = ink_blue),
+    plot.subtitle = element_text(size = 11.5, color = "grey30", margin = margin(b = 14)),
+    plot.caption  = element_text(color = "grey45", size = 9, margin = margin(t = 14)),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor   = element_blank(),
+    panel.grid.major.x = element_line(color = "grey88", linewidth = 0.3),
+    axis.text.y = element_text(size = 10, color = "grey15", lineheight = 0.95),
+    axis.text.x = element_text(color = "grey40"),
+    legend.position = "bottom",
+    legend.title = element_text(size = 9, color = "grey30"),
+    legend.text  = element_text(size = 9, color = "grey30"),
+    plot.background  = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.margin = margin(18, 24, 14, 14)
+  )
+
+p
+```
+
+# Final thoughts and takeaways
+
+If you've ever stood on the stern rail of a ship south of New Zealand and watched a wandering albatross trail behind for the entire afternoon — never seeming to flap, just *carving* the air off the wake — this dataset will feel familiar. The number puts a percentage on the intuition: the **wandering albatross spends most of its visible life behind boats**, and so do the giant petrels and cape petrels that earn the old sailor's name *"Cape pigeon."* These are the obligate scavengers of the southern seas, and a ship is, to them, a feeding event in slow motion.
+
+The shearwaters and the Australasian gannet sit at the opposite end of the same scale and are doing something different for a living: high-speed transit and plunge-diving on shoaling fish. A research vessel isn't a buffet to them, it's an obstacle to detour around.
+
+A few caveats worth naming:
+
+- The behavioral flags are **observer-coded** from the deck, and missingness is real — only about 57% of sightings carry a behavior code at all. The denominator I used (`total_birds`) includes birds whose behavior wasn't scored, so the percentages are conservative: the *true* rate of following-when-observed is higher.
+- "Following the ship" is partly a function of **how slow you're going**. About 94% of the ship records are coded `steaming, sailing`, but speed varies; a stationary research vessel deploying gear is more attractive than a freighter at 18 knots.
+- The dataset is **historic** (1969–1990). Several of the species in the top rank — especially the wandering and black-browed albatrosses — have suffered severe population declines from longline fishing bycatch in the decades since. The behavior that made them visible to these naturalists is the very same behavior that makes them vulnerable to baited hooks set astern.
+
+The data tells one clean story and gestures at a darker one: the seabirds most willing to keep us company at sea are also the ones most exposed to the way we now fish it.
+
+```{r}
+#| label: palette-log-append
+#| echo: false
+#| message: false
+#| warning: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+if (!file.exists(palette_log_path)) {
+  writeLines("post_date,palette,package,type", palette_log_path)
+}
+palette_log <- read.csv(palette_log_path)
+new_entry <- data.frame(
+  post_date = "2026-04-14",
+  palette   = "Hokusai1",
+  package   = "MetBrewer",
+  type      = "discrete"
+)
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette   == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+  )
+}
+```
