@@ -1,0 +1,422 @@
+---
+title: "Tidy Tuesday: Extreme Weather Attribution Studies"
+author: "Sean Thimons"
+date: "2025-08-12"
+description: "Profiling 744 climate-attribution studies to ask which extreme weather types most consistently bear a human fingerprint — and where the science still hedges."
+categories:
+  - tidytuesday
+  - R
+  - climate
+  - attribution
+  - extreme-weather
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| out-width: 100%
+
+if (!requireNamespace("pak", quietly = TRUE)) {
+  install.packages("pak", repos = "https://cloud.r-project.org")
+}
+
+for (pkg in c("ggplot2", "paletteer", "tibble", "PNWColors")) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    pak::pkg_install(pkg)
+  }
+}
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name   <- "Sailboat"
+palette_source <- "PNWColors"
+palette_type   <- "discrete"
+palette_id     <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- if (palette_type %in% c("continuous", "diverging")) {
+  as.character(paletteer::paletteer_c(palette_id, n = 5))
+} else {
+  rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+}
+
+swatch_df <- tibble(
+  idx  = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-08-12).
+
+> This week's dataset documents scientific studies analyzing how climate change affects extreme weather events globally. The data originates from Carbon Brief's interactive mapping project ("Mapped: How climate change affects extreme weather around the world") and was last updated in November 2024. Individual studies covering multiple events or locations were separated into distinct entries where applicable.
+
+Extreme-event attribution is a relatively young branch of climate science. It asks a deceptively simple question: did a warming climate make *this specific* heatwave / hurricane / drought worse, or more likely? The Carbon Brief catalogue is the most complete public-facing index of the answers we have so far. With 744 study rows in hand, the obvious move is to ask the data not just *how many* studies exist, but *what verdicts they tend to deliver* — and whether those verdicts cluster systematically by event type.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages("pak", repos = "https://cloud.r-project.org")
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  core_packages <- c(
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+    'skimr',
+    'paletteer',
+    'tidytuesdayR'
+  )
+
+  optional_packages <- c(
+    'ggtext',
+    'ggrepel',
+    'scales',
+    'PNWColors'
+  )
+
+  install_booster_pack(package = unique(c(core_packages, optional_packages)), load = TRUE)
+  rm(install_booster_pack, core_packages, optional_packages)
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2025-08-12')
+
+studies <- raw$attribution_studies
+```
+
+# Exploratory Data Analysis
+
+## attribution_studies
+
+Free-text fields (`event_name`, `event_period`, `summary_statement`, `citation`, `link`) are dropped from the skim — they're useful for context but not for distributional profiling.
+
+```{r}
+#| label: eda-attribution-studies
+#| echo: true
+#| output: true
+
+studies %>%
+  select(-event_name, -event_period, -event_year,
+         -summary_statement, -citation, -link, -iso_country_code) %>%
+  my_skim()
+```
+
+```{r}
+#| label: eda-categoricals
+#| echo: true
+#| output: true
+
+studies %>% count(classification, sort = TRUE)
+studies %>% count(event_type, sort = TRUE)
+studies %>% count(study_focus, sort = TRUE)
+studies %>% count(rapid_study, sort = TRUE)
+studies %>% count(cb_region, sort = TRUE)
+```
+
+A few things jump out:
+
+- **Verdicts skew heavily toward attribution.** 554 of 744 studies (~75%) conclude the event was more severe or more likely due to human influence. Roughly 9% find no discernible influence, 9% find the opposite (decreased severity), and 7% are inconclusive. Publication bias is real — null results are harder to publish — but the imbalance is still striking.
+- **Heat dominates.** 207 studies (28%) target heat events, with rain/flooding (177) and drought (106) close behind. Together these three account for two-thirds of the literature.
+- **The field is young and accelerating.** 91 studies were published in 2024 alone; only 6 exist for the entire 2004–2010 window. Rapid attribution (results within days of an event) is a recent invention — 103 of 744 studies are tagged as rapid.
+- **Coverage is uneven geographically.** Europe, East/Southeast Asia, and Northern America together hold 60% of studies; Antarctica, Oceania, and Northern Africa/West Asia are barely represented.
+
+# The attribution fingerprint by event type
+
+The most interesting question the data can answer isn't *how many* studies exist per event type — that just tells us where the funding and attention flow. The sharper question is: **conditional on a study being done, how often does it conclude human influence made the event worse?** That ratio is the "attribution fingerprint" of an event class, and it varies meaningfully across the catalogue.
+
+::: {.callout-note}
+## What the verdicts mean
+
+Carbon Brief collapses every study's headline finding into one of four categories. **"More severe or more likely"** is the canonical attribution result. **"No discernible influence"** means the analysis ran but couldn't isolate a climate signal. **"Decrease, less severe or less likely"** is rarer and often shows up for cold-snap events. **"Insufficient data/inconclusive"** flags studies that hit methodological limits.
+:::
+
+```{r}
+#| label: build-fingerprint
+#| echo: true
+#| output: true
+
+class_levels <- c(
+  "More severe or more likely to occur",
+  "Insufficient data/inconclusive",
+  "No discernible human influence",
+  "Decrease, less severe or less likely to occur"
+)
+
+class_short <- c(
+  "More severe or more likely to occur"          = "More severe / likely",
+  "Insufficient data/inconclusive"               = "Inconclusive",
+  "No discernible human influence"               = "No human influence",
+  "Decrease, less severe or less likely to occur" = "Less severe / likely"
+)
+
+fingerprint <- studies %>%
+  filter(!is.na(classification), !is.na(event_type)) %>%
+  mutate(
+    classification = factor(classification, levels = class_levels),
+    class_short    = factor(class_short[as.character(classification)],
+                            levels = unname(class_short))
+  ) %>%
+  count(event_type, class_short, name = "n") %>%
+  group_by(event_type) %>%
+  mutate(
+    total = sum(n),
+    pct   = n / total
+  ) %>%
+  ungroup()
+
+event_order <- fingerprint %>%
+  distinct(event_type, total) %>%
+  arrange(desc(total)) %>%
+  pull(event_type)
+
+fingerprint <- fingerprint %>%
+  mutate(event_type = factor(event_type, levels = rev(event_order)))
+
+cat(sprintf("fingerprint: %d rows across %d event types\n",
+            nrow(fingerprint), length(event_order)))
+stopifnot("Fingerprint data is empty — check filter values" = nrow(fingerprint) > 0)
+stopifnot("Proportions don't sum to 1 per event type" =
+            all(abs(
+              fingerprint %>% group_by(event_type) %>%
+                summarise(s = sum(pct), .groups = "drop") %>% pull(s) - 1
+            ) < 1e-9))
+
+fingerprint %>%
+  select(event_type, class_short, n, pct, total) %>%
+  arrange(event_type, class_short) %>%
+  print(n = Inf)
+```
+
+The table makes the variation concrete. Heat events are attributed to climate change in **89%** of studies. Cold/snow/ice events flip the script: only ~37% are "more severe", while a striking share land in the "decrease / less severe" bucket — physically intuitive, because a warming world produces fewer extreme cold snaps. Storms and oceans sit in the middle, reflecting how messy the dynamic-atmosphere signal is at the scale of individual storms.
+
+```{r}
+#| label: percent-more-severe
+#| echo: true
+#| output: true
+
+pct_more_severe <- fingerprint %>%
+  group_by(event_type) %>%
+  summarise(
+    total        = first(total),
+    n_more       = sum(n[class_short == "More severe / likely"]),
+    pct_more     = n_more / total,
+    .groups = "drop"
+  ) %>%
+  arrange(desc(pct_more))
+
+pct_more_severe
+```
+
+# Visualization
+
+The story is about the *shape* of evidence inside each event class, so a 100%-stacked horizontal bar chart is the right tool: each row sums to 1, the dominant verdict reads at a glance, and counts annotate the right margin so the reader sees the sample size behind each fingerprint.
+
+```{r}
+#| label: hero-plot-fingerprint
+#| message: false
+#| warning: false
+#| fig.width: 11
+#| fig.height: 7.5
+
+class_colors <- paletteer::paletteer_d("PNWColors::Sailboat", n = 5)
+fill_map <- c(
+  "More severe / likely" = class_colors[5],
+  "Inconclusive"         = class_colors[3],
+  "No human influence"   = class_colors[2],
+  "Less severe / likely" = class_colors[1]
+)
+
+label_df <- fingerprint %>%
+  group_by(event_type) %>%
+  summarise(total = first(total), .groups = "drop")
+
+p <- ggplot(fingerprint,
+            aes(y = event_type, x = pct, fill = class_short)) +
+  geom_col(width = 0.78, color = "white", linewidth = 0.35) +
+  geom_text(
+    data = label_df,
+    aes(y = event_type, x = 1.015, label = paste0("n = ", total)),
+    inherit.aes = FALSE,
+    hjust = 0, size = 3.4, color = "grey25", fontface = "plain"
+  ) +
+  scale_fill_manual(values = fill_map, name = NULL) +
+  scale_x_continuous(
+    labels = scales::label_percent(accuracy = 1),
+    expand = expansion(mult = c(0, 0.10)),
+    breaks = seq(0, 1, 0.25)
+  ) +
+  coord_cartesian(clip = "off") +
+  labs(
+    title    = "The fingerprint of human influence is not uniform",
+    subtitle = "Of 744 attribution studies, ~75% conclude climate change made the event worse — but the split varies\nsharply by event type. Heat events carry a near-unanimous human signature; cold extremes often go the\nother way, consistent with a warming world producing fewer record cold snaps.",
+    x        = "Share of studies in each verdict category",
+    y        = NULL,
+    caption  = "Source: Carbon Brief, 'Mapped: How climate change affects extreme weather around the world' (Nov 2024)  ·  TidyTuesday 2025-08-12"
+  ) +
+  guides(fill = guide_legend(reverse = FALSE, nrow = 1, byrow = TRUE)) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title          = element_text(face = "bold", size = 17, margin = margin(b = 6)),
+    plot.subtitle       = element_text(color = "grey30", size = 11, lineheight = 1.15,
+                                       margin = margin(b = 16)),
+    plot.caption        = element_text(color = "grey45", size = 8.5,
+                                       margin = margin(t = 14), hjust = 0),
+    plot.title.position = "plot",
+    plot.caption.position = "plot",
+    legend.position     = "top",
+    legend.justification = "left",
+    legend.margin       = margin(b = 6),
+    legend.key.height   = unit(10, "pt"),
+    legend.key.width    = unit(18, "pt"),
+    legend.text         = element_text(size = 10),
+    axis.text.y         = element_text(face = "bold", color = "grey15", size = 10.5),
+    axis.text.x         = element_text(color = "grey35"),
+    axis.title.x        = element_text(color = "grey35", size = 10, margin = margin(t = 8)),
+    panel.grid.major.y  = element_blank(),
+    panel.grid.minor    = element_blank(),
+    panel.grid.major.x  = element_line(color = "grey88", linewidth = 0.3),
+    plot.margin         = margin(18, 28, 14, 14)
+  )
+
+p
+```
+
+::: {.callout-tip}
+## Reading the chart
+
+Event types are ordered top-to-bottom by total study count, so the most-studied categories — heat, rain & flooding, drought — dominate the top of the plot. The deepest blue bar segment is the canonical "yes, climate change made this worse" verdict. Look for rows where that segment shrinks (cold/snow/ice, sunshine) or where the lighter "no signal" / "less severe" slices bulge — those are the event classes where attribution science is still genuinely uncertain.
+:::
+
+# Final thoughts and takeaways
+
+Three things stuck with me from this dataset:
+
+1. **Heat attribution is essentially settled.** Across 207 studies, ~89% land on "more severe or more likely." When the next record-shattering heatwave makes the news, the prior on a strong climate fingerprint is extremely high — that's not a model assumption, it's the empirical track record of the literature.
+
+2. **Cold extremes are the natural counter-example.** A non-trivial slice of cold/snow/ice studies conclude that climate change made the event *less* likely, not more. This is one of the cleanest physical predictions of a warming world, and the catalogue reflects it.
+
+3. **Storms and oceans remain genuinely hard.** The fingerprint is muddier — more inconclusive and "no influence" results — because the relevant physics (cyclogenesis, ocean dynamics) involves competing signals. Communicators who blanket-attribute hurricanes to climate change are getting ahead of what the literature actually says; communicators who deny any influence are ignoring it.
+
+A few caveats worth naming explicitly:
+
+- **Publication bias likely inflates the "more severe" share.** Null results are harder to get published, especially in a field whose policy relevance is so high. The 75% headline is best read as "of studies that got done and published, this is the verdict mix" — not as an unbiased estimate of a base rate.
+- **Geographic coverage is skewed.** Europe, East/Southeast Asia, and North America dominate. The Global South is dramatically under-studied relative to climate exposure — a gap the rapid-attribution community (e.g. World Weather Attribution) is actively trying to close.
+- **Carbon Brief curates a single headline classification per study.** Real attribution papers are more nuanced — confidence intervals, partial signals, scenario dependence — than a four-bucket label can capture. Treat the chart as a coarse-grain index, not the last word.
+
+The strongest claim the data actually supports is structural, not numerical: **attribution science has moved from a research curiosity in 2004 to a routine, near-real-time response to extreme events.** Whether the verdict on any *specific* event is "yes," "no," or "maybe" depends on physics that varies by event type — and the fingerprint chart above is a useful map of where the science is confident and where it still hedges.
+
+```{r}
+#| label: palette-log
+#| echo: false
+#| message: false
+#| warning: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+if (!file.exists(palette_log_path)) {
+  writeLines("post_date,palette,package,type", palette_log_path)
+}
+palette_log <- read.csv(palette_log_path)
+new_entry <- data.frame(
+  post_date = "2025-08-12",
+  palette   = "Sailboat",
+  package   = "PNWColors",
+  type      = "discrete"
+)
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette  == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+  )
+}
+```
