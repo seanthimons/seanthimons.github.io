@@ -2,7 +2,7 @@
 """Build a week manifest for TidyTuesday posts.
 
 Dynamically discovers all available weeks from the TidyTuesday GitHub repo
-(2025 onward through the current date), fetches dataset metadata via the
+(2025 onward through the actual as-of/current date), fetches dataset metadata via the
 GitHub API, flags BYOD/BYOC weeks, and substitutes unused 2024 datasets
 for those gaps. Outputs a JSON manifest for the sequential runner to consume.
 
@@ -14,7 +14,7 @@ import json
 import subprocess
 import re
 import sys
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 
 REPO = "rfordatascience/tidytuesday"
@@ -334,34 +334,62 @@ def scan_existing_posts_for_2024_datasets(posts_dir: Path, datasets_2024: list, 
     return used_indices
 
 
-def build_manifest():
+def validate_manifest_coverage(manifest: list[dict], expected_dates: list[str], cutoff: date) -> None:
+    """Fail if the manifest does not exactly cover discovered dates through cutoff."""
+    actual_dates = [entry["week_date"] for entry in manifest]
+    expected_sorted = sorted(expected_dates)
+
+    if actual_dates != expected_sorted:
+        missing = sorted(set(expected_sorted) - set(actual_dates))
+        extra = sorted(set(actual_dates) - set(expected_sorted))
+        duplicate = sorted({d for d in actual_dates if actual_dates.count(d) > 1})
+        details = []
+        if missing:
+            details.append(f"missing={missing}")
+        if extra:
+            details.append(f"extra={extra}")
+        if duplicate:
+            details.append(f"duplicate={duplicate}")
+        if actual_dates != sorted(actual_dates):
+            details.append("manifest is not sorted")
+        raise RuntimeError("Manifest coverage is not deterministic: " + "; ".join(details))
+
+    future_dates = [d for d in actual_dates if date.fromisoformat(d) > cutoff]
+    if future_dates:
+        raise RuntimeError(f"Manifest includes dates after cutoff {cutoff}: {future_dates}")
+
+
+def build_manifest(as_of: date | None = None):
     """Build the manifest by dynamically discovering weeks from the repo."""
     manifest = []
     used_2024_indices = set()
-    today = date.today()
+    today = as_of or date.today()
 
     # Determine which years to scan: 2025 through current year
     years = list(range(2025, today.year + 1))
 
     # Discover all available weeks from the repo
-    all_dates = []  # list of (date_str, year)
+    discovered_dates = []  # list of (date_str, year)
     for year in years:
         print(f"Discovering weeks for {year}...")
         dates = discover_weeks_for_year(year)
         if dates:
             print(f"  Found {len(dates)} week(s)")
             for d in dates:
-                all_dates.append((d, year))
+                discovered_dates.append((d, year))
         else:
             print(f"  No data directory found (or API error)")
 
-    # Filter to START_DATE through today (+ 1 week buffer for upcoming releases)
-    cutoff = today + timedelta(days=7)
+    # Filter to START_DATE through the actual as-of date. Do not include future
+    # upstream directories just because they exist or were pre-published.
+    cutoff = today
+    deduped_dates = {d: y for d, y in discovered_dates}
     all_dates = [
-        (d, y) for d, y in all_dates
+        (d, y) for d, y in deduped_dates.items()
         if START_DATE <= date.fromisoformat(d) <= cutoff
     ]
     all_dates.sort(key=lambda x: x[0])
+    expected_week_dates = [d for d, _ in all_dates]
 
     print(f"\n{len(all_dates)} week(s) in range ({START_DATE} to {cutoff})")
 
@@ -473,10 +501,15 @@ def build_manifest():
     print(f"  Regular weeks: {len([e for e in manifest if not e['substituted_from'] and e['dataset_name']])}")
     print(f"  Unnamed: {len(unnamed)}")
 
+    # Verify the date frontier before writing, so the manifest fails closed if
+    # discovery/filtering ever drops or invents weeks.
+    validate_manifest_coverage(manifest, expected_week_dates, cutoff)
+
     # Save
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
         json.dump(manifest, f, indent=2)
+        f.write("\n")
     print(f"\nManifest saved to: {OUTPUT_PATH}")
 
     return manifest
@@ -487,8 +520,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build TidyTuesday week manifest")
     parser.add_argument("--output", "-o", type=str, default=None,
                         help="Override output path (default: tasks/week_manifest.json)")
+    parser.add_argument("--as-of", type=str, default=None,
+                        help="Date frontier in YYYY-MM-DD form (default: today)")
     args = parser.parse_args()
     if args.output:
         OUTPUT_PATH = Path(args.output)
-    manifest = build_manifest()
+    as_of = None
+    if args.as_of:
+        try:
+            as_of = date.fromisoformat(args.as_of)
+        except ValueError:
+            print(f"ERROR: --as-of must be YYYY-MM-DD, got {args.as_of!r}", file=sys.stderr)
+            sys.exit(2)
+    manifest = build_manifest(as_of=as_of)
     print(f"\n[OK] Done: {len(manifest)} entries in manifest")

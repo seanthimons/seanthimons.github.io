@@ -316,7 +316,7 @@
     "week_date": "2025-09-30",
     "year": 2025,
     "week_number": 40,
-    "dataset_name": "Crane Observations at Lake Hornborgasj\u00c3\u00b6n, Sweden (1994\u00e2\u20ac\u201c2024)",
+    "dataset_name": "Crane Observations at Lake Hornborgasj\u00f6n, Sweden (1994\u20132024)",
     "dataset_slug": "crane-observations-at-lake-hornborgasjn-sweden-19942024",
     "data_source_url": "https://www.hornborga.com/naturen/transtatistik/",
     "is_byod": false,
@@ -559,6 +559,126 @@
     "dataset_name": "One Million Digits of Pi",
     "dataset_slug": "one-million-digits-of-pi",
     "data_source_url": "https://github.com/eneko/Pi/blob/master/one-million.txt",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-03-31",
+    "year": 2026,
+    "week_number": 14,
+    "dataset_name": "Coastal Ocean Temperature by Depth",
+    "dataset_slug": "coastal-ocean-temperature-by-depth",
+    "data_source_url": "https://data.novascotia.ca/Nature-and-Environment/Lunenburg-County-Water-Quality-Data/eda5-aubu/about_data",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-04-07",
+    "year": 2026,
+    "week_number": 15,
+    "dataset_name": "Repair Cafes Worldwide",
+    "dataset_slug": "repair-cafes-worldwide",
+    "data_source_url": "https://dashboard.repairmonitor.org/?language=en",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-04-14",
+    "year": 2026,
+    "week_number": 16,
+    "dataset_name": "Bird Sightings at Sea",
+    "dataset_slug": "bird-sightings-at-sea",
+    "data_source_url": "https://catalogue.data.govt.nz/dataset/at-sea-observations-of-seabirds-1969-to-1990",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-04-21",
+    "year": 2026,
+    "week_number": 17,
+    "dataset_name": "Global Health Spending",
+    "dataset_slug": "global-health-spending",
+    "data_source_url": "https://apps.who.int/nha/database",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-04-28",
+    "year": 2026,
+    "week_number": 18,
+    "dataset_name": "US Agricultural Tariffs",
+    "dataset_slug": "us-agricultural-tariffs",
+    "data_source_url": "https://dataweb.usitc.gov/tariff/annual",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-05-05",
+    "year": 2026,
+    "week_number": 19,
+    "dataset_name": "Italian industrial production",
+    "dataset_slug": "italian-industrial-production",
+    "data_source_url": "https://seriestoriche.istat.it/index.php?id=1&no_cache=1&L=1&tx_usercento_centofe%5Bcategoria%5D=44&tx_usercento_centofe%5Baction%5D=show&tx_usercento_centofe%5Bcontroller%5D=Categoria&cHash=8a65478a9f8d5ddd079041fd1d696b05",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-05-12",
+    "year": 2026,
+    "week_number": 20,
+    "dataset_name": "Twinned Cities",
+    "dataset_slug": "twinned-cities",
+    "data_source_url": "https://query.wikidata.org/",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-05-19",
+    "year": 2026,
+    "week_number": 21,
+    "dataset_name": "State of Crossref metadata by member country",
+    "dataset_slug": "state-of-crossref-metadata-by-member-country",
+    "data_source_url": "https://zenodo.org/records/19928426",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-05-26",
+    "year": 2026,
+    "week_number": 22,
+    "dataset_name": "Sustainable Energy for All",
+    "dataset_slug": "sustainable-energy-for-all",
+    "data_source_url": "https://energydata.info/dataset/se4all-database/resource/f779714e-d97f-4f57-a61f-057f5496d06f",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-06-02",
+    "year": 2026,
+    "week_number": 23,
+    "dataset_name": "European Parenting Leave Policies",
+    "dataset_slug": "european-parenting-leave-policies",
+    "data_source_url": "https://zenodo.org/records/17648712",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-06-09",
+    "year": 2026,
+    "week_number": 24,
+    "dataset_name": "Films Based on Video Games",
+    "dataset_slug": "films-based-on-video-games",
+    "data_source_url": "https://en.wikipedia.org/wiki/List_of_films_based_on_video_games",
+    "is_byod": false,
+    "substituted_from": null
+  },
+  {
+    "week_date": "2026-06-16",
+    "year": 2026,
+    "week_number": 25,
+    "dataset_name": "UK Baby Names",
+    "dataset_slug": "uk-baby-names",
+    "data_source_url": "https://www.nrscotland.gov.uk/publications/babies-first-names-2025/, https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/livebirths/datasets/babynamesinenglandandwalesfrom1996, https://www.nisra.gov.uk/publications/baby-names-2025",
     "is_byod": false,
     "substituted_from": null
   }
