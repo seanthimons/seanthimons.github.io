@@ -1,0 +1,421 @@
+---
+title: "Tidy Tuesday: Repair Cafes Worldwide"
+author: "Sean Thimons"
+date: "2026-04-07"
+description: "A complexity tax on broken stuff: which categories of objects actually get fixed at volunteer-run Repair Cafes."
+categories:
+  - tidytuesday
+  - R
+  - sustainability
+  - right-to-repair
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| out-width: 100%
+
+if (!requireNamespace("pak", quietly = TRUE)) {
+  install.packages("pak", repos = "https://cloud.r-project.org")
+}
+
+for (pkg in c("ggplot2", "paletteer", "tibble")) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    pak::pkg_install(pkg)
+  }
+}
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name   <- "Antique"
+palette_source <- "rcartocolor"
+palette_type   <- "discrete"
+palette_id     <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- if (palette_type %in% c("continuous", "diverging")) {
+  as.character(paletteer::paletteer_c(palette_id, n = 5))
+} else {
+  rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+}
+
+swatch_df <- tibble(
+  idx  = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-04-07).
+
+> The Open Repair Alliance publishes a harmonized dataset of community repair events from Repair Cafes, Restart Parties, and similar grassroots efforts around the world. Volunteers record what was brought in, what was wrong with it, whether it got fixed, and — when it didn't — why not. The dataset is a window into the everyday afterlife of consumer goods, and a useful empirical anchor for arguments about right-to-repair, planned obsolescence, and the design of durable things.
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages("pak", repos = "https://cloud.r-project.org")
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  core_packages <- c(
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+    'skimr',
+    'paletteer',
+    'tidytuesdayR'
+  )
+
+  optional_packages <- c('ggtext', 'scales')
+
+  install_booster_pack(package = unique(c(core_packages, optional_packages)), load = TRUE)
+  rm(install_booster_pack, core_packages, optional_packages)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-04-07')
+
+repairs      <- raw$repairs %>% janitor::clean_names()
+repairs_text <- raw$repairs_text %>% janitor::clean_names()
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Repairs
+
+I'm dropping `repair_id` (a per-event identifier) before skimming — it doesn't summarize.
+
+```{r}
+#| label: eda-repairs
+#| echo: true
+#| output: true
+
+repairs %>%
+  select(-repair_id) %>%
+  my_skim()
+```
+
+A few things jump out:
+
+- ~179k repair events spanning **2015 through early 2026**, contributed by hundreds of cafes across roughly two dozen countries.
+- The data is **dominated by the Netherlands** (~51%) and the UK (~21%) — together they account for nearly three-quarters of all recorded repairs. France and the Anglosphere fill in most of the rest.
+- `repairability` (volunteer's 0–10 estimate of how repairable an item is in principle) is missing for about 30% of rows, but where present it skews high (median 7) — these are people who chose to bring something in expecting it could be fixed.
+- The `repaired` column is a tidy three-way outcome: `yes` (63%), `no` (24%), `half` (13%), plus a single rogue `"ja"` (Dutch for yes) that we'll fold back in.
+
+## Repairs text (open-ended fields)
+
+```{r}
+#| label: eda-text
+#| echo: true
+#| output: true
+
+repairs_text %>%
+  select(failure_reasons, used_repair_info) %>%
+  count(failure_reasons, sort = TRUE)
+```
+
+The `failure_reasons` field is only populated when the repair failed, and the buckets read like a textbook on consumer-product design: *no way to fix*, *spare parts not available*, *no way to open*, *too worn out*. We'll come back to these.
+
+# The complexity tax: which things actually get fixed?
+
+The headline question this dataset begs is simple: **what gets repaired, and what doesn't?** Repair Cafes have a self-selection bias — people bring in things they think can be fixed — so the outcome distribution by category isn't a measure of "fixability in the wild." It is, however, a measure of how often a motivated owner and a skilled volunteer can succeed together, which is the right comparison if you care about what right-to-repair laws actually buy.
+
+```{r}
+#| label: build-category-outcomes
+#| echo: true
+#| output: true
+
+outcomes <- repairs %>%
+  mutate(
+    repaired = case_when(
+      repaired == "ja" ~ "yes",
+      TRUE ~ repaired
+    )
+  ) %>%
+  filter(
+    !is.na(category),
+    repaired %in% c("yes", "no", "half")
+  )
+
+cat(sprintf("outcomes: %d rows\n", nrow(outcomes)))
+stopifnot("outcomes is empty" = nrow(outcomes) > 0)
+
+category_outcomes <- outcomes %>%
+  count(category, repaired) %>%
+  group_by(category) %>%
+  mutate(
+    total = sum(n),
+    pct   = n / total
+  ) %>%
+  ungroup()
+
+category_order <- category_outcomes %>%
+  filter(repaired == "yes") %>%
+  arrange(pct) %>%
+  pull(category)
+
+category_outcomes <- category_outcomes %>%
+  mutate(
+    category = factor(category, levels = category_order),
+    repaired = factor(repaired, levels = c("no", "half", "yes"))
+  )
+
+stopifnot(
+  "category_outcomes has no rows" = nrow(category_outcomes) > 0,
+  "success rates are degenerate"  = length(unique(category_outcomes$pct[category_outcomes$repaired == "yes"])) > 1
+)
+
+category_outcomes %>%
+  filter(repaired == "yes") %>%
+  arrange(desc(pct)) %>%
+  select(category, n_fixed = n, total, success_rate = pct)
+```
+
+::: {.callout-note}
+A clean ordering emerges: **textiles, non-electric tools, jewelry, bicycles, and non-electric household appliances all clear an 80% success rate**, while **displays/sound equipment and computers/phones sit below 50%**. The dividing line is almost perfectly correlated with "does it have a sealed circuit board inside?" — a useful empirical anchor for arguments about modular design and parts availability.
+:::
+
+# Hero plot: outcomes by category
+
+```{r}
+#| label: hero-plot-category-outcomes
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 8
+
+pal <- paletteer::paletteer_d("rcartocolor::Antique", n = 12)
+
+outcome_colors <- c(
+  "no"   = as.character(pal[3]),   # warm rust — failures
+  "half" = as.character(pal[2]),   # ochre — partial
+  "yes"  = as.character(pal[7])    # mossy green — success
+)
+
+success_labels <- category_outcomes %>%
+  filter(repaired == "yes") %>%
+  mutate(label = scales::percent(pct, accuracy = 1))
+
+p <- ggplot(category_outcomes, aes(y = category, x = pct, fill = repaired)) +
+  geom_col(width = 0.78, color = "white", linewidth = 0.4) +
+  geom_text(
+    data = success_labels,
+    aes(x = 1.01, y = category, label = label),
+    inherit.aes = FALSE,
+    hjust = 0,
+    family = "sans",
+    fontface = "bold",
+    size = 3.6,
+    color = "grey20"
+  ) +
+  scale_x_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    expand = expansion(mult = c(0, 0.10)),
+    breaks = c(0, 0.25, 0.5, 0.75, 1.0)
+  ) +
+  scale_fill_manual(
+    values = outcome_colors,
+    breaks = c("yes", "half", "no"),
+    labels = c("Fully repaired", "Partial / advice only", "Could not fix")
+  ) +
+  labs(
+    title    = "The complexity tax on broken stuff",
+    subtitle = "Share of repair attempts ending in success, partial fix, or failure — by product category.\nMechanical objects nearly always get fixed; sealed electronics often don't.",
+    x        = NULL,
+    y        = NULL,
+    fill     = NULL,
+    caption  = "Source: Open Repair Alliance, via #TidyTuesday 2026-04-07 · n = ~178,700 repair events, 2015–2026"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title           = element_text(face = "bold", size = 18, margin = margin(b = 4)),
+    plot.subtitle        = element_text(color = "grey30", size = 11, margin = margin(b = 14)),
+    plot.caption         = element_text(color = "grey45", size = 9, hjust = 0, margin = margin(t = 12)),
+    plot.title.position  = "plot",
+    plot.caption.position = "plot",
+    legend.position      = "top",
+    legend.justification = "left",
+    legend.key.size      = unit(0.8, "lines"),
+    panel.grid.major.y   = element_blank(),
+    panel.grid.minor     = element_blank(),
+    panel.grid.major.x   = element_line(color = "grey90", linewidth = 0.3),
+    axis.text.y          = element_text(size = 11, color = "grey15"),
+    axis.text.x          = element_text(color = "grey45"),
+    plot.margin          = margin(18, 22, 14, 14)
+  )
+
+p
+```
+
+# Why the failures fail
+
+For the events that ended in `no`, the volunteers logged a structured failure reason. The buckets are revealing.
+
+```{r}
+#| label: failure-reasons
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 5
+
+failure_lookup <- repairs_text %>%
+  select(repair_id, failure_reasons)
+
+failures <- repairs %>%
+  filter(repaired == "no", !is.na(category)) %>%
+  inner_join(failure_lookup, by = "repair_id") %>%
+  filter(!is.na(failure_reasons))
+
+cat(sprintf("failures with reason: %d rows\n", nrow(failures)))
+stopifnot("no failure rows" = nrow(failures) > 0)
+
+failure_summary <- failures %>%
+  count(failure_reasons, sort = TRUE) %>%
+  mutate(
+    pct = n / sum(n),
+    failure_reasons = fct_reorder(failure_reasons, n)
+  )
+
+p2 <- ggplot(failure_summary, aes(x = n, y = failure_reasons)) +
+  geom_col(fill = as.character(pal[5]), width = 0.72) +
+  geom_text(
+    aes(label = scales::percent(pct, accuracy = 1)),
+    hjust = -0.15,
+    size = 3.4,
+    color = "grey25"
+  ) +
+  scale_x_continuous(
+    labels = scales::comma,
+    expand = expansion(mult = c(0, 0.12))
+  ) +
+  labs(
+    title    = "Why repairs fail",
+    subtitle = "Among events tagged 'no', the reasons cluster into a small set of structural problems —\nmost of them downstream of how the product was designed and supplied.",
+    x        = "Number of failed repairs",
+    y        = NULL,
+    caption  = "Source: Open Repair Alliance, via #TidyTuesday 2026-04-07"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title           = element_text(face = "bold", size = 16),
+    plot.subtitle        = element_text(color = "grey30", size = 10.5, margin = margin(b = 12)),
+    plot.caption         = element_text(color = "grey45", size = 9, hjust = 0, margin = margin(t = 10)),
+    plot.title.position  = "plot",
+    plot.caption.position = "plot",
+    panel.grid.major.y   = element_blank(),
+    panel.grid.minor     = element_blank(),
+    panel.grid.major.x   = element_line(color = "grey90", linewidth = 0.3),
+    axis.text.y          = element_text(size = 10, color = "grey15"),
+    plot.margin          = margin(16, 22, 12, 12)
+  )
+
+p2
+```
+
+Roughly **a third of failures** are direct spare-parts problems — parts not available at the session, not available on the market, or too expensive. Another quarter are structural: *no way to open the product* or *too worn out*. These are not failures of skill or motivation; they are failures of design and supply chains.
+
+# Final thoughts and takeaways
+
+A few things worth saying out loud after staring at this data:
+
+- **The Repair Cafe movement works.** When someone walks in with a broken object, the median outcome — across 178,000 events and a decade of records — is "you got your thing back, working." That is a remarkable batting average for an unpaid volunteer operation.
+- **The "complexity tax" is real and measurable.** Textiles and bicycles get fixed nine times in ten. Phones and TVs barely break even. The gap isn't about volunteer skill — Repair Cafe volunteers are often professional electronics technicians — it's about whether the object permits repair at all.
+- **Most failure reasons are policy-shaped, not skill-shaped.** "Parts not available," "no way to open the product," and "too expensive to fix" are exactly the failure modes that right-to-repair legislation (EU's ESPR, France's repairability index, the patchwork of US state laws) is trying to address. The dataset is a direct measure of what those laws are aimed at.
+- **Caveats.** This is opt-in data, recorded by volunteers, with heavy geographic concentration in the Netherlands and UK. Cafes vary in how diligently they fill in optional fields. The `repairability` score is a subjective volunteer estimate. None of that undermines the headline pattern — the gap between textiles and electronics is too large to be an artifact — but it does mean the absolute success rates are best read as a floor on what's possible when someone cares enough to try.
+
+If you've never been to a Repair Cafe, the data is also a quiet argument for going to one. Bring something broken. Bring something old. Especially bring something with stitches.
