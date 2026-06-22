@@ -15,8 +15,9 @@ categories:
 #| echo: false
 #| message: false
 #| warning: false
-#| fig-width: 10
-#| fig-height: 1.35
+#| fig-width: 14
+#| fig-height: 2.5
+#| dpi: 300
 #| out-width: 100%
 
 if (!requireNamespace("pak", quietly = TRUE)) {
