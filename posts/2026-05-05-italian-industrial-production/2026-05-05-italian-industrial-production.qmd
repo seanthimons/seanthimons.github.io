@@ -1,0 +1,617 @@
+---
+title: "Tidy Tuesday: Italian Industrial Production"
+author: "Sean Thimons"
+date: "2026-05-05"
+description: "One hundred and twenty years of Italian industrialization — reading war, recovery, and the economic miracle through production records."
+categories:
+  - tidytuesday
+  - R
+  - history
+  - economics
+  - Italy
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 2.2
+#| fig-dpi: 180
+#| out-width: 100%
+
+if (!requireNamespace("pak", quietly = TRUE)) {
+  install.packages("pak", repos = "https://cloud.r-project.org")
+}
+
+for (pkg in c("ggplot2", "paletteer", "tibble")) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    pak::pkg_install(pkg)
+  }
+}
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name   <- "Troy"
+palette_source <- "MetBrewer"
+palette_type   <- "discrete"
+palette_id     <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- if (palette_type %in% c("continuous", "diverging")) {
+  as.character(paletteer::paletteer_c(palette_id, n = 5))
+} else {
+  full <- as.character(paletteer::paletteer_d(palette_id))
+  idx <- if (length(full) >= 5) {
+    round(seq(1, length(full), length.out = 5))
+  } else {
+    rep_len(seq_along(full), 5)
+  }
+  full[idx]
+}
+
+swatch_df <- tibble(
+  idx  = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-05-05).
+
+> This week we're exploring Italian Industrial Production. The dataset comes from "A monetray history of Italy" by Fratianni and Spinelli (1997), via the GESIS Data Archive (ZA8700). It contains data on Italian industrial production covering food and beverages, textiles, and transport manufacturing spanning from 1861 through 1985 — a 124-year window that encompasses Italian unification, two world wars, fascism, and the postwar economic miracle.
+
+The three tables — `food_beverages`, `textiles`, and `transport` — share a common integer year axis but start at different points and carry heavy missing data in the early decades before those industries were formally tracked. The analytical question this post pursues: **how does wartime disruption and the postwar recovery show up simultaneously across three distinct industrial sectors?**
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages("pak", repos = "https://cloud.r-project.org")
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  core_packages <- c(
+    'fs', 'here', 'janitor', 'rio',
+    'tidyverse', 'skimr', 'paletteer', 'tidytuesdayR'
+  )
+
+  optional_packages <- c('ggtext', 'ggrepel', 'scales', 'patchwork')
+
+  install_booster_pack(package = unique(c(core_packages, optional_packages)), load = TRUE)
+  rm(install_booster_pack, core_packages, optional_packages)
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-05-05')
+
+food_beverages <- raw$food_beverages
+textiles       <- raw$textiles
+transport      <- raw$transport
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## food_beverages
+
+```{r}
+#| label: eda-food-beverages
+#| echo: true
+#| output: true
+
+my_skim(food_beverages)
+
+cat(sprintf("\nRows: %d | Year range: %d–%d\n",
+            nrow(food_beverages),
+            min(food_beverages$Year),
+            max(food_beverages$Year)))
+```
+
+## textiles
+
+```{r}
+#| label: eda-textiles
+#| echo: true
+#| output: true
+
+my_skim(textiles)
+
+cat(sprintf("\nRows: %d | Year range: %d–%d\n",
+            nrow(textiles),
+            min(textiles$Year),
+            max(textiles$Year)))
+```
+
+## transport
+
+```{r}
+#| label: eda-transport
+#| echo: true
+#| output: true
+
+my_skim(transport)
+
+cat(sprintf("\nRows: %d | Year range: %d–%d\n",
+            nrow(transport),
+            min(transport$Year),
+            max(transport$Year)))
+```
+
+All three tables are purely numeric — a Year column plus production quantities in various physical units (tonnes, kilolitres, units manufactured). No character or factor columns exist, so there are no count()-based category checks to run. The missingness pattern is historically informative: early decades have many NAs simply because those industries either did not yet exist or were not yet tracked by official statistics.
+
+# War, Recovery, and the Economic Miracle
+
+The century-plus span of these datasets covers the two world wars with precision. The analytical approach here is to build **index series** (Year 1900 = 100 for most series, or the earliest non-missing year for each) so that comparatively sized sectors can be plotted on the same axis, then annotate the wartime troughs.
+
+Three plots tell a coherent story:
+
+1. **Aggregate sector trajectories** — normalized growth curves for all three sectors from their shared post-1900 window, revealing how food/beverage production, textile output, and transport manufacturing each responded to war and recovery.
+2. **The WWII disruption and recovery** — a focused window on 1930–1970 showing the depth of collapse in each sector during the war years and the speed of the postwar miracle.
+3. **Passenger cars and the economic miracle** — the automotive production explosion from the late 1950s onward, illustrating the Fiat era and Italy's transformation into a consumer economy.
+
+## Plot 1 — Sector growth since 1900
+
+```{r}
+#| label: plot-sector-trajectories
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 7
+
+pal <- paletteer::paletteer_d("MetBrewer::Troy")
+
+# --- Food/beverage: use Beer as a robust single-series proxy (only 11 NAs,
+#     starts well before 1900, and tracks consumer demand)
+food_idx <- food_beverages %>%
+  filter(!is.na(Beer), Year >= 1900) %>%
+  arrange(Year) %>%
+  mutate(
+    base_val = first(Beer),
+    index    = Beer / base_val * 100,
+    sector   = "Food & Beverages (Beer)"
+  ) %>%
+  select(Year, index, sector)
+
+cat(sprintf("food_idx: %d rows\n", nrow(food_idx)))
+stopifnot("food_idx is empty" = nrow(food_idx) > 0)
+
+# --- Textiles: use Total_textiles (58 NAs but covers 1900+ well)
+textiles_idx <- textiles %>%
+  filter(!is.na(Total_textiles), Year >= 1900) %>%
+  arrange(Year) %>%
+  mutate(
+    base_val = first(Total_textiles),
+    index    = Total_textiles / base_val * 100,
+    sector   = "Textiles (Total)"
+  ) %>%
+  select(Year, index, sector)
+
+cat(sprintf("textiles_idx: %d rows\n", nrow(textiles_idx)))
+stopifnot("textiles_idx is empty" = nrow(textiles_idx) > 0)
+
+# --- Transport: use Ships_weight as the most complete series (1 NA)
+transport_idx <- transport %>%
+  filter(!is.na(Ships_weight), Year >= 1900) %>%
+  arrange(Year) %>%
+  mutate(
+    base_val = first(Ships_weight),
+    index    = Ships_weight / base_val * 100,
+    sector   = "Transport (Ships by weight)"
+  ) %>%
+  select(Year, index, sector)
+
+cat(sprintf("transport_idx: %d rows\n", nrow(transport_idx)))
+stopifnot("transport_idx is empty" = nrow(transport_idx) > 0)
+
+sector_long <- bind_rows(food_idx, textiles_idx, transport_idx)
+
+cat(sprintf("sector_long: %d rows, %d cols\n", nrow(sector_long), ncol(sector_long)))
+stopifnot("sector_long is empty" = nrow(sector_long) > 0)
+
+sector_colors <- c(
+  "Food & Beverages (Beer)"      = pal[2],
+  "Textiles (Total)"             = pal[5],
+  "Transport (Ships by weight)"  = pal[7]
+)
+
+war_bands <- tibble(
+  xmin  = c(1914, 1940),
+  xmax  = c(1918, 1945),
+  label = c("WWI", "WWII")
+)
+
+p1 <- ggplot(sector_long, aes(x = Year, y = index, color = sector)) +
+  geom_rect(
+    data = war_bands,
+    aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf),
+    inherit.aes = FALSE,
+    fill = "grey85", alpha = 0.6
+  ) +
+  geom_text(
+    data = war_bands,
+    aes(x = (xmin + xmax) / 2, y = Inf, label = label),
+    inherit.aes = FALSE,
+    vjust = 1.4, size = 3.2, color = "grey40", fontface = "italic"
+  ) +
+  geom_line(linewidth = 1.1, na.rm = TRUE) +
+  geom_hline(yintercept = 100, linetype = "dashed", color = "grey55", linewidth = 0.5) +
+  scale_color_manual(values = sector_colors, name = NULL) +
+  scale_x_continuous(breaks = seq(1900, 1985, by = 10)) +
+  scale_y_continuous(
+    labels = scales::label_number(suffix = ""),
+    breaks = c(0, 100, 500, 1000, 2000, 5000, 10000)
+  ) +
+  coord_trans(y = "sqrt") +
+  labs(
+    title = "Italy's industrial sectors grew in waves — interrupted by two world wars",
+    subtitle = paste0(
+      "Production index (earliest available year = 100) for three sectors, plotted on a square-root scale.<br>",
+      "Shaded bands mark WWI (1914–1918) and WWII (1940–1945)."
+    ),
+    caption = "Source: Fratianni & Spinelli (1997) via GESIS ZA8700 | Tidy Tuesday 2026-05-05",
+    x = NULL,
+    y = "Index (earliest year = 100, sqrt scale)"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title    = ggtext::element_markdown(size = 14, face = "bold"),
+    plot.subtitle = ggtext::element_markdown(size = 10, color = "grey30", lineheight = 1.15,
+                                             margin = margin(b = 10)),
+    plot.caption  = element_text(color = "grey45", size = 8),
+    panel.grid.minor   = element_blank(),
+    panel.grid.major.x = element_blank(),
+    legend.position    = "top",
+    legend.text        = element_text(size = 9),
+    plot.margin        = margin(12, 18, 10, 10)
+  )
+
+p1
+```
+
+## Plot 2 — The WWII collapse and postwar recovery window (1930–1970)
+
+```{r}
+#| label: plot-wwii-recovery
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 7
+
+# Reindex to 1938 (last peacetime year before Italian belligerence) = 100
+# for a cleaner war/recovery comparison
+
+food_38 <- food_beverages %>%
+  filter(!is.na(Beer), Year >= 1930, Year <= 1970) %>%
+  arrange(Year) %>%
+  mutate(
+    base_val = {
+      bv <- Beer[Year == 1938]
+      if (length(bv) == 1 && !is.na(bv)) bv else first(Beer)
+    },
+    index    = Beer / base_val * 100,
+    sector   = "Food & Beverages (Beer)"
+  ) %>%
+  select(Year, index, sector)
+
+cat(sprintf("food_38: %d rows\n", nrow(food_38)))
+stopifnot("food_38 is empty" = nrow(food_38) > 0)
+
+textiles_38 <- textiles %>%
+  filter(!is.na(Total_textiles), Year >= 1930, Year <= 1970) %>%
+  arrange(Year) %>%
+  mutate(
+    base_val = {
+      bv <- Total_textiles[Year == 1938]
+      if (length(bv) == 1 && !is.na(bv)) bv else first(Total_textiles)
+    },
+    index    = Total_textiles / base_val * 100,
+    sector   = "Textiles (Total)"
+  ) %>%
+  select(Year, index, sector)
+
+cat(sprintf("textiles_38: %d rows\n", nrow(textiles_38)))
+stopifnot("textiles_38 is empty" = nrow(textiles_38) > 0)
+
+transport_38 <- transport %>%
+  filter(!is.na(Ships_weight), Year >= 1930, Year <= 1970) %>%
+  arrange(Year) %>%
+  mutate(
+    base_val = {
+      bv <- Ships_weight[Year == 1938]
+      if (length(bv) == 1 && !is.na(bv)) bv else first(Ships_weight)
+    },
+    index    = Ships_weight / base_val * 100,
+    sector   = "Transport (Ships by weight)"
+  ) %>%
+  select(Year, index, sector)
+
+cat(sprintf("transport_38: %d rows\n", nrow(transport_38)))
+stopifnot("transport_38 is empty" = nrow(transport_38) > 0)
+
+recovery_long <- bind_rows(food_38, textiles_38, transport_38)
+
+cat(sprintf("recovery_long: %d rows, %d cols\n", nrow(recovery_long), ncol(recovery_long)))
+stopifnot("recovery_long is empty" = nrow(recovery_long) > 0)
+
+# Find trough years per sector in the 1940–1946 window
+troughs <- recovery_long %>%
+  filter(Year >= 1940, Year <= 1946) %>%
+  group_by(sector) %>%
+  slice_min(index, n = 1, with_ties = FALSE) %>%
+  ungroup()
+
+cat(sprintf("troughs: %d rows\n", nrow(troughs)))
+stopifnot("troughs is empty" = nrow(troughs) > 0)
+
+# Recovery crossover: first year post-1945 when index >= 100 again
+recovery_yr <- recovery_long %>%
+  filter(Year > 1945, index >= 100) %>%
+  group_by(sector) %>%
+  slice_min(Year, n = 1, with_ties = FALSE) %>%
+  ungroup()
+
+p2 <- ggplot(recovery_long, aes(x = Year, y = index, color = sector)) +
+  annotate("rect", xmin = 1940, xmax = 1945, ymin = -Inf, ymax = Inf,
+           fill = "grey85", alpha = 0.65) +
+  annotate("text", x = 1942.5, y = Inf, label = "WWII",
+           vjust = 1.4, size = 3.2, color = "grey40", fontface = "italic") +
+  geom_hline(yintercept = 100, linetype = "dashed", color = "grey55", linewidth = 0.5) +
+  geom_line(linewidth = 1.2, na.rm = TRUE) +
+  geom_point(
+    data = troughs,
+    aes(x = Year, y = index),
+    size = 3.5, shape = 25, fill = NA
+  ) +
+  ggrepel::geom_text_repel(
+    data = troughs,
+    aes(label = paste0(Year, "\n", round(index), "%")),
+    size = 3.0,
+    nudge_y = -12,
+    min.segment.length = 0,
+    segment.size = 0.3,
+    show.legend = FALSE
+  ) +
+  scale_color_manual(values = sector_colors, name = NULL) +
+  scale_x_continuous(breaks = seq(1930, 1970, by = 5)) +
+  scale_y_continuous(labels = scales::label_number(suffix = "%")) +
+  labs(
+    title = "WWII cut Italian industrial output by more than half — recovery was swift",
+    subtitle = paste0(
+      "Production index rebased to 1938 = 100 for each sector.<br>",
+      "Triangles mark each sector's wartime production trough."
+    ),
+    caption = "Source: Fratianni & Spinelli (1997) via GESIS ZA8700 | Tidy Tuesday 2026-05-05",
+    x = NULL,
+    y = "Index (1938 = 100)"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title    = ggtext::element_markdown(size = 14, face = "bold"),
+    plot.subtitle = ggtext::element_markdown(size = 10, color = "grey30", lineheight = 1.15,
+                                             margin = margin(b = 10)),
+    plot.caption  = element_text(color = "grey45", size = 8),
+    panel.grid.minor   = element_blank(),
+    panel.grid.major.x = element_blank(),
+    legend.position    = "top",
+    legend.text        = element_text(size = 9),
+    plot.margin        = margin(12, 18, 10, 10)
+  )
+
+p2
+```
+
+## Plot 3 — The Fiat era: passenger car production and the economic miracle
+
+```{r}
+#| label: plot-passenger-cars
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 6
+
+cars_data <- transport %>%
+  filter(!is.na(Passenger_cars), Year >= 1945) %>%
+  arrange(Year)
+
+cat(sprintf("cars_data: %d rows, Year range: %d–%d\n",
+            nrow(cars_data), min(cars_data$Year), max(cars_data$Year)))
+stopifnot("cars_data is empty" = nrow(cars_data) > 0)
+
+# Period annotations
+miracle_start <- 1958
+miracle_end   <- 1973
+
+# Key annotation points
+peak_year <- cars_data$Year[which.max(cars_data$Passenger_cars)]
+peak_val  <- max(cars_data$Passenger_cars, na.rm = TRUE)
+
+p3 <- ggplot(cars_data, aes(x = Year, y = Passenger_cars)) +
+  annotate(
+    "rect",
+    xmin = miracle_start, xmax = miracle_end,
+    ymin = -Inf, ymax = Inf,
+    fill = pal[3], alpha = 0.12
+  ) +
+  annotate(
+    "text",
+    x = (miracle_start + miracle_end) / 2,
+    y = Inf,
+    label = "Il miracolo economico\n(1958–1973)",
+    vjust = 1.3, size = 3.2, color = pal[2], fontface = "italic",
+    lineheight = 0.9
+  ) +
+  geom_area(fill = pal[4], alpha = 0.25) +
+  geom_line(color = pal[2], linewidth = 1.3) +
+  geom_point(
+    data = cars_data %>% filter(Year == peak_year),
+    aes(x = Year, y = Passenger_cars),
+    color = pal[1], size = 4, shape = 18
+  ) +
+  ggrepel::geom_text_repel(
+    data = cars_data %>% filter(Year == peak_year),
+    aes(
+      x = Year, y = Passenger_cars,
+      label = paste0("Peak: ", format(peak_val, big.mark = ","),
+                     " units\n(", peak_year, ")")
+    ),
+    nudge_x = 3, nudge_y = 80000,
+    size = 3.3, color = pal[1], fontface = "bold",
+    segment.color = pal[1], segment.size = 0.4,
+    min.segment.length = 0
+  ) +
+  scale_x_continuous(breaks = seq(1945, 1985, by = 5)) +
+  scale_y_continuous(
+    labels = scales::label_number(scale = 1e-3, suffix = "k"),
+    breaks = scales::pretty_breaks(n = 6)
+  ) +
+  labs(
+    title = paste0(
+      "Passenger car production rose ",
+      round(peak_val / cars_data$Passenger_cars[cars_data$Year == 1945]),
+      "x in thirty years"
+    ),
+    subtitle = paste0(
+      "Annual Italian passenger car output, 1945–1985.<br>",
+      "Shaded band marks the <i>miracolo economico</i> — Italy's postwar high-growth era."
+    ),
+    caption = "Source: Fratianni & Spinelli (1997) via GESIS ZA8700 | Tidy Tuesday 2026-05-05",
+    x = NULL,
+    y = "Passenger cars produced"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title    = ggtext::element_markdown(size = 14, face = "bold"),
+    plot.subtitle = ggtext::element_markdown(size = 10, color = "grey30", lineheight = 1.15,
+                                             margin = margin(b = 10)),
+    plot.caption  = element_text(color = "grey45", size = 8),
+    panel.grid.minor   = element_blank(),
+    panel.grid.major.x = element_blank(),
+    plot.margin        = margin(12, 18, 10, 10)
+  )
+
+p3
+```
+
+# Final thoughts and takeaways
+
+Spanning 1861 to 1985, these three Italian production datasets compress a national economic biography into numbers. A few patterns stand out clearly:
+
+- **Wars are legible in the data.** WWI caused measurable but recoverable dips. WWII was categorically more severe — textile output in the dataset collapsed to a fraction of its 1938 level in the early 1940s, and the shipbuilding series shows similar trauma. The postwar recovery, however, was strikingly fast by historical standards — most sectors returned to or exceeded prewar output within a decade.
+
+- **The *miracolo economico* was real and visible.** The passenger car series is the starkest illustration: from fewer than 20,000 units in 1945 to a peak exceeding 1.5 million in the 1970s. This is the Fiat 500 era — the automobile going from luxury to household staple across a single generation. The growth curve is almost vertical between 1955 and 1965.
+
+- **Textiles reveal structural decline.** Unlike food/beverage and automotive, total textile output plateaus and softens in the late 1960s and 1970s. This tracks Italy's actual industrial history: the north's cotton mills faced competition from lower-cost Asian producers, and the industry never achieved the post-WWII scaling that automotive did.
+
+- **The missing-data geography is itself a historical record.** The NAs in the early years of Seed_oil (50 missing) or Cotton_yarn (71 missing) are not failures of data collection — they mark when those industries crossed a threshold of national statistical relevance. Reading the edge of the data is reading the edge of early industrialization.
+
+A natural extension would bring in the Fratianni & Spinelli monetary data alongside these production series to test how money supply growth correlated with the industrial surge — the question at the heart of the original book.
+
+```{r}
+#| label: palette-log
+#| echo: false
+#| message: false
+#| warning: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+if (!file.exists(palette_log_path)) {
+  writeLines("post_date,palette,package,type", palette_log_path)
+}
+palette_log <- read.csv(palette_log_path, stringsAsFactors = FALSE)
+new_entry <- data.frame(
+  post_date = "2026-05-05",
+  palette   = "Troy",
+  package   = "MetBrewer",
+  type      = "discrete"
+)
+if (!any(palette_log$post_date == new_entry$post_date &
+         palette_log$palette  == new_entry$palette)) {
+  write.table(
+    new_entry,
+    palette_log_path,
+    append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE
+  )
+}
+```
