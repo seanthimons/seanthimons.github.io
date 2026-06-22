@@ -1,0 +1,491 @@
+---
+title: "Tidy Tuesday: Twinned Cities"
+author: "Sean Thimons"
+date: "2026-05-12"
+description: "Mapping the global network of sister cities — who pairs with whom, which hubs anchor the web, and how the bonds cross continents."
+categories:
+  - tidytuesday
+  - R
+  - networks
+  - geography
+  - maps
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| out-width: 100%
+
+if (!requireNamespace("pak", quietly = TRUE)) {
+  install.packages("pak", repos = "https://cloud.r-project.org")
+}
+
+for (pkg in c("ggplot2", "paletteer", "tibble")) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    pak::pkg_install(pkg)
+  }
+}
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name   <- "Renoir"
+palette_source <- "MetBrewer"
+palette_type   <- "discrete"
+palette_id     <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- if (palette_type %in% c("continuous", "diverging")) {
+  as.character(paletteer::paletteer_c(palette_id, n = 5))
+} else {
+  full_pal <- as.character(paletteer::paletteer_d(palette_id))
+  if (length(full_pal) >= 5) {
+    idx <- round(seq(1, length(full_pal), length.out = 5))
+    full_pal[idx]
+  } else {
+    rep_len(full_pal, 5)
+  }
+}
+
+swatch_df <- tibble(
+  idx  = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-05-12).
+
+> Sister cities (also called twin towns or twinned cities) are pairs of municipalities, often in different countries, that formalize a long-term partnership built around cultural exchange, trade, post-war reconciliation, or simple municipal goodwill. The practice exploded in the late 20th century — sometimes politically motivated, sometimes purely sentimental — and produced a sprawling global graph: each node is a city, each edge is a handshake that never quite ends. This week's data, sourced from Wikidata, gives us 5,470 cities and 10,596 directed twinning links spanning every inhabited continent.
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  # Install pak if it's not already installed
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages("pak", repos = "https://cloud.r-project.org")
+  }
+
+  # CRAN Packages ----
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  core_packages <- c(
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+    'skimr',
+    'paletteer',
+    'tidytuesdayR'
+  )
+
+  optional_packages <- c(
+    'ggrepel',
+    'ggtext',
+    'patchwork',
+    'maps',
+    'scales'
+  )
+
+  install_booster_pack(package = unique(c(core_packages, optional_packages)), load = TRUE)
+  rm(install_booster_pack, core_packages, optional_packages)
+
+  # Custom Functions ----
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+
+
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-05-12')
+
+cities <- raw$cities
+links  <- raw$links
+
+```
+
+# Exploratory Data Analysis
+
+The `my_skim()` function is a modified version of the `skimr::skim()` function that returns the number of missing data points (cells as `NA`) as well as the inverse (e.g.: number of rows that are *not* `NA`), the count, minimum, 25%, median, 75%, max, mean, geometric mean, and standard deviation. It also generates a little ASCII histogram. Neat!
+
+## Cities
+
+```{r}
+#| label: eda-cities
+#| echo: true
+#| output: true
+
+cities %>%
+  select(-id) %>%
+  my_skim()
+
+cities %>%
+  count(continent, sort = TRUE)
+
+cities %>%
+  count(country, sort = TRUE) %>%
+  head(15)
+
+```
+
+The cities table is wide but tidy: 5,470 places, each with a Wikidata `id`, name, longitude/latitude, country, ISO country code, and continent. Coordinates have no missingness (good — every city is mappable), and only seven rows lack a country code (a rounding error at this scale).
+
+The geographic skew is unmistakable: **Europe accounts for 2,924 of the 5,470 cities (54%)**. Germany alone contributes 1,086 — nearly one in five cities in the dataset. That isn't an artifact of the data so much as a reflection of how seriously Central European municipalities take their twinning agreements; many German towns maintain a dozen or more such partnerships, often dating to Cold War reconciliation efforts.
+
+## Links
+
+```{r}
+#| label: eda-links
+#| echo: true
+#| output: true
+
+cat(sprintf("links: %d rows, %d cols\n", nrow(links), ncol(links)))
+
+# Top twinning hubs by degree (combining source + target appearances)
+hub_degree <- bind_rows(
+  links %>% select(id = source),
+  links %>% select(id = target)
+) %>%
+  count(id, name = "twin_count", sort = TRUE) %>%
+  left_join(cities, by = "id")
+
+stopifnot("hub_degree is empty — join failed" = nrow(hub_degree) > 0)
+
+hub_degree %>%
+  select(name, country, continent, twin_count) %>%
+  head(15)
+
+```
+
+The edge list is bare-bones — two columns, both Wikidata IDs, no metadata about when or why a partnership was formed. Each pair appears exactly once (the relationship is recorded as directional in Wikidata, though in practice sister-city agreements are mutual). For network purposes I'll treat the graph as undirected and use **total degree** as a city's "twinning score."
+
+The top of the leaderboard reads like a roster of cultural and diplomatic capitals: **Saint Petersburg (96)** and **Moscow** anchor the Russian total; **Rio de Janeiro (94)** and **Buenos Aires** lead Latin America; **Istanbul, Shanghai, Beijing, Taipei, Mexico City, Athens, Vilnius, Madrid** round out the global top ten. Notice what isn't there: no American city, no London, no Paris. Twinning is genuinely a different scene from the usual "global cities" ranking.
+
+# Mapping the global handshake
+
+The most natural way to read 10,596 sister-city links is as a network on a globe — points where the cities sit, arcs where they're paired. To keep the map legible I'll color the arcs by **intra-continental vs. inter-continental** partnerships, and only label the very top hubs.
+
+```{r}
+#| label: build-arc-data
+#| echo: true
+#| output: true
+
+# Annotate each link with the source and target continents/coordinates
+links_geo <- links %>%
+  left_join(
+    cities %>% select(id, src_lng = lng, src_lat = lat, src_cont = continent),
+    by = c("source" = "id")
+  ) %>%
+  left_join(
+    cities %>% select(id, tgt_lng = lng, tgt_lat = lat, tgt_cont = continent),
+    by = c("target" = "id")
+  ) %>%
+  mutate(
+    link_type = if_else(src_cont == tgt_cont, "Intra-continental", "Inter-continental")
+  )
+
+cat(sprintf("links_geo: %d rows\n", nrow(links_geo)))
+stopifnot("links_geo lost rows during join" = nrow(links_geo) == nrow(links))
+
+links_geo %>%
+  count(link_type) %>%
+  mutate(pct = scales::percent(n / sum(n), accuracy = 0.1))
+
+links_geo %>%
+  filter(link_type == "Inter-continental") %>%
+  count(src_cont, tgt_cont, sort = TRUE) %>%
+  head(10)
+
+```
+
+About **53% of partnerships stay within a continent** and 47% cross one — a near-even split that the literature on twinning history would predict. Within Europe alone there are 3,960 partnerships, more than any other intra-continental bucket by a factor of three. The largest inter-continental flow is Asia–Europe (1,534 links combined in both directions), followed by Europe–North America and Asia–North America. Africa, Oceania, and South America each carry fewer total links but lean disproportionately outward (African cities are about as likely to twin with European partners as with each other).
+
+::: {.callout-note}
+The arc visualization below uses great-circle-ish straight segments on a Plate Carrée projection. Lines that look like they cut through the Pacific are honestly representing transpacific pairings (Tokyo–San Francisco, Shanghai–Los Angeles, etc.) — they just appear stretched because we're flattening a sphere.
+:::
+
+```{r}
+#| label: prep-plot-objects
+#| echo: true
+#| output: false
+
+# Top hubs to label on the map
+top_hubs <- hub_degree %>%
+  slice_max(twin_count, n = 10) %>%
+  select(name, lng, lat, twin_count, continent)
+
+# City points sized by degree (showing only cities with >= 5 partnerships
+# to avoid drowning the map in dots)
+city_points <- hub_degree %>%
+  filter(twin_count >= 5)
+
+cat(sprintf("city_points: %d, top_hubs: %d\n", nrow(city_points), nrow(top_hubs)))
+
+# Country borders for backdrop
+world_map <- map_data("world") %>%
+  filter(region != "Antarctica")
+
+# Color choices from the Renoir palette
+renoir <- as.character(paletteer::paletteer_d("MetBrewer::Renoir"))
+# Pick two with strong contrast for the link_type encoding
+color_inter <- renoir[8]   # warm red — Bf3729
+color_intra <- renoir[3]   # cool muted purple — 6C5D9E
+
+```
+
+```{r}
+#| label: viz-twin-cities-map
+#| message: false
+#| warning: false
+#| fig.width: 12
+#| fig.height: 7
+
+p <- ggplot() +
+  # World backdrop
+  geom_polygon(
+    data = world_map,
+    aes(x = long, y = lat, group = group),
+    fill = "grey94", color = "grey80", linewidth = 0.18
+  ) +
+  # Twinning arcs — intra-continental first (cooler / quieter)
+  geom_segment(
+    data = links_geo %>% filter(link_type == "Intra-continental"),
+    aes(x = src_lng, y = src_lat, xend = tgt_lng, yend = tgt_lat),
+    color = color_intra, alpha = 0.05, linewidth = 0.18
+  ) +
+  # Inter-continental on top (warmer / louder)
+  geom_segment(
+    data = links_geo %>% filter(link_type == "Inter-continental"),
+    aes(x = src_lng, y = src_lat, xend = tgt_lng, yend = tgt_lat),
+    color = color_inter, alpha = 0.08, linewidth = 0.22
+  ) +
+  # City points sized by twin_count
+  geom_point(
+    data = city_points,
+    aes(x = lng, y = lat, size = twin_count),
+    color = "grey20", alpha = 0.55, stroke = 0
+  ) +
+  # Hub labels with repulsion
+  ggrepel::geom_text_repel(
+    data = top_hubs,
+    aes(x = lng, y = lat, label = paste0(name, " (", twin_count, ")")),
+    size = 3.2, fontface = "bold", color = "grey10",
+    bg.color = "white", bg.r = 0.18,
+    box.padding = 0.6, max.overlaps = Inf, seed = 12
+  ) +
+  scale_size_continuous(
+    range = c(0.4, 4.2),
+    breaks = c(5, 20, 50, 90),
+    name = "Partnerships"
+  ) +
+  coord_quickmap(xlim = c(-170, 180), ylim = c(-55, 78)) +
+  labs(
+    title = "The global handshake",
+    subtitle = glue::glue(
+      "<span style='color:{color_intra};'>**Intra-continental**</span> and ",
+      "<span style='color:{color_inter};'>**inter-continental**</span> sister-city links. ",
+      "Saint Petersburg, Rio de Janeiro and Istanbul anchor a web of 10,596 twinning agreements."
+    ),
+    caption = "Source: TidyTuesday 2026-05-12 · Wikidata · Sister-cities graph"
+  ) +
+  theme_void(base_size = 12) +
+  theme(
+    plot.background    = element_rect(fill = "white", color = NA),
+    panel.background   = element_rect(fill = "white", color = NA),
+    plot.title         = element_text(face = "bold", size = 20, margin = margin(b = 4)),
+    plot.subtitle      = ggtext::element_markdown(size = 11, color = "grey25", margin = margin(b = 10)),
+    plot.caption       = element_text(size = 8, color = "grey50", hjust = 1, margin = margin(t = 8)),
+    legend.position    = "bottom",
+    legend.title       = element_text(face = "bold", size = 9),
+    legend.text        = element_text(size = 9),
+    plot.margin        = margin(14, 14, 10, 14)
+  )
+
+# IMPORTANT: The last line of this chunk MUST be the plot object name
+# so that Quarto renders it. Never end with an assignment.
+p
+
+```
+
+A companion view — who twins with whom, at the continent level — makes the directional flow easier to read:
+
+```{r}
+#| label: viz-continent-flow
+#| message: false
+#| warning: false
+#| fig.width: 9
+#| fig.height: 6
+
+continent_flow <- links_geo %>%
+  filter(!is.na(src_cont), !is.na(tgt_cont)) %>%
+  count(src_cont, tgt_cont, name = "n_links") %>%
+  mutate(
+    src_cont = factor(src_cont, levels = c("Africa","Asia","Europe","North America","Oceania","South America")),
+    tgt_cont = factor(tgt_cont, levels = c("Africa","Asia","Europe","North America","Oceania","South America"))
+  )
+
+p2 <- ggplot(continent_flow, aes(x = tgt_cont, y = fct_rev(src_cont), fill = n_links)) +
+  geom_tile(color = "white", linewidth = 0.6) +
+  geom_text(
+    aes(label = scales::comma(n_links)),
+    color = "white", fontface = "bold", size = 3.6
+  ) +
+  scale_fill_gradientn(
+    colors = c(renoir[4], renoir[5], renoir[7], renoir[8]),
+    trans  = "log10",
+    labels = scales::comma,
+    name   = "Number of\ntwinning links\n(log scale)"
+  ) +
+  labs(
+    title    = "Where the partnerships actually point",
+    subtitle = "Rows are the source continent; columns are the target. Europe ↔ Europe dominates.",
+    x = NULL, y = NULL,
+    caption = "Source: TidyTuesday 2026-05-12 · Wikidata"
+  ) +
+  coord_fixed() +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title    = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(color = "grey30", size = 10, margin = margin(b = 8)),
+    plot.caption  = element_text(size = 8, color = "grey55", hjust = 1),
+    axis.text.x   = element_text(angle = 0),
+    panel.grid    = element_blank(),
+    legend.position = "right"
+  )
+
+p2
+
+```
+
+# Final thoughts and takeaways
+
+Three things jump out from this graph that I didn't expect going in.
+
+**Twinning is a European hobby with global reach.** More than half the cities and the single largest cluster of partnerships sit inside Europe. The German engagement is especially striking — over a thousand municipalities, many with double-digit partnership counts. That density is a legacy of the post-1945 réconciliation movement and the EU's later "town twinning" funding lines, which subsidized cultural exchange agreements through the 2000s.
+
+**The hubs are not who you'd guess.** Saint Petersburg, Rio de Janeiro, Istanbul, Shanghai, Mexico City — the leaderboard is dominated by cities with strong diaspora ties, deep historical trade routes, or active municipal diplomacy programs. Conspicuously absent: London, Paris, New York. The "global city" rankings that financial analysts care about have almost nothing to do with which cities formally befriend other cities.
+
+**Roughly half of all sister-city bonds cross a continent.** That's a higher inter-continental share than the geographic concentration of the data would predict — and it confirms the original spirit of the practice. People did not invent twinning to formalize partnerships between neighbors who already see each other; they invented it to manufacture connection across distance, ideology, or recent history. The Plate Carrée arcs across the Pacific in the map above are the literal shape of that intent.
+
+::: {.callout-tip}
+## What I'd do next
+With this data, the obvious follow-ups are network-theoretic: compute betweenness centrality (which cities bridge otherwise-disconnected regions?), detect communities (do twinning patterns form a "European cluster," a "Lusophone cluster," a "Pacific Rim cluster"?), or join in city population data to see whether twinning intensity correlates with size. The Wikidata IDs make all of that trivial to extend.
+:::
+
+```{r}
+#| label: log-palette
+#| echo: false
+#| message: false
+#| warning: false
+
+palette_log_path <- here::here("posts", "palette-log.csv")
+if (file.exists(palette_log_path)) {
+  palette_log <- read.csv(palette_log_path)
+  new_entry <- data.frame(
+    post_date = "2026-05-12",
+    palette   = "Renoir",
+    package   = "MetBrewer",
+    type      = "discrete"
+  )
+  already_logged <- any(
+    palette_log$post_date == new_entry$post_date &
+    palette_log$palette   == new_entry$palette
+  )
+  if (!already_logged) {
+    write.table(
+      new_entry,
+      palette_log_path,
+      append    = TRUE,
+      sep       = ",",
+      row.names = FALSE,
+      col.names = FALSE
+    )
+  }
+}
+```
