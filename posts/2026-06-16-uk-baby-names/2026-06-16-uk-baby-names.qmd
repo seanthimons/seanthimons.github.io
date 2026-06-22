@@ -1,0 +1,488 @@
+---
+title: "Tidy Tuesday: UK Baby Names"
+author: "Sean Thimons"
+date: "2026-06-16"
+description: "How fast did Bridgerton rewrite the English nursery? Tracking Daphne, Eloise, Penelope and friends against the wider question of name diversity across England & Wales, Northern Ireland, and Scotland."
+categories:
+  - tidytuesday
+  - R
+  - names
+  - culture
+  - uk
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| out-width: 100%
+#| dpi: 200
+
+if (!requireNamespace("pak", quietly = TRUE)) {
+  install.packages("pak", repos = "https://cloud.r-project.org")
+}
+
+for (pkg in c("ggplot2", "paletteer", "tibble")) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    pak::pkg_install(pkg)
+  }
+}
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name   <- "Morgenstern"
+palette_source <- "MetBrewer"
+palette_type   <- "discrete"
+palette_id     <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- if (palette_type %in% c("continuous", "diverging")) {
+  as.character(paletteer::paletteer_c(palette_id, n = 5))
+} else {
+  rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+}
+
+swatch_df <- tibble(
+  idx  = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-06-16).
+
+> This week explores baby naming trends across the United Kingdom using three
+> regional datasets covering England & Wales (Office for National Statistics),
+> Northern Ireland (NISRA), and Scotland (National Records of Scotland). Each
+> file gives `Year`, `Sex`, `Name`, `Number` (count of babies, suppressed for
+> small values), and `Rank`.
+>
+> Suggested questions:
+>
+> 1. How do rankings for popular names differ across the three UK regions?
+> 2. Which sex produces more unique baby names?
+> 3. Can you visualise the trend of *Bridgerton* character names gaining popularity?
+
+Netflix released *Bridgerton* on Christmas Day 2020. The official ONS commentary
+for England & Wales explicitly flags Daphne, Eloise, and Penelope as climbing
+through the rankings after the show's debut. So the obvious question is: was
+*Bridgerton* a small uptick, or did it genuinely reshape the top of the
+girls' name distribution? And while we're there — are British parents
+converging on a handful of trendy names, or fragmenting into ever-more-unique
+ones?
+
+## Loading necessary packages
+
+My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+# Packages ----------------------------------------------------------------
+
+{
+  if (!requireNamespace("pak", quietly = TRUE)) {
+    install.packages("pak", repos = "https://cloud.r-project.org")
+  }
+
+  install_booster_pack <- function(package, load = TRUE) {
+    for (pkg in package) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        pak::pkg_install(pkg)
+      }
+      if (load) {
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  core_packages <- c(
+    'fs',
+    'here',
+    'janitor',
+    'rio',
+    'tidyverse',
+    'skimr',
+    'paletteer',
+    'tidytuesdayR'
+  )
+
+  optional_packages <- c('ggtext', 'ggrepel', 'scales', 'patchwork')
+
+  install_booster_pack(package = unique(c(core_packages, optional_packages)), load = TRUE)
+  rm(install_booster_pack, core_packages, optional_packages)
+
+  `%ni%` <- Negate(`%in%`)
+
+  geometric_mean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm = TRUE))
+  }
+
+  my_skim <- skim_with(
+    numeric = sfl(
+      n = length,
+      min = ~ min(.x, na.rm = T),
+      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
+      med = ~ median(.x, na.rm = T),
+      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
+      max = ~ max(.x, na.rm = T),
+      mean = ~ mean(.x, na.rm = T),
+      geo_mean = ~ geometric_mean(.x),
+      sd = ~ stats::sd(., na.rm = TRUE),
+      hist = ~ inline_hist(., 5)
+    ),
+    append = FALSE
+  )
+}
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load('2026-06-16')
+
+england_wales <- raw$england_wales_names %>% janitor::clean_names()
+northern_ireland <- raw$ni_names %>% janitor::clean_names()
+scotland <- raw$scotland_names %>% janitor::clean_names()
+
+uk_names <- bind_rows(
+  england_wales    %>% mutate(region = "England & Wales"),
+  northern_ireland %>% mutate(region = "Northern Ireland"),
+  scotland         %>% mutate(region = "Scotland")
+) %>%
+  mutate(region = factor(region, levels = c("England & Wales", "Northern Ireland", "Scotland")))
+```
+
+# Exploratory Data Analysis
+
+The three files share the same five columns, but they cover different windows:
+Scotland reaches back to 1974, Northern Ireland to 1997, and England & Wales
+to 1996. Both NI and Scotland already include 2025; England & Wales stops at
+2024 (the ONS release cadence is slower).
+
+## Region coverage
+
+```{r}
+#| label: eda-coverage
+#| echo: true
+#| output: true
+
+uk_names %>%
+  group_by(region) %>%
+  summarise(
+    first_year = min(year),
+    last_year  = max(year),
+    n_rows     = n(),
+    n_names    = n_distinct(name),
+    .groups    = "drop"
+  )
+```
+
+## Skim of the England & Wales table
+
+```{r}
+#| label: eda-ew-skim
+#| echo: true
+#| output: true
+
+england_wales %>% my_skim()
+```
+
+`number` is heavily right-skewed — most names are rare, and the long tail of
+suppressed-low-count rows shows up as `NA` in NI and Scotland.
+
+## Bridgerton-name presence per region
+
+Before drawing any trend lines, check that the names actually appear in each
+region's file, and copy the spellings verbatim.
+
+```{r}
+#| label: eda-bridgerton-presence
+#| echo: true
+#| output: true
+
+bridgerton_girls <- c("Daphne", "Eloise", "Penelope", "Francesca", "Violet", "Kate", "Edwina")
+
+uk_names %>%
+  filter(name %in% bridgerton_girls, sex == "Girl") %>%
+  group_by(region, name) %>%
+  summarise(years_present = n(), first = min(year), last = max(year), .groups = "drop") %>%
+  arrange(region, name)
+```
+
+All seven names appear in every region, with Edwina the most sparsely
+recorded (it spends most years below the publication threshold in NI). Good
+enough to plot.
+
+# The Bridgerton bump
+
+The story the ONS is pushing is that *Bridgerton* — first season streamed
+December 25, 2020, second season March 2022, third season May 2024 — pulled
+Regency-flavoured girls' names up the chart. The cleanest place to look is
+England & Wales, which has both the largest sample (~258k girls in 2024) and
+a continuous series straight through the show's run.
+
+Lower rank = more popular, so the y-axis is inverted: a line bending *upward*
+on this chart means the name is climbing the chart.
+
+```{r}
+#| label: prep-bridgerton-ew
+#| echo: true
+#| output: true
+
+bridgerton_ew <- england_wales %>%
+  filter(sex == "Girl", name %in% bridgerton_girls, year >= 2005) %>%
+  arrange(name, year)
+
+cat(sprintf(
+  "bridgerton_ew: %d rows, %d names, years %d-%d\n",
+  nrow(bridgerton_ew),
+  n_distinct(bridgerton_ew$name),
+  min(bridgerton_ew$year),
+  max(bridgerton_ew$year)
+))
+stopifnot("bridgerton_ew is empty" = nrow(bridgerton_ew) > 0)
+
+bridgerton_labels <- bridgerton_ew %>%
+  group_by(name) %>%
+  slice_max(year, n = 1) %>%
+  ungroup()
+```
+
+```{r}
+#| label: plot-bridgerton-ew
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 7
+
+morgen <- as.character(paletteer::paletteer_d("MetBrewer::Morgenstern", n = 7))
+
+p <- ggplot(bridgerton_ew, aes(x = year, y = rank, colour = name, group = name)) +
+  annotate(
+    "rect",
+    xmin = 2020.98, xmax = max(bridgerton_ew$year),
+    ymin = -Inf, ymax = Inf,
+    fill = "grey85", alpha = 0.35
+  ) +
+  annotate(
+    "text",
+    x = 2021.1, y = 5800,
+    label = "Bridgerton S1\nDec 2020",
+    hjust = 0, vjust = 1,
+    size = 3.2, colour = "grey25", fontface = "italic"
+  ) +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 1.8) +
+  ggrepel::geom_text_repel(
+    data = bridgerton_labels,
+    aes(label = name),
+    nudge_x = 0.6,
+    direction = "y",
+    hjust = 0,
+    segment.colour = "grey70",
+    size = 3.8,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+  scale_y_reverse(
+    labels = scales::label_comma(),
+    breaks = c(1, 50, 100, 250, 500, 1000, 2500, 6000)
+  ) +
+  scale_x_continuous(
+    breaks = seq(2006, 2024, by = 3),
+    expand = expansion(mult = c(0.02, 0.18))
+  ) +
+  scale_colour_manual(values = morgen, guide = "none") +
+  labs(
+    title    = "The Bridgerton bump shows up — but Penelope and Violet were already climbing",
+    subtitle = "England & Wales girls' name rank, 2005-2024. Lower on the page = more popular. Shaded region marks the streaming era.",
+    x        = NULL,
+    y        = "Rank (log-ish scale, lower = more popular)",
+    caption  = "Source: ONS via #TidyTuesday 2026-06-16"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title.position = "plot",
+    plot.title          = element_text(face = "bold", size = 15, lineheight = 1.1),
+    plot.subtitle       = element_text(colour = "grey30", margin = margin(b = 12)),
+    panel.grid.minor    = element_blank(),
+    panel.grid.major.x  = element_blank(),
+    plot.caption        = element_text(colour = "grey50", size = 8)
+  )
+
+p
+```
+
+Three patterns jump out.
+
+First, **Penelope and Violet were the trend before the show.** Penelope
+walked from outside the top 100 in 2005 to the top 50 by 2018, and Violet
+followed essentially the same trajectory. *Bridgerton* didn't launch them —
+it joined an existing Edwardian-revival wave that was already lifting
+Florence, Ivy, and friends.
+
+Second, **Daphne is the clearest *Bridgerton*-shaped curve.** It sat in the
+300s for the back half of the 2010s, then started a steady climb after S1 in
+2020, reaching rank 150 by 2024. That's the rank curve the ONS commentary is
+pointing at.
+
+Third, **Edwina is the canary.** It's a much rarer name (mostly suppressed
+in NI), and you can see it pop briefly after S2 in 2022 — exactly when
+Kate Sharma's older sister becomes a major character — before sliding back
+out of the published rankings. That single-season bump is what a name being
+*entirely* driven by a TV show looks like.
+
+::: {.callout-note}
+Kate moves the other way. Despite Kate Sharma being arguably S2's lead, the
+name "Kate" *fell* from rank 596 in 2018 to rank 1,302 in 2024 in England &
+Wales. A 19th-century costume drama doesn't make a 20th-century name feel
+fresh.
+:::
+
+# How unique are British baby names getting?
+
+The second question — which sex produces more unique names — generalises
+nicely into a diversity-over-time story. For each region/sex/year I count the
+distinct published names per 1,000 babies born. Higher = more fragmented,
+lower = parents converging on the same hits.
+
+```{r}
+#| label: prep-diversity
+#| echo: true
+#| output: true
+
+diversity <- uk_names %>%
+  filter(!is.na(number)) %>%
+  group_by(region, sex, year) %>%
+  summarise(
+    unique_names = n_distinct(name),
+    babies       = sum(number),
+    .groups      = "drop"
+  ) %>%
+  mutate(names_per_1k = unique_names / babies * 1000) %>%
+  filter(year >= 1997)
+
+cat(sprintf(
+  "diversity: %d rows across %d region-sex combos, years %d-%d\n",
+  nrow(diversity),
+  diversity %>% distinct(region, sex) %>% nrow(),
+  min(diversity$year), max(diversity$year)
+))
+stopifnot("diversity is empty" = nrow(diversity) > 0)
+
+diversity %>%
+  filter(year %in% c(2000, 2010, 2024)) %>%
+  arrange(region, sex, year)
+```
+
+```{r}
+#| label: plot-diversity
+#| message: false
+#| warning: false
+#| fig.width: 10
+#| fig.height: 6
+
+sex_pal <- c(Boy = morgen[1], Girl = morgen[7])
+
+p2 <- ggplot(diversity, aes(x = year, y = names_per_1k, colour = sex)) +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 1.4, alpha = 0.7) +
+  facet_wrap(~ region, scales = "free_y") +
+  scale_colour_manual(values = sex_pal, name = NULL) +
+  scale_x_continuous(breaks = c(2000, 2010, 2020)) +
+  labs(
+    title    = "Northern Ireland is the most name-diverse part of the UK",
+    subtitle = "Distinct published names per 1,000 babies, by sex and region. Girls outrun boys everywhere.",
+    x        = NULL,
+    y        = "Unique names per 1,000 babies",
+    caption  = "Source: ONS / NISRA / NRS via #TidyTuesday 2026-06-16. NI/Scotland include 2025; E&W ends 2024."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title.position = "plot",
+    plot.title          = element_text(face = "bold"),
+    plot.subtitle       = element_text(colour = "grey30", margin = margin(b = 10)),
+    strip.text          = element_text(face = "bold"),
+    legend.position     = "top",
+    panel.grid.minor    = element_blank(),
+    plot.caption        = element_text(colour = "grey50", size = 8)
+  )
+
+p2
+```
+
+The pattern is the same in all three regions, but the *level* is dramatically
+different: Northern Ireland publishes around 270 unique girls' names per
+1,000 babies in recent years, against ~30 in England & Wales. That's
+partly genuine cultural variation (NI has a wider mix of Irish, Ulster-Scots,
+and English naming traditions in a smaller sample) and partly an artefact —
+NISRA publishes essentially every name down to very low counts, while ONS
+suppresses anything under three. So the *trend* is comparable across regions
+but the *absolute level* isn't.
+
+The within-region trend is the robust finding: girls' names diversify faster
+than boys' names everywhere, and both keep climbing. Parents are not
+converging on a shared shortlist; they are fragmenting.
+
+# Final thoughts and takeaways
+
+- **The Bridgerton effect is real but narrower than the headline suggests.**
+  Daphne is the cleanest causal-looking curve. Penelope and Violet were
+  already rising on an Edwardian-revival wave the show happened to ride.
+  Edwina spikes for a single season and disappears.
+- **A character's name only sticks if it sounds modern.** Daphne, Eloise,
+  Penelope, Violet — vintage but back in fashion. Kate, Anthony, Gregory
+  — solidly mid-20th-century and still falling. Naming a baby after a TV
+  character requires the name to already be on the upswing.
+- **British parents are fragmenting, not converging.** Every region/sex
+  combination is rising in unique names per 1,000 babies. The "hit single"
+  era of one name dominating a year (David, Susan, Emma) keeps receding.
+- **Compare trends across regions, not levels.** NI and Scotland publish
+  more of the long tail than ONS does, which inflates their diversity
+  numbers. The slopes are what travel.
