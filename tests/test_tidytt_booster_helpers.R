@@ -2,6 +2,7 @@
 
 repo_root <- normalizePath(getwd(), mustWork = TRUE)
 
+source(file.path(repo_root, "boosters", "fn_my_skim.R"), local = TRUE)
 source(file.path(repo_root, "boosters", "fn_tt_guard.R"), local = TRUE)
 source(file.path(repo_root, "boosters", "fn_tt_inventory.R"), local = TRUE)
 source(file.path(repo_root, "boosters", "fn_tt_palette.R"), local = TRUE)
@@ -22,6 +23,11 @@ expect_error <- function(expr, pattern) {
     stop(sprintf("Expected error matching %s, got: %s", pattern, conditionMessage(err)), call. = FALSE)
   }
 }
+
+# my_skim should be a materialized booster function, not attach.R-only glue.
+expect_true(exists("my_skim"), "my_skim should be sourced from boosters/fn_my_skim.R")
+skimmed <- my_skim(data.frame(a = c(1, 2, 4), b = c("x", "y", NA)))
+expect_true(any(names(skimmed) == "numeric.geo_mean"), "my_skim should include geometric mean output")
 
 # Guard helpers fail closed on empty data and missing required columns.
 non_empty <- data.frame(a = 1:2, b = c("x", "y"))

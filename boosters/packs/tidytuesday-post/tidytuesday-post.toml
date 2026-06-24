@@ -33,6 +33,7 @@ attach = [
 ]
 
 functions = [
+  "my_skim",
   "tt_guard",
   "tt_inventory",
   "tt_load_clean",
