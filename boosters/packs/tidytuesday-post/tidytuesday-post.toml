@@ -1,0 +1,43 @@
+# tidytuesday-post booster pack
+# Project-local dogfood pack for Sean's Quarto/TidyTuesday blog workflow.
+
+name = "tidytuesday-post"
+description = "TidyTuesday Quarto blog-post helpers for Sean's site."
+extends = ["eda"]
+
+packages = [
+  "fs",
+  "here",
+  "janitor",
+  "tidyverse",
+  "skimr",
+  "paletteer",
+  "tidytuesdayR",
+  "scales",
+  "glue",
+  "quarto",
+  "knitr",
+  "rmarkdown"
+]
+
+attach = [
+  "fs",
+  "here",
+  "janitor",
+  "tidyverse",
+  "skimr",
+  "paletteer",
+  "tidytuesdayR",
+  "scales",
+  "glue"
+]
+
+functions = [
+  "tt_guard",
+  "tt_inventory",
+  "tt_load_clean",
+  "tt_palette",
+  "tt_post_paths",
+  "tt_render_validate",
+  "tt_theme"
+]

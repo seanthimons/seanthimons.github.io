@@ -1,0 +1,4 @@
+# Project-local boosterpak manifest for Sean's Quarto blog.
+# Dogfood branch: dogfood-boosterpak-tidytuesday-post
+
+packs = ["tidytuesday-post"]
