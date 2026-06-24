@@ -20,79 +20,24 @@ categories:
 #| fig-height: 2.8
 #| out-width: 100%
 
-if (!requireNamespace("pak", quietly = TRUE)) {
-  install.packages("pak", repos = "https://cloud.r-project.org")
+.booster_attach <- c(
+  file.path("boosters", "attach.R"),
+  file.path("..", "..", "boosters", "attach.R")
+)
+.booster_attach <- .booster_attach[file.exists(.booster_attach)][1]
+if (is.na(.booster_attach)) {
+  stop("Could not locate boosters/attach.R", call. = FALSE)
 }
+source(.booster_attach)
+rm(.booster_attach)
 
-for (pkg in c("ggplot2", "paletteer", "tibble")) {
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-    pak::pkg_install(pkg)
-  }
-}
+tt_colors <- tt_palette("MetBrewer", "Archambault", n = 7)
+plot_colors <- as.character(tt_colors)
 
-library(ggplot2)
-library(paletteer)
-library(tibble)
-
-palette_name   <- "Archambault"
-palette_source <- "MetBrewer"
-palette_type   <- "discrete"
-palette_id     <- paste0(palette_source, "::", palette_name)
-
-hero_swatches <- as.character(paletteer::paletteer_d(palette_id, n = 7))
-
-swatch_df <- tidyr::expand_grid(
-  idx = seq_along(hero_swatches),
-  stripe = seq_len(18)
-) %>%
-  dplyr::mutate(
-    xmin = idx - 1 + (stripe - 1) / 18,
-    xmax = idx - 1 + stripe / 18,
-    ymin = 0,
-    ymax = 1,
-    fill = hero_swatches[idx],
-    shade = rep(seq(0.78, 1.08, length.out = 18), times = length(hero_swatches))
-  )
-
-p_hero <- ggplot(swatch_df) +
-  geom_rect(
-    aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = fill, alpha = shade),
-    color = "white",
-    linewidth = 0.08,
-    show.legend = FALSE
-  ) +
-  scale_fill_identity() +
-  scale_alpha_identity() +
-  annotate(
-    "text",
-    x = 0,
-    y = -0.20,
-    hjust = 0,
-    label = paste0("Palette: ", palette_name),
-    fontface = "bold",
-    size = 4.4
-  ) +
-  annotate(
-    "text",
-    x = length(hero_swatches),
-    y = -0.20,
-    hjust = 1,
-    label = paste0("Source: ", palette_source, " — papal archives, labor, and artificial intelligence"),
-    color = "grey35",
-    size = 3.7
-  ) +
-  annotate(
-    "segment",
-    x = 0,
-    xend = length(hero_swatches),
-    y = -0.05,
-    yend = -0.05,
-    linewidth = 0.45,
-    color = "grey55"
-  ) +
-  coord_cartesian(xlim = c(0, length(hero_swatches)), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
-  theme_void() +
-  theme(plot.margin = margin(5.5, 0, 20, 0))
+p_hero <- tt_palette_hero(
+  tt_colors,
+  subtitle = "papal archives, labor, and artificial intelligence"
+)
 
 p_hero
 ```
@@ -105,70 +50,9 @@ From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tre
 
 The obvious trap with this dataset is to turn two documents into a grand theory of history. That would be too much weight for the data. Instead, I am treating this as a comparative reading exercise with just enough quantification to make the contrast visible: how long the arguments are, how scripture is distributed, and how these two documents sit inside the longer historical record of papal encyclicals.
 
-## Loading necessary packages
+## Loading the project booster pack
 
-My handy booster pack that allows me to install (if needed) and load my usual and favorite packages, as well as some helpful functions.
-
-```{r}
-#| label: booster-pack
-#| message: false
-#| warning: false
-#| code-fold: true
-
-# Packages ----------------------------------------------------------------
-{
-  if (!requireNamespace("pak", quietly = TRUE)) {
-    install.packages("pak", repos = "https://cloud.r-project.org")
-  }
-
-  install_booster_pack <- function(package, load = TRUE) {
-    for (pkg in package) {
-      if (!requireNamespace(pkg, quietly = TRUE)) {
-        pak::pkg_install(pkg)
-      }
-      if (load) {
-        library(pkg, character.only = TRUE)
-      }
-    }
-  }
-
-  core_packages <- c(
-    "fs",
-    "here",
-    "janitor",
-    "tidyverse",
-    "skimr",
-    "paletteer",
-    "tidytuesdayR",
-    "scales"
-  )
-
-  install_booster_pack(package = unique(core_packages), load = TRUE)
-  rm(install_booster_pack, core_packages)
-
-  `%ni%` <- Negate(`%in%`)
-
-  geometric_mean <- function(x) {
-    exp(mean(log(x[x > 0]), na.rm = TRUE))
-  }
-
-  my_skim <- skim_with(
-    numeric = sfl(
-      n = length,
-      min = ~ min(.x, na.rm = TRUE),
-      p25 = ~ stats::quantile(., probs = .25, na.rm = TRUE, names = FALSE),
-      med = ~ median(.x, na.rm = TRUE),
-      p75 = ~ stats::quantile(., probs = .75, na.rm = TRUE, names = FALSE),
-      max = ~ max(.x, na.rm = TRUE),
-      mean = ~ mean(.x, na.rm = TRUE),
-      geo_mean = ~ geometric_mean(.x),
-      sd = ~ stats::sd(., na.rm = TRUE),
-      hist = ~ inline_hist(., 5)
-    ),
-    append = FALSE
-  )
-}
-```
+This post uses the project-local `tidytuesday-post` booster pack in `boosters.toml`. The pack owns the package setup, TidyTuesday loading guards, palette helpers, and lightweight plotting theme used below.
 
 # Load raw data from package
 
@@ -177,16 +61,14 @@ My handy booster pack that allows me to install (if needed) and load my usual an
 #| echo: true
 #| output: false
 
-raw <- tidytuesdayR::tt_load("2026-06-23")
+raw <- tt_load_clean(
+  "2026-06-23",
+  required = c("encyclicals", "papal_encyclicals", "scripture_references")
+)
 
-encyclicals <- raw$encyclicals %>%
-  janitor::clean_names()
-
-papal_encyclicals <- raw$papal_encyclicals %>%
-  janitor::clean_names()
-
-scripture_references <- raw$scripture_references %>%
-  janitor::clean_names()
+encyclicals <- raw$encyclicals
+papal_encyclicals <- raw$papal_encyclicals
+scripture_references <- raw$scripture_references
 ```
 
 # Exploratory Data Analysis
@@ -198,11 +80,7 @@ The primary data has three useful layers: paragraph-level text from two encyclic
 #| echo: true
 #| output: true
 
-inventory <- tibble(
-  table = c("encyclicals", "papal_encyclicals", "scripture_references"),
-  rows = c(nrow(encyclicals), nrow(papal_encyclicals), nrow(scripture_references)),
-  columns = c(ncol(encyclicals), ncol(papal_encyclicals), ncol(scripture_references))
-)
+inventory <- tt_inventory(raw[c("encyclicals", "papal_encyclicals", "scripture_references")])
 
 inventory
 ```
@@ -239,7 +117,6 @@ One immediate structural difference: the AI-era text is much longer in total, bu
 #| fig-width: 10
 #| fig-height: 6
 
-plot_colors <- as.character(paletteer::paletteer_d("MetBrewer::Archambault", n = 7))
 leo_colors <- c("Rerum Novarum" = plot_colors[2], "Magnifica Humanitas" = plot_colors[5])
 
 paragraph_plot_data <- encyclicals %>%
@@ -269,12 +146,8 @@ p <- ggplot(paragraph_plot_data, aes(x = encyclical, y = word_count, fill = ency
     y = "Words per paragraph",
     caption = "Source: TidyTuesday 2026-06-23, Vatican.va"
   ) +
-  theme_minimal(base_size = 13) +
-  theme(
-    plot.title = element_text(face = "bold"),
-    panel.grid.minor = element_blank(),
-    axis.text.x = element_text(face = "bold")
-  )
+  tt_theme(base_size = 13, legend_position = "none") +
+  theme(axis.text.x = element_text(face = "bold"))
 
 p
 ```
@@ -332,13 +205,8 @@ p <- ggplot(book_plot_data, aes(x = references, y = book, fill = testament)) +
     fill = NULL,
     caption = "Source: TidyTuesday 2026-06-23, scripture_references.csv"
   ) +
-  theme_minimal(base_size = 13) +
-  theme(
-    plot.title = element_text(face = "bold"),
-    panel.grid.minor = element_blank(),
-    legend.position = "top",
-    strip.text = element_text(face = "bold")
-  )
+  tt_theme(base_size = 13) +
+  theme(strip.text = element_text(face = "bold"))
 
 p
 ```
@@ -372,12 +240,7 @@ p <- ggplot(top_popes, aes(x = encyclicals, y = pope, fill = birth_country)) +
     fill = "Birth country",
     caption = "Source: TidyTuesday 2026-06-23, papal_encyclicals.csv"
   ) +
-  theme_minimal(base_size = 13) +
-  theme(
-    plot.title = element_text(face = "bold"),
-    panel.grid.minor = element_blank(),
-    legend.position = "top"
-  )
+  tt_theme(base_size = 13)
 
 p
 ```
