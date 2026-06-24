@@ -46,7 +46,7 @@ p_hero
 
 From [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-06-23).
 
-> This week we're exploring papal encyclicals — the most authoritative form of papal teaching in the Catholic Church. The primary dataset contains the full paragraph-level text of two encyclicals that bookend 135 years of technological revolution: Pope Leo XIII's *Rerum Novarum* (1891), which addressed the Industrial Revolution's impact on workers, and Pope Leo XIV's *Magnifica Humanitas* (2026), which addresses artificial intelligence's impact on human dignity.
+> This week we're exploring papal encyclicals — the most authoritative form of papal teaching in the Catholic Church. The primary dataset contains the full paragraph-level text of two encyclicals that bookend 135 years of technological revolution: Pope Leo XIII's *Rerum Novarum* (*Of New Things*, 1891), which addressed the Industrial Revolution's impact on workers, and Pope Leo XIV's *Magnifica Humanitas* (*Magnificent Humanity*, 2026), which addresses artificial intelligence's impact on human dignity.
 
 The obvious trap with this dataset is to turn two documents into a grand theory of history. That would be too much weight for the data. Instead, I am treating this as a comparative reading exercise with just enough quantification to make the contrast visible: how long the arguments are, how scripture is distributed, and how these two documents sit inside the longer historical record of papal encyclicals.
 
