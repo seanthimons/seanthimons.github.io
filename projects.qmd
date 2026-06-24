@@ -25,9 +25,19 @@ R package for accessing US EPA CompTox Chemistry Dashboard APIs and related chem
 :::
 
 ::: {.card}
-![](assets/logos/chorus.png){.project-logo fig-alt="Chorus hex sticker"}
+![](assets/logos/concert.png){.project-logo fig-alt="CONCERT hex sticker"}
 
-### Chorus
+### CONCERT
+
+Chemical ontology harmonization and entity-resolution toolkit for identifier crosswalking, canonicalization, data reconciliation, and defensible transformation of messy source records into analysis-ready chemical data.
+
+[GitHub](https://github.com/seanthimons/concert){.btn .btn-primary}
+:::
+
+::: {.card}
+![](assets/logos/chorus.png){.project-logo fig-alt="CHORUS hex sticker"}
+
+### CHORUS
 
 Constituent Hazard, Occurrence, Regulatory, and Uncertainty Screening. A screening framework for prioritizing environmental constituents by combining hazard and fate signals, occurrence evidence, regulatory benchmarks, and uncertainty-aware decision logic.
 
@@ -35,13 +45,13 @@ Constituent Hazard, Occurrence, Regulatory, and Uncertainty Screening. A screeni
 :::
 
 ::: {.card}
-![](assets/logos/concert.png){.project-logo fig-alt="Concert hex sticker"}
+![](assets/logos/boosterpak.png){.project-logo fig-alt="boosterpak hex sticker"}
 
-### Concert
+### boosterpak
 
-Chemical ontology harmonization and entity-resolution toolkit for identifier crosswalking, canonicalization, data reconciliation, and defensible transformation of messy source records into analysis-ready chemical data.
+Reusable R project capability packs: typed bundles of dependencies, optional source specs, startup attachment intent, helper-function sidecars, and project-local setup conventions for reproducible workflows.
 
-[GitHub](https://github.com/seanthimons/concert){.btn .btn-primary}
+[GitHub](https://github.com/seanthimons/boosterpak){.btn .btn-primary}
 :::
 
 ::: {.card}
