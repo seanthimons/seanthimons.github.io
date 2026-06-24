@@ -681,5 +681,15 @@
     "data_source_url": "https://www.nrscotland.gov.uk/publications/babies-first-names-2025/, https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/livebirths/datasets/babynamesinenglandandwalesfrom1996, https://www.nisra.gov.uk/publications/baby-names-2025",
     "is_byod": false,
     "substituted_from": null
+  },
+  {
+    "week_date": "2026-06-23",
+    "year": 2026,
+    "week_number": 26,
+    "dataset_name": "Papal Encyclicals: Industrial Revolution vs. AI Revolution",
+    "dataset_slug": "papal-encyclicals-industrial-revolution-vs-ai-revolution",
+    "data_source_url": "https://www.vatican.va",
+    "is_byod": false,
+    "substituted_from": null
   }
 ]
