@@ -85,6 +85,41 @@ inventory <- tt_inventory(raw[c("encyclicals", "papal_encyclicals", "scripture_r
 inventory
 ```
 
+The `my_skim()` function is a modified version of `skimr::skim()` that returns missingness, non-missing counts, count, minimum, quartiles, median, maximum, mean, geometric mean, standard deviation, and a compact ASCII histogram. Neat!
+
+## Primary encyclical text
+
+```{r}
+#| label: skim-encyclicals
+#| echo: true
+#| output: true
+
+encyclicals %>%
+  my_skim(.)
+```
+
+## Historical encyclical metadata
+
+```{r}
+#| label: skim-papal-encyclicals
+#| echo: true
+#| output: true
+
+papal_encyclicals %>%
+  my_skim(.)
+```
+
+## Scripture references
+
+```{r}
+#| label: skim-scripture-references
+#| echo: true
+#| output: true
+
+scripture_references %>%
+  my_skim(.)
+```
+
 The comparison is intentionally narrow: *Rerum Novarum* and *Magnifica Humanitas* are not random samples of papal writing. They are two curated documents selected because they rhyme historically: industrial labor in 1891 and artificial intelligence in 2026.
 
 ```{r}
