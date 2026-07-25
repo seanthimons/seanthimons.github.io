@@ -17,6 +17,20 @@ From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday
 
 This week bundles several UFC tables from the `fightr` ecosystem: bout results, athlete profiles, ranking snapshots, betting-oriented features, and derived fight-level variables. I kept this pass descriptive. Combat-sports data are tempting prediction fuel, but the first question is simpler: what kind of sport is visible in the tables?
 
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(tidytuesdayR)
+library(scales)
+
+raw <- tidytuesdayR::tt_load("2026-07-07")
+ufc_fights <- raw$ufc_fights
+ufc_athletes <- raw$ufc_athletes
+```
+
 ## Coverage
 
 | Table | Rows |
@@ -28,19 +42,71 @@ This week bundles several UFC tables from the `fightr` ecosystem: bout results, 
 
 ## How fights end
 
-![Fight outcomes by broad method](figures/methods.svg)
+```{r}
+#| label: fig-methods
+#| fig-cap: "Fight outcomes by broad administrative method."
+#| message: false
+#| warning: false
+#| fig-width: 8
+#| fig-height: 4.8
+
+ufc_fights %>%
+  filter(!is.na(method), method != "") %>%
+  count(method, sort = TRUE) %>%
+  mutate(method = fct_reorder(method, n)) %>%
+  ggplot(aes(n, method)) +
+  geom_col(fill = "#7f1d1d") +
+  scale_x_continuous(labels = comma) +
+  labs(x = "Fights", y = NULL) +
+  theme_minimal(base_size = 12)
+```
 
 The outcome table compresses the sport into a few administrative endings: decisions, knockouts, submissions, and smaller residual categories. Decision volume is a reminder that the popular highlight reel is not the median fight. A lot of the sport is rounds, scoring, and survivability.
 
 ## Time coverage
 
-![Fights in the scraped bout table by year](figures/fights-year.svg)
+```{r}
+#| label: fig-fights-year
+#| fig-cap: "Fights in the scraped bout table by year."
+#| message: false
+#| warning: false
+#| fig-width: 8
+#| fig-height: 4.5
+
+ufc_fights %>%
+  filter(!is.na(date)) %>%
+  mutate(year = lubridate::year(date)) %>%
+  count(year) %>%
+  ggplot(aes(year, n)) +
+  geom_col(fill = "#263238") +
+  scale_y_continuous(labels = comma) +
+  labs(x = "Year", y = "Fights") +
+  theme_minimal(base_size = 12)
+```
 
 The fight table has the stepped shape of a growing promotion and a changing scrape target. Recent years dominate the record, so any longitudinal model would need to separate actual UFC growth from data availability and source completeness.
 
 ## Athlete labels
 
-![Declared athlete fighting styles](figures/styles.svg)
+```{r}
+#| label: fig-styles
+#| fig-cap: "Declared athlete fighting styles in profile data."
+#| message: false
+#| warning: false
+#| fig-width: 8
+#| fig-height: 5
+
+ufc_athletes %>%
+  filter(!is.na(fighting_style), fighting_style != "") %>%
+  count(fighting_style, sort = TRUE) %>%
+  slice_head(n = 12) %>%
+  mutate(fighting_style = fct_reorder(fighting_style, n)) %>%
+  ggplot(aes(n, fighting_style)) +
+  geom_col(fill = "#b45309") +
+  scale_x_continuous(labels = comma) +
+  labs(x = "Athletes", y = NULL) +
+  theme_minimal(base_size = 12)
+```
 
 The declared style field is useful as vocabulary, but not as a clean taxonomy. Mixed martial arts rewards hybridity, and the profile labels are public-facing descriptors. I would use them for exploratory grouping, not as hard technical ground truth.
 

@@ -17,6 +17,19 @@ From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday
 
 The NDERF file is sensitive data in the ordinary human sense, even when it is public and tabular. Each row points back to a narrated experience. I treated the dataset as a catalog of self-reports and labels, not as evidence for or against anyone's metaphysics.
 
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(tidytuesdayR)
+library(scales)
+
+raw <- tidytuesdayR::tt_load("2026-07-21")
+nde_experiences <- raw$nde_experiences
+```
+
 ## Coverage
 
 | Measure | Value |
@@ -28,19 +41,72 @@ The NDERF file is sensitive data in the ordinary human sense, even when it is pu
 
 ## Geography of the archive
 
-![Most common reported countries](figures/countries.svg)
+```{r}
+#| label: fig-countries
+#| fig-cap: "Most common reported countries in the NDERF table."
+#| message: false
+#| warning: false
+#| fig-width: 8
+#| fig-height: 5
+
+nde_experiences %>%
+  filter(!is.na(country), country != "") %>%
+  count(country, sort = TRUE) %>%
+  slice_head(n = 12) %>%
+  mutate(country = fct_reorder(country, n)) %>%
+  ggplot(aes(n, country)) +
+  geom_col(fill = "#355070") +
+  scale_x_continuous(labels = comma) +
+  labs(x = "Reports", y = NULL) +
+  theme_minimal(base_size = 12)
+```
 
 The country distribution is mostly an archive-access pattern. English-language web forms, internet access, and willingness to submit a narrative all sit between experience and row. That makes geographic interpretation tricky: this is where reports came from, not where near-death experiences "happen."
 
 ## Classifications
 
-![Experience classifications](figures/classes.svg)
+```{r}
+#| label: fig-classes
+#| fig-cap: "Experience classifications in the archive."
+#| message: false
+#| warning: false
+#| fig-width: 7
+#| fig-height: 4.5
+
+nde_experiences %>%
+  filter(!is.na(classification), classification != "") %>%
+  count(classification, sort = TRUE) %>%
+  mutate(classification = fct_reorder(classification, n)) %>%
+  ggplot(aes(n, classification)) +
+  geom_col(fill = "#6d597a") +
+  scale_x_continuous(labels = comma) +
+  labs(x = "Reports", y = NULL) +
+  theme_minimal(base_size = 12)
+```
 
 The classification field is helpful because it acknowledges that the archive is not one homogeneous phenomenon. Near-death reports sit beside related categories, and analysis should preserve that distinction unless there is a clear reason to pool them.
 
 ## Coded motifs
 
-![AI-coded motifs in narratives](figures/ai-tags.svg)
+```{r}
+#| label: fig-ai-tags
+#| fig-cap: "AI-coded motifs summarize rough narrative themes, not final readings."
+#| message: false
+#| warning: false
+#| fig-width: 8
+#| fig-height: 5
+
+nde_experiences %>%
+  select(starts_with("ai_")) %>%
+  summarise(across(everything(), ~ sum(.x, na.rm = TRUE))) %>%
+  pivot_longer(everything(), names_to = "motif", values_to = "reports") %>%
+  mutate(motif = str_remove(motif, "^ai_"), motif = str_replace_all(motif, "_", " "), motif = fct_reorder(motif, reports)) %>%
+  ggplot(aes(reports, motif)) +
+  geom_col(fill = "#b56576") +
+  scale_x_continuous(labels = comma) +
+  labs(x = "Reports tagged TRUE", y = NULL) +
+  theme_minimal(base_size = 12)
+```
 
 The AI motif columns are useful as a rough index, not as a final reading. They invite questions about out-of-body experience, unity, clinical details, ESP claims, and other themes, but the labels should be checked against source narratives before any strong claim.
 

@@ -17,6 +17,19 @@ From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday
 
 The Irish wreck inventory is not just a catalogue of ship names. It is a coastline-shaped memory system: 17,981 records, a long tail of vessel classifications, narrative descriptions of weather and cargo, and enough coordinates to show where archive work becomes geography.
 
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(tidytuesdayR)
+library(scales)
+
+raw <- tidytuesdayR::tt_load("2026-06-30")
+wreck_inventory <- raw$wreck_inventory
+```
+
 ## What is in the file
 
 The dataset contains a loss date, parsed year, wreck name and number, classification, a free-text description, place of loss, coordinates, and coordinate source. I treated it as an inventory rather than a casualty model: the important first pass is coverage, not causal inference.
@@ -31,19 +44,70 @@ The dataset contains a loss date, parsed year, wreck name and number, classifica
 
 ## Vessel types
 
-![Most common wreck classifications](figures/classification.svg)
+```{r}
+#| label: fig-classification
+#| fig-cap: "Most common wreck classifications in the Irish inventory."
+#| message: false
+#| warning: false
+#| fig-width: 8
+#| fig-height: 5
+
+wreck_inventory %>%
+  filter(!is.na(classification), classification != "") %>%
+  count(classification, sort = TRUE) %>%
+  slice_head(n = 15) %>%
+  mutate(classification = fct_reorder(classification, n)) %>%
+  ggplot(aes(n, classification)) +
+  geom_col(fill = "#2f6f73") +
+  scale_x_continuous(labels = comma) +
+  labs(x = "Wreck records", y = NULL) +
+  theme_minimal(base_size = 12)
+```
 
 The top of the classification table is practical rather than romantic: schooners, steamers, trawlers, and other working vessels dominate the named categories. That matters because it frames the inventory as commercial and coastal infrastructure history, not only spectacular disasters.
 
 ## Time
 
-![Recorded wreck losses by decade](figures/decades.svg)
+```{r}
+#| label: fig-decades
+#| fig-cap: "Recorded wreck losses by decade."
+#| message: false
+#| warning: false
+#| fig-width: 8
+#| fig-height: 4.5
+
+wreck_inventory %>%
+  filter(!is.na(year)) %>%
+  mutate(decade = floor(year / 10) * 10) %>%
+  count(decade) %>%
+  ggplot(aes(decade, n)) +
+  geom_col(fill = "#8b5e34", width = 8) +
+  scale_x_continuous(breaks = breaks_width(50)) +
+  scale_y_continuous(labels = comma) +
+  labs(x = "Decade", y = "Wreck records") +
+  theme_minimal(base_size = 12)
+```
 
 The decade curve should be read as recorded inventory intensity, not a clean rate of maritime danger. Still, the broad shape is useful. The 19th and early 20th century concentration reflects the age when Irish coastal trade, sail-to-steam transition, and documentary survival overlap most visibly.
 
 ## Place
 
-![Wreck coordinates trace the Irish coastline](figures/locations.svg)
+```{r}
+#| label: fig-locations
+#| fig-cap: "Coordinates in the register trace the Irish coastline even without a basemap."
+#| message: false
+#| warning: false
+#| fig-width: 6
+#| fig-height: 6
+
+wreck_inventory %>%
+  filter(!is.na(longitude), !is.na(latitude)) %>%
+  ggplot(aes(longitude, latitude)) +
+  geom_point(color = "#12355b", alpha = 0.28, size = 0.7) +
+  coord_fixed() +
+  labs(x = "Longitude", y = "Latitude") +
+  theme_minimal(base_size = 12)
+```
 
 The coordinate plot is deliberately plain: longitude against latitude. Even without a basemap, the island appears through absence and edge density. That is the signature of a place-based register — the data are about named events, but the spatial pattern is the coast doing what coasts do to vessels.
 
