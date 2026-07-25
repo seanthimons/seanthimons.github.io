@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="430" viewBox="0 0 860 430">
+<rect width="100%" height="100%" fill="#fff"/>
+<text x="24" y="32" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#1f2933">Penguin observations by genus</text>
+<text x="198" y="90.7" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">Eudyptes</text>
+<rect x="210" y="65.2" width="610.0" height="32.9" rx="3" fill="#204b57"/>
+<text x="826.0" y="90.7" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">36</text>
+<text x="198" y="147.4" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">Spheniscus</text>
+<rect x="210" y="121.9" width="321.9" height="32.9" rx="3" fill="#204b57"/>
+<text x="537.9" y="147.4" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">19</text>
+<text x="198" y="204.0" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">Pygoscelis</text>
+<rect x="210" y="178.5" width="288.1" height="32.9" rx="3" fill="#204b57"/>
+<text x="504.1" y="204.0" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">17</text>
+<text x="198" y="260.7" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">Aptenodytes</text>
+<rect x="210" y="235.2" width="169.4" height="32.9" rx="3" fill="#204b57"/>
+<text x="385.4" y="260.7" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">10</text>
+<text x="198" y="317.4" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">Eudyptula</text>
+<rect x="210" y="291.9" width="118.6" height="32.9" rx="3" fill="#204b57"/>
+<text x="334.6" y="317.4" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">7</text>
+<text x="198" y="374.0" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">Megadyptes</text>
+<rect x="210" y="348.5" width="67.8" height="32.9" rx="3" fill="#204b57"/>
+<text x="283.8" y="374.0" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">4</text>
+</svg>
