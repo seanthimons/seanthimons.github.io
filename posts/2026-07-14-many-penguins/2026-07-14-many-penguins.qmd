@@ -91,20 +91,26 @@ The `U` category is not a nuisance to delete. Unknown or unsexed records are par
 #| fig-cap: "Culmen length and wing length sketch a quick morphology map."
 #| message: false
 #| warning: false
-#| fig-width: 7
-#| fig-height: 5
+#| fig-width: 8
+#| fig-height: 6
 
-many_penguins %>%
+penguin_shape <- many_penguins %>%
   filter(!is.na(beak.length_culmen), !is.na(wing.length)) %>%
-  ggplot(aes(beak.length_culmen, wing.length, color = genus)) +
-  geom_point(size = 2.4, alpha = 0.85) +
-  labs(x = "Culmen length", y = "Wing length", color = "Genus") +
+  select(genus, beak.length_culmen, wing.length)
+
+stopifnot(nrow(penguin_shape) > 0)
+
+# Fixed-scale small multiples expose within-genus spread without relying on color alone.
+penguin_shape %>%
+  ggplot(aes(beak.length_culmen, wing.length)) +
+  geom_point(color = "#1f6f8b", size = 2.2, alpha = 0.8) +
+  facet_wrap(vars(genus), ncol = 3) +
+  labs(x = "Culmen length", y = "Wing length") +
   theme_minimal(base_size = 12)
 ```
 
-The beak-wing scatter is a quick morphology map. It shows separation in body plan without pretending that two measurements summarize a bird. As a first pass, though, it catches what makes penguins fun data objects: they are familiar animals with enough morphological spread to make simple plots legible.
+The beak-wing small multiples are a quick morphology map. Keeping the same axes in every panel makes differences in body plan comparable, while separating genera reveals their internal spread without asking color alone to carry the grouping. Two measurements still do not summarize a bird, but they make the table's structure legible.
 
 ## Takeaway
 
 This week is a good antidote to overbuilt dashboards. A few rows, clear trait columns, and a modest scatterplot are enough to ask better questions: Which genera are morphologically distinct? Which sex labels are comparable? Which measurements scale together, and which describe different ecological constraints?
-

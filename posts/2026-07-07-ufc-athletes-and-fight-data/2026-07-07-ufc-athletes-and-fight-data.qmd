@@ -55,7 +55,9 @@ ufc_fights %>%
   count(method, sort = TRUE) %>%
   mutate(method = fct_reorder(method, n)) %>%
   ggplot(aes(n, method)) +
-  geom_col(fill = "#7f1d1d") +
+  # A Cleveland-style lollipop makes the outcome ranking easier to scan than bars.
+  geom_segment(aes(x = 0, xend = n, yend = method), color = "#d6b8b8", linewidth = 0.8) +
+  geom_point(color = "#7f1d1d", size = 3.2) +
   scale_x_continuous(labels = comma) +
   labs(x = "Fights", y = NULL) +
   theme_minimal(base_size = 12)
@@ -113,4 +115,3 @@ The declared style field is useful as vocabulary, but not as a clean taxonomy. M
 ## Takeaway
 
 The useful story here is not "who will win." It is that a modern fight dataset is a join of event history, athlete biographies, rankings, and market expectations. That makes it analytically rich, but also easy to confuse measurement systems. Treat records, profiles, rankings, and odds as separate layers before collapsing them into one prediction table.
-

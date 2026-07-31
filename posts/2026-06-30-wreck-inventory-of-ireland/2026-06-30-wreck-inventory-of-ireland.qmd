@@ -58,7 +58,9 @@ wreck_inventory %>%
   slice_head(n = 15) %>%
   mutate(classification = fct_reorder(classification, n)) %>%
   ggplot(aes(n, classification)) +
-  geom_col(fill = "#2f6f73") +
+  # A lollipop emphasizes rank and exact position with less ink than bars.
+  geom_segment(aes(x = 0, xend = n, yend = classification), color = "#b8c7c7", linewidth = 0.7) +
+  geom_point(color = "#2f6f73", size = 3) +
   scale_x_continuous(labels = comma) +
   labs(x = "Wreck records", y = NULL) +
   theme_minimal(base_size = 12)
@@ -114,4 +116,3 @@ The coordinate plot is deliberately plain: longitude against latitude. Even with
 ## Takeaway
 
 This week rewards humble analysis. The wreck inventory is rich, but the mixed descriptions and uneven historical coverage make it risky to over-fit. The honest story is that administrative memory has a shape: categories reveal working vessels, dates reveal eras of documentation, and coordinates reveal where loss became record.
-

@@ -102,8 +102,11 @@ nde_experiences %>%
   pivot_longer(everything(), names_to = "motif", values_to = "reports") %>%
   mutate(motif = str_remove(motif, "^ai_"), motif = str_replace_all(motif, "_", " "), motif = fct_reorder(motif, reports)) %>%
   ggplot(aes(reports, motif)) +
-  geom_col(fill = "#b56576") +
-  scale_x_continuous(labels = comma) +
+  # A lollipop preserves the honest global ranking without implying stable subgroup rates.
+  geom_segment(aes(x = 0, xend = reports, yend = motif), color = "#dec4cc", linewidth = 0.8) +
+  geom_point(color = "#b56576", size = 3.2) +
+  geom_text(aes(label = comma(reports)), hjust = -0.5, size = 3.3) +
+  scale_x_continuous(labels = comma, expand = expansion(mult = c(0, 0.12))) +
   labs(x = "Reports tagged TRUE", y = NULL) +
   theme_minimal(base_size = 12)
 ```
@@ -113,4 +116,3 @@ The AI motif columns are useful as a rough index, not as a final reading. They i
 ## Takeaway
 
 This is a dataset where restraint is part of the method. Counts can summarize the archive, but they cannot carry the meaning of the stories alone. The right first pass is provenance-aware: who submitted, how the record was classified, and which computational labels are strong enough to support follow-up reading.
-
