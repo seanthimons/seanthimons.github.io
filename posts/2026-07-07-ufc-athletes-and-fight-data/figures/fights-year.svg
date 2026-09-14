@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="430" viewBox="0 0 860 430">
+<rect width="100%" height="100%" fill="#fff"/>
+<text x="24" y="32" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#1f2933">Fights in the scraped bout table by year</text>
+<line x1="70" x2="830" y1="55.0" y2="55.0" stroke="#e8edf2"/>
+<text x="60" y="59.0" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">522</text>
+<line x1="70" x2="830" y1="135.0" y2="135.0" stroke="#e8edf2"/>
+<text x="60" y="139.0" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">398</text>
+<line x1="70" x2="830" y1="215.0" y2="215.0" stroke="#e8edf2"/>
+<text x="60" y="219.0" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">273</text>
+<line x1="70" x2="830" y1="295.0" y2="295.0" stroke="#e8edf2"/>
+<text x="60" y="299.0" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">148</text>
+<line x1="70" x2="830" y1="375.0" y2="375.0" stroke="#e8edf2"/>
+<text x="60" y="379.0" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">24</text>
+<path d="M70.0,370.5 L93.8,364.7 L117.5,362.8 L141.2,364.1 L165.0,374.4 L188.8,362.1 L212.5,362.8 L236.2,364.7 L260.0,356.4 L283.8,364.1 L307.5,375.0 L331.2,342.9 L355.0,288.9 L378.8,280.5 L402.5,261.3 L426.2,252.3 L450.0,227.9 L473.8,197.7 L497.5,171.3 L521.2,142.4 L545.0,67.2 L568.8,86.5 L592.5,73.6 L616.2,96.8 L640.0,85.8 L663.8,58.9 L687.5,98.1 L711.2,63.4 L735.0,62.1 L758.8,56.3 L782.5,58.2 L806.2,55.0 L830.0,222.1" fill="none" stroke="#4f6d7a" stroke-width="3"/>
+<circle cx="70.0" cy="370.5" r="3" fill="#4f6d7a"/>
+<circle cx="93.8" cy="364.7" r="3" fill="#4f6d7a"/>
+<circle cx="117.5" cy="362.8" r="3" fill="#4f6d7a"/>
+<circle cx="141.2" cy="364.1" r="3" fill="#4f6d7a"/>
+<circle cx="165.0" cy="374.4" r="3" fill="#4f6d7a"/>
+<circle cx="188.8" cy="362.1" r="3" fill="#4f6d7a"/>
+<circle cx="212.5" cy="362.8" r="3" fill="#4f6d7a"/>
+<circle cx="236.2" cy="364.7" r="3" fill="#4f6d7a"/>
+<circle cx="260.0" cy="356.4" r="3" fill="#4f6d7a"/>
+<circle cx="283.8" cy="364.1" r="3" fill="#4f6d7a"/>
+<circle cx="307.5" cy="375.0" r="3" fill="#4f6d7a"/>
+<circle cx="331.2" cy="342.9" r="3" fill="#4f6d7a"/>
+<circle cx="355.0" cy="288.9" r="3" fill="#4f6d7a"/>
+<circle cx="378.8" cy="280.5" r="3" fill="#4f6d7a"/>
+<circle cx="402.5" cy="261.3" r="3" fill="#4f6d7a"/>
+<circle cx="426.2" cy="252.3" r="3" fill="#4f6d7a"/>
+<circle cx="450.0" cy="227.9" r="3" fill="#4f6d7a"/>
+<circle cx="473.8" cy="197.7" r="3" fill="#4f6d7a"/>
+<circle cx="497.5" cy="171.3" r="3" fill="#4f6d7a"/>
+<circle cx="521.2" cy="142.4" r="3" fill="#4f6d7a"/>
+<circle cx="545.0" cy="67.2" r="3" fill="#4f6d7a"/>
+<circle cx="568.8" cy="86.5" r="3" fill="#4f6d7a"/>
+<circle cx="592.5" cy="73.6" r="3" fill="#4f6d7a"/>
+<circle cx="616.2" cy="96.8" r="3" fill="#4f6d7a"/>
+<circle cx="640.0" cy="85.8" r="3" fill="#4f6d7a"/>
+<circle cx="663.8" cy="58.9" r="3" fill="#4f6d7a"/>
+<circle cx="687.5" cy="98.1" r="3" fill="#4f6d7a"/>
+<circle cx="711.2" cy="63.4" r="3" fill="#4f6d7a"/>
+<circle cx="735.0" cy="62.1" r="3" fill="#4f6d7a"/>
+<circle cx="758.8" cy="56.3" r="3" fill="#4f6d7a"/>
+<circle cx="782.5" cy="58.2" r="3" fill="#4f6d7a"/>
+<circle cx="806.2" cy="55.0" r="3" fill="#4f6d7a"/>
+<circle cx="830.0" cy="222.1" r="3" fill="#4f6d7a"/>
+<text x="70" y="412" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">1994</text>
+<text x="830" y="412" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">2026</text>
+</svg>

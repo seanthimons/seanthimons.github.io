@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="430" viewBox="0 0 860 430">
+<rect width="100%" height="100%" fill="#fff"/>
+<text x="24" y="32" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#1f2933">Fight outcomes by broad method</text>
+<text x="198" y="81.8" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">Decision</text>
+<rect x="210" y="62.6" width="610.0" height="24.6" rx="3" fill="#7b2d26"/>
+<text x="826.0" y="81.8" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">4076</text>
+<text x="198" y="124.3" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">KO/TKO</text>
+<rect x="210" y="105.2" width="412.0" height="24.6" rx="3" fill="#7b2d26"/>
+<text x="628.0" y="124.3" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">2753</text>
+<text x="198" y="166.8" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">Submission</text>
+<rect x="210" y="147.7" width="253.5" height="24.6" rx="3" fill="#7b2d26"/>
+<text x="469.5" y="166.8" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">1694</text>
+<text x="198" y="209.3" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">TKO</text>
+<rect x="210" y="190.2" width="14.4" height="24.6" rx="3" fill="#7b2d26"/>
+<text x="230.4" y="209.3" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">96</text>
+<text x="198" y="251.8" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">Overturned</text>
+<rect x="210" y="232.7" width="8.8" height="24.6" rx="3" fill="#7b2d26"/>
+<text x="224.8" y="251.8" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">59</text>
+<text x="198" y="294.3" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">Could Not Continue</text>
+<rect x="210" y="275.1" width="4.9" height="24.6" rx="3" fill="#7b2d26"/>
+<text x="220.9" y="294.3" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">33</text>
+<text x="198" y="336.8" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">DQ</text>
+<rect x="210" y="317.6" width="3.4" height="24.6" rx="3" fill="#7b2d26"/>
+<text x="219.4" y="336.8" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">23</text>
+<text x="198" y="379.3" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">Other</text>
+<rect x="210" y="360.1" width="0.3" height="24.6" rx="3" fill="#7b2d26"/>
+<text x="216.3" y="379.3" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">2</text>
+</svg>
