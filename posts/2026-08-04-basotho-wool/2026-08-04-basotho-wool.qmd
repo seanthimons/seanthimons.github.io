@@ -19,6 +19,7 @@ execute:
 #| warning: false
 #| fig-width: 10
 #| fig-height: 1.35
+#| fig-format: svg
 #| out-width: 100%
 
 library(ggplot2)
