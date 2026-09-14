@@ -31,6 +31,60 @@ jobs:
         run: quarto render
         # Uses _freeze/ for pre-computed R output - no R installation needed
 
+      - name: Materialize frozen figure assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Quarto preserves frozen cell output but does not always copy its
+          # figure files into the deployment tree. Supply both output layouts
+          # used by knitr and Jupyter-backed posts.
+          while IFS= read -r -d '' figure_dir; do
+            relative="${figure_dir#_freeze/posts/}"
+            slug="${relative%%/*}"
+            document="${relative#*/}"
+            document="${document%/figure-html}"
+
+            for destination in \
+              "docs/posts/${slug}/figure-html" \
+              "docs/posts/${slug}/${document}_files/figure-html"; do
+              mkdir -p "$destination"
+              cp -a "$figure_dir"/. "$destination"/
+            done
+          done < <(find _freeze/posts -type d -path '*/figure-html' -print0)
+
+      - name: Verify rendered image references
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import unquote, urlparse
+
+          class Images(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.sources = []
+              def handle_starttag(self, tag, attrs):
+                  if tag == "img":
+                      source = dict(attrs).get("src")
+                      if source:
+                          self.sources.append(source)
+
+          missing = []
+          for html in Path("docs").rglob("*.html"):
+              parser = Images()
+              parser.feed(html.read_text(encoding="utf-8", errors="replace"))
+              for source in parser.sources:
+                  parsed = urlparse(source)
+                  if parsed.scheme or parsed.netloc or source.startswith("/") or source.startswith("#"):
+                      continue
+                  image = html.parent / unquote(parsed.path)
+                  if not image.is_file() or image.stat().st_size == 0:
+                      missing.append(f"{html}: {source}")
+          if missing:
+              raise SystemExit("Unresolved rendered image assets:\n" + "\n".join(missing))
+          print("Rendered image asset verification passed")
+          PY
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
