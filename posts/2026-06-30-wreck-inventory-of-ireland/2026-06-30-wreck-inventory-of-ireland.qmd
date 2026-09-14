@@ -119,6 +119,14 @@ map_plot <- ggplot(coords, aes(longitude, latitude)) +
     bins = 8,
     contour_var = "ndensity"
   ) +
+  # Repaint land after the kernel estimate so density stays offshore.
+  geom_polygon(
+    data = coast,
+    aes(long, lat, group = group),
+    inherit.aes = FALSE,
+    fill = "#f1eadf",
+    color = NA
+  ) +
   geom_point(color = ink, alpha = 0.18, size = 0.42) +
   geom_path(
     data = coast,
