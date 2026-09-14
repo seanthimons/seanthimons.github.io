@@ -69,18 +69,8 @@ jobs:
                       if source:
                           self.sources.append(source)
 
-          required_posts = {
-              "2026-07-28-ecotourism",
-              "2026-08-04-basotho-wool",
-              "2026-08-11-palomar-spectroscopic-survey-nearby-galaxies",
-          }
           missing = []
-          checked = set()
           for html in Path("docs").rglob("*.html"):
-              post = html.parent.name
-              if post not in required_posts:
-                  continue
-              checked.add(post)
               parser = Images()
               parser.feed(html.read_text(encoding="utf-8", errors="replace"))
               for source in parser.sources:
@@ -90,12 +80,9 @@ jobs:
                   image = html.parent / unquote(parsed.path)
                   if not image.is_file() or image.stat().st_size == 0:
                       missing.append(f"{html}: {source}")
-          absent = required_posts - checked
-          if absent:
-              missing.extend(f"Missing rendered HTML for {post}" for post in sorted(absent))
           if missing:
               raise SystemExit("Unresolved rendered image assets:\n" + "\n".join(missing))
-          print(f"Rendered image asset verification passed for {len(checked)} posts")
+          print("Rendered image asset verification passed")
           PY
 
       - name: Upload artifact
