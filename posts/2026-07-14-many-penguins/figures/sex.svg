@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="430" viewBox="0 0 860 430">
+<rect width="100%" height="100%" fill="#fff"/>
+<text x="24" y="32" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#1f2933">Sex labels in the morphology table</text>
+<text x="198" y="126.4" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">U</text>
+<rect x="210" y="75.4" width="610.0" height="65.7" rx="3" fill="#7a5c61"/>
+<text x="826.0" y="126.4" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">42</text>
+<text x="198" y="239.7" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">M</text>
+<rect x="210" y="188.7" width="464.8" height="65.7" rx="3" fill="#7a5c61"/>
+<text x="680.8" y="239.7" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">32</text>
+<text x="198" y="353.1" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="13" fill="#34495e">F</text>
+<rect x="210" y="302.1" width="276.0" height="65.7" rx="3" fill="#7a5c61"/>
+<text x="492.0" y="353.1" font-family="Inter,Arial,sans-serif" font-size="12" fill="#34495e">19</text>
+</svg>
