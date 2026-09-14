@@ -52,6 +52,48 @@ jobs:
             done
           done < <(find _freeze/posts -type d -path '*/figure-html' -print0)
 
+          # Some legacy posts use an HTML-sidecar name that no longer matches
+          # their Quarto filename. Resolve any remaining local figure reference
+          # against its post's frozen figures instead of guessing the prefix.
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from shutil import copy2
+          from urllib.parse import unquote, urlparse
+
+          class Images(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.sources = []
+              def handle_starttag(self, tag, attrs):
+                  if tag == "img":
+                      source = dict(attrs).get("src")
+                      if source:
+                          self.sources.append(source)
+
+          site = Path("docs").resolve()
+          restored = []
+          for html in site.rglob("*.html"):
+              post = html.parent.name
+              parser = Images()
+              parser.feed(html.read_text(encoding="utf-8", errors="replace"))
+              for source in parser.sources:
+                  parsed = urlparse(source)
+                  if parsed.scheme or parsed.netloc or source.startswith(("/", "#")):
+                      continue
+                  target = (html.parent / unquote(parsed.path)).resolve()
+                  if not target.is_relative_to(site) or target.is_file() or "figure-html" not in target.parts:
+                      continue
+                  candidates = list(Path("_freeze/posts", post).glob(f"**/figure-html/{target.name}"))
+                  if len(candidates) == 1:
+                      target.parent.mkdir(parents=True, exist_ok=True)
+                      copy2(candidates[0], target)
+                      restored.append(str(target.relative_to(site)))
+                  elif len(candidates) > 1:
+                      raise SystemExit(f"Ambiguous frozen figure for {target}: {candidates}")
+          print(f"Restored {len(restored)} legacy figure assets")
+          PY
+
       - name: Verify rendered image references
         run: |
           python3 - <<'PY'
