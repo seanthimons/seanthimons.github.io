@@ -1,0 +1,251 @@
+---
+title: "Tidy Tuesday: Nearby galaxies do not hide the same kinds of nuclei"
+author: "Sean Thimons"
+date: "2026-08-11"
+description: "Palomar spectra show a sharp split between star-forming spiral nuclei and the LINER-heavy nuclei of early-type galaxies."
+categories:
+  - tidytuesday
+  - R
+  - astronomy
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "pearl_earring"
+palette_source <- "dutchmasters"
+palette_type <- "discrete"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-08-11).
+
+The Palomar survey put a slit across the centers of 486 bright nearby galaxies and measured their optical spectra. A spectrum can tell a blunt but useful story about a galaxy's nucleus. Young stars ionize gas one way. Accretion onto a black hole, shocks, and older stellar populations leave different ratios of oxygen, nitrogen, sulfur, and hydrogen lines.
+
+The survey's classification labels are already in the file, so this is not a new classifier. I wanted to see how much the mix of labels changes with the host galaxy's visible morphology, then check that story against the classic BPT plane. The BPT diagram plots log([N II]/H-alpha) against log([O III]/H-beta). It is a diagnostic map, not a causal model.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidytuesdayR)
+library(skimr)
+library(scales)
+
+`%ni%` <- Negate(`%in%`)
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-08-11")
+palomar_survey <- raw$palomar_survey
+palomar_emission_lines <- raw$palomar_emission_lines
+```
+
+# Exploratory data analysis
+
+```{r}
+#| label: eda-palomar-survey
+#| echo: true
+#| output: true
+
+palomar_survey %>%
+  select(activity_type, hubble_type, log_nii_ha, log_oiii_hb, velocity_dispersion_km_s) %>%
+  skim()
+
+palomar_survey %>%
+  count(activity_type, sort = TRUE)
+```
+
+There are 486 galaxies in the survey, but 71 have no activity label in this version of the data. Among the 415 labelled nuclei, H II regions make up 203 cases, LINERs 94, transitions 65, and Seyferts 52. The labels come with a warning label of their own: 84 classifications are uncertain or very uncertain. I keep them in the descriptive plots because they are part of the published catalogue, but I do not treat a hard boundary between colored points as a law of nature.
+
+# Morphology changes the mix
+
+```{r}
+#| label: fig-morphology-mix
+#| fig-cap: "Nuclear activity labels within broad visual morphology groups. Percentages use only the 415 galaxies with an activity label. The labels describe the nuclear spectrum; they do not establish the source of every line or a causal effect of morphology."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 6.2
+
+activity_levels <- c("H II", "Transition", "Seyfert", "LINER")
+activity_colors <- c(
+  "H II" = "#A65141",
+  "Transition" = "#E7CDC2",
+  "Seyfert" = "#80A0C7",
+  "LINER" = "#394165"
+)
+
+morphology_mix <- palomar_survey %>%
+  filter(activity_type %in% activity_levels) %>%
+  mutate(
+    morphology = case_when(
+      str_detect(hubble_type, "^E") ~ "Elliptical",
+      str_detect(hubble_type, "^S0") ~ "Lenticular",
+      str_detect(hubble_type, "^S") ~ "Spiral",
+      str_detect(hubble_type, "^I") ~ "Irregular",
+      TRUE ~ "Other"
+    )
+  ) %>%
+  count(morphology, activity_type) %>%
+  group_by(morphology) %>%
+  mutate(share = n / sum(n)) %>%
+  ungroup() %>%
+  mutate(
+    morphology = factor(morphology, levels = c("Elliptical", "Lenticular", "Spiral", "Irregular", "Other")),
+    activity_type = factor(activity_type, levels = activity_levels),
+    label = if_else(share >= 0.10, percent(share, accuracy = 1), "")
+  )
+
+morphology_mix %>%
+  ggplot(aes(morphology, share, fill = activity_type)) +
+  geom_col(width = 0.72, color = "#FCF9F0", linewidth = 0.35) +
+  geom_text(
+    aes(label = label),
+    position = position_stack(vjust = 0.5),
+    color = "#17252f",
+    fontface = "bold",
+    size = 3.5
+  ) +
+  scale_fill_manual(values = activity_colors, name = "Nuclear label") +
+  scale_y_continuous(labels = percent_format(), expand = expansion(mult = c(0, 0.03))) +
+  labs(
+    title = "Spiral nuclei are mostly H II, while LINER labels dominate early types",
+    subtitle = "Shares within each broad morphology group; only labelled galaxies are included",
+    x = NULL,
+    y = "Share of labelled nuclei"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(face = "bold"),
+    legend.position = "top"
+  )
+```
+
+The contrast is large enough to see without statistical machinery. Of the 328 labelled spirals, 190 are H II nuclei, or 58%. The 25 labelled ellipticals point the other way: 19 are LINERs, or 76%. Lenticular galaxies sit between them, with LINER and transition labels together accounting for 77% of their labelled nuclei.
+
+Those groups are uneven. Seven irregulars and 25 ellipticals are not much material for a general claim. The spiral result carries more weight because it has 328 labelled galaxies. It also has an obvious observational caution: a visual Hubble type is a broad description of the host, while a nuclear spectrum comes from a small central aperture.
+
+# The diagnostic map behind the labels
+
+```{r}
+#| label: fig-bpt-by-morphology
+#| fig-cap: "BPT coordinates for 408 nuclei with both line ratios. The vertical guide at log([N II]/H-alpha) = -0.3 is only a visual reference, not a classification boundary used to create the catalog labels. Points are colored by the published activity label and faceted by broad morphology."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 7
+
+bpt_data <- palomar_survey %>%
+  filter(
+    activity_type %in% activity_levels,
+    !is.na(log_nii_ha),
+    !is.na(log_oiii_hb)
+  ) %>%
+  mutate(
+    morphology = case_when(
+      str_detect(hubble_type, "^E") ~ "Elliptical",
+      str_detect(hubble_type, "^S0") ~ "Lenticular",
+      str_detect(hubble_type, "^S") ~ "Spiral",
+      str_detect(hubble_type, "^I") ~ "Irregular",
+      TRUE ~ "Other"
+    ),
+    morphology = factor(morphology, levels = c("Elliptical", "Lenticular", "Spiral", "Irregular", "Other")),
+    activity_type = factor(activity_type, levels = activity_levels)
+  )
+
+bpt_data %>%
+  ggplot(aes(log_nii_ha, log_oiii_hb, color = activity_type)) +
+  geom_vline(xintercept = -0.3, color = "grey70", linewidth = 0.35, linetype = "22") +
+  geom_hline(yintercept = 0, color = "grey85", linewidth = 0.35) +
+  geom_point(alpha = 0.72, size = 2.1) +
+  facet_wrap(~ morphology, ncol = 3) +
+  scale_color_manual(values = activity_colors, name = "Published label") +
+  labs(
+    title = "The morphology result survives a look at the line-ratio plane",
+    subtitle = "Each point is a galaxy nucleus with both BPT coordinates",
+    x = "log([N II] / H-alpha)",
+    y = "log([O III] / H-beta)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(face = "bold"),
+    legend.position = "top"
+  )
+```
+
+The BPT points do what the stacked bars suggested. H II nuclei in the spiral facet lean toward lower nitrogen-to-H-alpha ratios. LINER points occupy a different part of the plane and are common in the elliptical and lenticular facets. Seyferts overlap other labeled groups more than a simple two-cluster story would imply. That overlap is a useful reminder that the categories summarize line ratios and line profiles, not four sealed-off kinds of galaxies.
+
+# Final thoughts and takeaways
+
+This small survey makes a strong descriptive point: nearby spiral galaxies and nearby early-type galaxies do not present the same menu of nuclear spectra. The clearest split is between H II labels in spirals and LINER labels in ellipticals and lenticulars. It does not tell us whether morphology caused that split, or whether every LINER line comes from the same physical process. The survey does give us a concrete place to start, with the raw line ratios still visible behind the catalog labels.
