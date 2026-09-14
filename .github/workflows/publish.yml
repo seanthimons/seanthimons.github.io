@@ -136,8 +136,8 @@ jobs:
           html = Path("docs/posts/2026-08-04-basotho-wool/2026-08-04-basotho-wool.html")
           text = html.read_text(encoding="utf-8", errors="replace")
           checks = {
-              "figures": len(re.findall(r"<img\\b", text, re.I)),
-              "code_blocks": len(re.findall(r"<pre\\b", text, re.I)),
+              "figures": len(re.findall(r"<img\b", text, re.I)),
+              "code_blocks": len(re.findall(r"<pre\b", text, re.I)),
               "code_cells": len(re.findall(r"cell-code", text, re.I)),
           }
           if checks["figures"] < 3 or (checks["code_blocks"] < 2 and checks["code_cells"] < 2):
