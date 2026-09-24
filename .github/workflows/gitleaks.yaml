@@ -1,0 +1,25 @@
+name: Gitleaks
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Change the minute per repo to stagger scheduled runs.
+    - cron: "13 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gitleaks:
+    name: Gitleaks
+    uses: seanthimons/baseline/.github/workflows/gitleaks.yaml@0a2a80a6d045ffbdacedd59e35dce1497e2acfc1 # v1.0.0
+    secrets:
+      GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}

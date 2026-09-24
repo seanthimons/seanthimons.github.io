@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="430" viewBox="0 0 860 430">
+<rect width="100%" height="100%" fill="#fff"/>
+<text x="24" y="32" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="700" fill="#1f2933">Recorded wreck losses by decade</text>
+<line x1="70" x2="830" y1="55.0" y2="55.0" stroke="#e8edf2"/>
+<text x="60" y="59.0" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">1446</text>
+<line x1="70" x2="830" y1="135.0" y2="135.0" stroke="#e8edf2"/>
+<text x="60" y="139.0" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">1085</text>
+<line x1="70" x2="830" y1="215.0" y2="215.0" stroke="#e8edf2"/>
+<text x="60" y="219.0" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">724</text>
+<line x1="70" x2="830" y1="295.0" y2="295.0" stroke="#e8edf2"/>
+<text x="60" y="299.0" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">362</text>
+<line x1="70" x2="830" y1="375.0" y2="375.0" stroke="#e8edf2"/>
+<text x="60" y="379.0" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">1</text>
+<path d="M70.0,374.8 L144.9,374.8 L326.9,375.0 L337.6,375.0 L348.3,374.8 L369.7,370.6 L380.4,375.0 L391.1,374.1 L401.8,375.0 L412.5,374.6 L423.2,373.7 L433.9,374.3 L444.6,375.0 L455.4,374.8 L466.1,374.3 L476.8,373.4 L487.5,368.6 L498.2,374.6 L508.9,375.0 L519.6,365.0 L530.3,375.0 L541.0,364.8 L551.7,352.9 L562.4,306.1 L573.1,288.6 L583.8,270.5 L594.5,277.8 L605.2,265.6 L615.9,257.0 L626.6,238.4 L637.3,162.2 L648.0,164.6 L658.7,55.0 L669.4,80.5 L680.1,134.9 L690.8,176.6 L701.5,149.3 L712.3,191.0 L723.0,93.8 L733.7,311.0 L744.4,328.5 L755.1,239.2 L765.8,371.5 L776.5,372.1 L787.2,368.6 L797.9,363.9 L808.6,362.2 L819.3,367.9 L830.0,373.7" fill="none" stroke="#c65f38" stroke-width="3"/>
+<circle cx="70.0" cy="374.8" r="3" fill="#c65f38"/>
+<circle cx="326.9" cy="375.0" r="3" fill="#c65f38"/>
+<circle cx="348.3" cy="374.8" r="3" fill="#c65f38"/>
+<circle cx="380.4" cy="375.0" r="3" fill="#c65f38"/>
+<circle cx="401.8" cy="375.0" r="3" fill="#c65f38"/>
+<circle cx="423.2" cy="373.7" r="3" fill="#c65f38"/>
+<circle cx="444.6" cy="375.0" r="3" fill="#c65f38"/>
+<circle cx="466.1" cy="374.3" r="3" fill="#c65f38"/>
+<circle cx="487.5" cy="368.6" r="3" fill="#c65f38"/>
+<circle cx="508.9" cy="375.0" r="3" fill="#c65f38"/>
+<circle cx="530.3" cy="375.0" r="3" fill="#c65f38"/>
+<circle cx="551.7" cy="352.9" r="3" fill="#c65f38"/>
+<circle cx="573.1" cy="288.6" r="3" fill="#c65f38"/>
+<circle cx="594.5" cy="277.8" r="3" fill="#c65f38"/>
+<circle cx="615.9" cy="257.0" r="3" fill="#c65f38"/>
+<circle cx="637.3" cy="162.2" r="3" fill="#c65f38"/>
+<circle cx="658.7" cy="55.0" r="3" fill="#c65f38"/>
+<circle cx="680.1" cy="134.9" r="3" fill="#c65f38"/>
+<circle cx="701.5" cy="149.3" r="3" fill="#c65f38"/>
+<circle cx="723.0" cy="93.8" r="3" fill="#c65f38"/>
+<circle cx="744.4" cy="328.5" r="3" fill="#c65f38"/>
+<circle cx="765.8" cy="371.5" r="3" fill="#c65f38"/>
+<circle cx="787.2" cy="368.6" r="3" fill="#c65f38"/>
+<circle cx="808.6" cy="362.2" r="3" fill="#c65f38"/>
+<circle cx="830.0" cy="373.7" r="3" fill="#c65f38"/>
+<text x="70" y="412" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">1300</text>
+<text x="830" y="412" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="12" fill="#607080">2010</text>
+</svg>
