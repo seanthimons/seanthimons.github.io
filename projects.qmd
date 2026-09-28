@@ -55,6 +55,16 @@ Reusable R project capability packs: typed bundles of dependencies, optional sou
 :::
 
 ::: {.card}
+![](assets/logos/specmill.png){.project-logo fig-alt="specmill hex sticker"}
+
+### specmill
+
+R package for generating and maintaining API clients from local OpenAPI schemas and reviewed YAML policy. Creates endpoint wrappers, documentation, and request contract tests while the client package retains control of HTTP, authentication, and response handling.
+
+[GitHub](https://github.com/seanthimons/specmill){.btn .btn-primary}
+:::
+
+::: {.card}
 ![](assets/logos/serapeum.png){.project-logo fig-alt="Serapeum hex sticker"}
 
 ### Serapeum
