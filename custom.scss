@@ -212,7 +212,19 @@ img[src*="headshot"] {
 
   > .card {
     min-width: 0;
+    transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
+
+    &:hover {
+      background-color: var(--card-hover);
+    }
   }
+
+  > .card-comptoxr { --card-hover: #e8f9fb; }
+  > .card-concert { --card-hover: #eaf7f4; }
+  > .card-chorus { --card-hover: #edf4f1; }
+  > .card-boosterpak { --card-hover: #fff7e6; }
+  > .card-specmill { --card-hover: #ecf3f8; }
+  > .card-serapeum { --card-hover: #f4eff9; }
 }
 
 @media (max-width: 1199.98px) {

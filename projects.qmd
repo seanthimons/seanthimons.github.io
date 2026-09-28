@@ -14,7 +14,7 @@ nocite: |
 
 ::: {.work-card-grid}
 
-::: {.card}
+::: {.card .card-comptoxr}
 ![](assets/logos/comptoxr.png){.project-logo fig-alt="CompToxR hex sticker"}
 
 ### CompToxR
@@ -24,7 +24,7 @@ R package for accessing US EPA CompTox Chemistry Dashboard APIs and related chem
 [GitHub](https://github.com/seanthimons/ComptoxR){.btn .btn-primary}
 :::
 
-::: {.card}
+::: {.card .card-concert}
 ![](assets/logos/concert.png){.project-logo fig-alt="CONCERT hex sticker"}
 
 ### CONCERT
@@ -34,7 +34,7 @@ Chemical ontology harmonization and entity-resolution toolkit for identifier cro
 [GitHub](https://github.com/seanthimons/concert){.btn .btn-primary}
 :::
 
-::: {.card}
+::: {.card .card-chorus}
 ![](assets/logos/chorus.png){.project-logo fig-alt="CHORUS hex sticker"}
 
 ### CHORUS
@@ -44,7 +44,7 @@ Constituent Hazard, Occurrence, Regulatory, and Uncertainty Screening. A screeni
 [GitHub](https://github.com/seanthimons/chorus){.btn .btn-primary}
 :::
 
-::: {.card}
+::: {.card .card-boosterpak}
 ![](assets/logos/boosterpak.png){.project-logo fig-alt="boosterpak hex sticker"}
 
 ### boosterpak
@@ -54,7 +54,7 @@ Reusable R project capability packs: typed bundles of dependencies, optional sou
 [GitHub](https://github.com/seanthimons/boosterpak){.btn .btn-primary}
 :::
 
-::: {.card}
+::: {.card .card-specmill}
 ![](assets/logos/specmill.png){.project-logo fig-alt="specmill hex sticker"}
 
 ### specmill
@@ -64,7 +64,7 @@ R package for generating and maintaining API clients from local OpenAPI schemas 
 [GitHub](https://github.com/seanthimons/specmill){.btn .btn-primary}
 :::
 
-::: {.card}
+::: {.card .card-serapeum}
 ![](assets/logos/serapeum.png){.project-logo fig-alt="Serapeum hex sticker"}
 
 ### Serapeum
