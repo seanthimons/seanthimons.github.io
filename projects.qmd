@@ -76,53 +76,22 @@ Local-first literature-review and research assistant built with R, Shiny, DuckDB
 
 :::
 
-## Software and Tools I Use
+## Packages and tools I use
 
-| Area | Tools |
+Most of my work starts in R. The rest of the stack exists to make the analysis inspectable, repeatable, and usable by someone other than the person who first wrote it.
+
+| Work | Packages and tools |
 |:--|:--|
-| **Analysis and visualization** | R, tidyverse, ggplot2, plotly, Quarto |
-| **Applications and packages** | Shiny, bslib, R package development, pak, renv |
-| **Databases and pipelines** | DuckDB, SQL, reproducible ETL, FAIR/DRY data curation |
-| **Automation and integration** | Python, shell scripting, GitHub Actions, APIs |
-| **Scientific and collaboration layer** | Git, GitHub, Obsidian, Markdown, citation workflows, AI coding agents when the work is bounded and reviewable |
+| **Analysis and visualization** | R, tidyverse, dplyr, tidyr, readr, purrr, ggplot2, plotly |
+| **Applications** | Shiny and bslib for interactive tools that put data and methods in front of the people who need to use them |
+| **Reproducible projects** | Quarto for publishing, pak for installation, renv for project libraries and lockfiles, and [boosterpak](https://github.com/seanthimons/boosterpak) for reusable project capability packs |
+| **Data and pipelines** | DuckDB, SQL, API clients, and reproducible ETL for chemical and environmental data curation |
+| **Automation and collaboration** | Python, shell scripting, Git, GitHub Actions, Obsidian, Markdown, and citation workflows |
 
-## Research Focus
-
-My EPA research spans risk characterization for water reuse, chemical safety data curation, and cross-disciplinary integration for chemical safety decision-making.
-
-## Technical Support
-
--   Region 8 RARE project: *Evaluation of Produced Water Intended for Beneficial Reuse in Multiple Oil and Gas Basins*. Stakeholders include EPA’s Region 3 and 6, US Department of Energy’s National Energy Technology Laboratory, and US EPA ORD-CCTE/CEMM
-
-    -   Front-end R Shiny application development for site prioritization utilizing field and experimental data for acute, chronic, and cumulative toxicological evaluation.
-
--   New Mexico Produced Water Research Consortium’s Risk and Toxicology work group (workgroup lead), the Multi-State Coordination Counsel, and the Water-Portal and Data Management work group.
-
-    -   Development of risk-based workflow to assess acute and chronic potential across human and ecological receptors and determine potential for fit-for-purpose usage of treated produced water.
-
--   *Potable Water Reuse in Protein Production and Processing*, Collaborative partnership of Tyson Foods, University of Nebraska, and the United States Department of Agriculture
-
--   *Evaluating the Microbial and Chemical Quality of Air Handler Unit Condensate*, US EPA project
-
--   *Integrated Performance Framework for Emerging Contaminants in Wastewater Treatment Plants*, US EPA project
-
--   Technical support for New Mexico State University’s *Non-Targeted Analysis and Whole Effluent Toxicity* testing efforts for produced water to assess acute and chronic effects of exposure.
-
--   Technical support for *SSWR.411.3* : BIL/IIJA Funded Technical Assistance Projects to Support the Drinking Water State Revolving Fund
-
-    -   Front-end R Shiny application development utilizing EJScreen and machine-learning models for site prioritization
-
-## Selected Awards and Professional Experience
-
--   New Mexico Produced Water Research Consortium
--   US EPA *Shooting Star Award*: “Region 8 is grateful for your work organizing and analyzing our produced water data”
+`boosterpak` is the piece I built for the gap between a package list and a project template. A pack can declare the dependencies, helper functions, startup choices, configuration, and checks needed for a particular kind of R project. `pak` still installs packages and `renv` still records the library. The pack records the working setup.
 
 ## Publications
 
 ::: {#refs}
 [@*]
 :::
-
-## Presentations, Posters, and Panels
-
-Talks, posters, panels, and slide decks now live in the dedicated [Presentations](presentations/index.qmd) archive.
