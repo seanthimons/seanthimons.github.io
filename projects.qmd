@@ -78,17 +78,41 @@ Local-first literature-review and research assistant built with R, Shiny, DuckDB
 
 ## Packages and tools I use
 
-Most of my work starts in R. The rest of the stack exists to make the analysis inspectable, repeatable, and usable by someone other than the person who first wrote it.
+This is the working stack, not a prescription. I care less about the exact app than whether the work can be inspected, reproduced, and handed to the next person without a séance.
 
-| Work | Packages and tools |
-|:--|:--|
-| **Analysis and visualization** | R, tidyverse, dplyr, tidyr, readr, purrr, ggplot2, plotly |
-| **Applications** | Shiny and bslib for interactive tools that put data and methods in front of the people who need to use them |
-| **Reproducible projects** | Quarto for publishing, pak for installation, renv for project libraries and lockfiles, and [boosterpak](https://github.com/seanthimons/boosterpak) for reusable project capability packs |
-| **Data and pipelines** | DuckDB, SQL, API clients, and reproducible ETL for chemical and environmental data curation |
-| **Automation and collaboration** | Python, shell scripting, Git, GitHub Actions, Obsidian, Markdown, and citation workflows |
+### Analysis, visualization, and maps
 
-`boosterpak` is the piece I built for the gap between a package list and a project template. A pack can declare the dependencies, helper functions, startup choices, configuration, and checks needed for a particular kind of R project. `pak` still installs packages and `renv` still records the library. The pack records the working setup.
+Most of my technical work starts in [R](https://www.r-project.org/) and the [tidyverse](https://www.tidyverse.org/). I use `dplyr`, `tidyr`, `readr`, and `purrr` to make data transformations explicit rather than burying them in a succession of spreadsheet edits. `ggplot2` is the default for figures, while `plotly` is useful when an interactive view actually helps someone explore a result.
+
+For chemical and environmental work, the hard part is usually not the model. It is building a defensible path from messy source records to an analysis table. That means readable R scripts, stable identifiers, preserved raw inputs, and a record of each transformation.
+
+### Local data and applications
+
+[DuckDB](https://duckdb.org/) and SQL are the local analytical layer. They are particularly useful when source data have outgrown a folder of CSV files but do not need a service or a full database administration project.
+
+I build interactive tools with [Shiny](https://shiny.posit.co/) and [bslib](https://rstudio.github.io/bslib/). The goal is not to put a dashboard on every question. It is to put methods, inputs, and results where collaborators can inspect and use them without asking someone to rerun a script.
+
+### Writing and publication
+
+[Quarto](https://quarto.org/) and Markdown are the publishing layer for reports, presentations, reproducible analyses, and this site. I want the prose, code, figures, citations, and output in one reviewable project rather than split across a document, a spreadsheet, and a folder named `final_final_v3`.
+
+[Obsidian](https://obsidian.md/) is my durable notebook and operations record. Project notes, decisions, research references, and handoffs live there so the work has a memory outside of chat logs and my head.
+
+### Reproducible R projects
+
+[pak](https://pak.r-lib.org/) installs packages. [renv](https://rstudio.github.io/renv/) records the project library and lockfile. They handle different jobs, and I use both.
+
+I built [boosterpak](https://github.com/seanthimons/boosterpak) for the layer above that: a reusable project capability pack. A pack can declare dependencies, helper functions, startup choices, configuration, and checks for a specific kind of project. It keeps recurring setup visible and reusable without pretending a package list alone is a workflow.
+
+### Version control, automation, and remote work
+
+[Git](https://git-scm.com/) and [GitHub](https://github.com/) are the record of changes. GitHub Actions handles the boring, important checks and site deployment. Python and shell scripts fill the gaps when R is not the right tool for a small job.
+
+I use Tailscale and mobile SSH through Terminus to reach the same working environment away from my desk. The point is continuity, not turning every project into an infrastructure project.
+
+### AI-assisted development
+
+I use Claude Code, Hermes, and custom task skills as development tools. They are useful for bounded work: exploring a codebase, drafting a first pass, running checks, and keeping long projects moving. They are not a substitute for source data, domain judgment, or reviewing what actually changed.
 
 ## Publications
 
