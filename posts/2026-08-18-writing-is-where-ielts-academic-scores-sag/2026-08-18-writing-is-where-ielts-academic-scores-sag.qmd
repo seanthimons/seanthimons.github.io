@@ -1,0 +1,406 @@
+---
+title: "Tidy Tuesday: Writing is where IELTS Academic scores sag"
+author: "Sean Thimons"
+date: "2026-08-18"
+description: "In all 40 first-language groups in the 2024-25 IELTS Academic statistics, the mean writing score sits below the average of the other three sections. That includes native English speakers."
+categories:
+  - tidytuesday
+  - R
+  - education
+  - language
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "Navajo"
+palette_source <- "MetBrewer"
+palette_type <- "discrete"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-08-18).
+
+> IELTS is proud to offer transparent statistics on our testing system. The following data has been compiled from the scores achieved by various groups of test takers. It helps researchers and teachers understand the performance of the test and how test takers perform in particular countries or regions.
+
+IELTS is the English test a lot of people take to get into a university, a job, or a country. It has four sections (listening, reading, writing, speaking), each scored in bands from 1 to 9, and an overall band that averages them. There are two versions: Academic and General Training. This week's data comes from the [IELTS test statistics page](https://ielts.org/researchers/our-research/test-statistics) and covers three yearly releases, with mean scores by nationality and by first language. Elio Campitelli curated it.
+
+One of the suggested questions asks which part of the test people find hardest, and whether that changes from group to group. For the Academic test the answer is boring in a useful way. It's writing, for almost everyone, every year. The data also has a second, odder pattern involving listening and reading. I flag it at the end, because it changes how much I'd trust any claim about those two sections.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidytuesdayR)
+library(skimr)
+library(scales)
+library(paletteer)
+library(ggrepel)
+
+`%ni%` <- Negate(`%in%`)
+
+navajo <- as.character(paletteer::paletteer_d("MetBrewer::Navajo"))
+ink_red <- navajo[1]
+ink_navy <- navajo[4]
+paper <- navajo[5]
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-08-18")
+performance_by_first_language <- raw$performance_by_first_language
+```
+
+# Exploratory data analysis
+
+I'm sticking with the first-language table. Nationality is a messier proxy for how someone learned English.
+
+```{r}
+#| label: eda-performance-by-first-language
+#| echo: true
+#| output: true
+
+performance_by_first_language %>%
+  select(type, part, score, year) %>%
+  skim()
+
+performance_by_first_language %>%
+  count(type, year)
+
+performance_by_first_language %>%
+  count(part)
+```
+
+Each release has 40 first-language groups per test type, with a mean score for each of the four sections plus the overall band. The scores are all group means, from about 4.3 to 8.1 bands. The file has no counts of test takers, so a language group with a few hundred candidates gets the same weight as one with hundreds of thousands. Two other quirks: the oldest release (labelled `2022-2023`) reports scores rounded to one decimal, and the language list shifts a little between years, partly through spelling (`Gujarati` and `Gujurati`, `Sinhalese` and `Singhalese`).
+
+# Writing sits below everything else
+
+The simplest comparison I could think of: for each language group, take the mean writing score and subtract the average of the other three section means. A negative number means writing is the group's weak spot.
+
+```{r}
+#| label: writing-gap
+#| echo: true
+#| output: true
+
+writing_gap <- performance_by_first_language %>%
+  filter(part %in% c("listening", "reading", "writing", "speaking")) %>%
+  group_by(type, year, language) %>%
+  summarise(
+    writing = score[part == "writing"],
+    other_three = mean(score[part != "writing"]),
+    .groups = "drop"
+  ) %>%
+  mutate(gap = writing - other_three)
+
+cat(sprintf("writing_gap: %d rows, %d cols\n", nrow(writing_gap), ncol(writing_gap)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(writing_gap) > 0)
+
+writing_gap %>%
+  group_by(type, year) %>%
+  summarise(
+    languages = n(),
+    writing_below_others = sum(gap < 0),
+    median_gap = round(median(gap), 2),
+    .groups = "drop"
+  )
+```
+
+The Academic rows are lopsided. In every release, writing comes in below the other three sections for 39 or 40 of the 40 groups, and the typical gap is close to half a band. General Training is less tidy, and I'll come back to why below. The rest of this post sticks to Academic, which is the version universities ask for.
+
+```{r}
+#| label: fig-writing-gap-hero
+#| fig-cap: "Mean IELTS Academic writing score against the average of each group's listening, reading, and speaking means, 2024-25 release. Groups are ordered by the size of the gap. These are unweighted group means; the source does not report how many people are in each group."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 11
+#| fig-dpi: 300
+
+academic_latest <- writing_gap %>%
+  filter(type == "Academic", year == "2024-2025") %>%
+  arrange(gap) %>%
+  mutate(
+    language = fct_inorder(language) %>% fct_rev(),
+    is_english = language == "English"
+  )
+
+cat(sprintf("academic_latest: %d rows, %d cols\n", nrow(academic_latest), ncol(academic_latest)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(academic_latest) > 0)
+
+english_row <- academic_latest %>% filter(is_english)
+top_row <- academic_latest %>% slice(1)
+n_below <- sum(academic_latest$gap < 0)
+
+english_note <- sprintf(
+  "Native English speakers average %.2f in writing,\n%.2f bands below their other three sections.\nGerman and Greek speakers outscore them overall.",
+  english_row$writing,
+  abs(english_row$gap)
+)
+
+p <- academic_latest %>%
+  ggplot(aes(y = language)) +
+  annotate(
+    "rect",
+    xmin = -Inf, xmax = Inf,
+    ymin = as.numeric(english_row$language) - 0.5,
+    ymax = as.numeric(english_row$language) + 0.5,
+    fill = paper, alpha = 0.55
+  ) +
+  geom_segment(
+    aes(x = writing, xend = other_three, yend = language),
+    color = "grey70",
+    linewidth = 1.1
+  ) +
+  geom_point(aes(x = other_three), color = ink_navy, size = 3) +
+  geom_point(aes(x = writing), color = ink_red, size = 3) +
+  geom_text(
+    aes(x = 8.7, label = sprintf("%+.2f", gap)),
+    hjust = 1,
+    size = 3.2,
+    color = "grey30",
+    family = "mono"
+  ) +
+  annotate(
+    "text",
+    x = top_row$writing, y = as.numeric(top_row$language) + 1.1,
+    label = "Writing", color = ink_red, fontface = "bold", size = 3.8
+  ) +
+  annotate(
+    "text",
+    x = top_row$other_three, y = as.numeric(top_row$language) + 1.1,
+    label = "Other three sections", color = ink_navy, fontface = "bold", size = 3.8
+  ) +
+  annotate(
+    "text",
+    x = 8.7, y = as.numeric(top_row$language) + 1.1,
+    label = "Gap", hjust = 1, color = "grey30", fontface = "bold", size = 3.6
+  ) +
+  annotate(
+    "label",
+    x = 7.0, y = as.numeric(english_row$language) - 6,
+    label = english_note,
+    hjust = 0, size = 3.3, lineheight = 1.05,
+    fill = "white", border.colour = NA, color = "grey15"
+  ) +
+  annotate(
+    "segment",
+    x = 7.3, xend = english_row$other_three + 0.04,
+    y = as.numeric(english_row$language) - 4.6,
+    yend = as.numeric(english_row$language) - 0.3,
+    color = "grey40", linewidth = 0.35,
+    arrow = arrow(length = unit(0.08, "inches"))
+  ) +
+  scale_x_continuous(
+    breaks = seq(5.5, 8, by = 0.5),
+    position = "top",
+    expand = expansion(mult = c(0.02, 0.01))
+  ) +
+  coord_cartesian(xlim = c(5.4, 8.7), ylim = c(0.5, nrow(academic_latest) + 1.6), clip = "off") +
+  labs(
+    title = sprintf("Writing is the low section for %d of %d first languages", n_below, nrow(academic_latest)),
+    subtitle = "IELTS Academic, 2024-25: mean writing band against the mean of listening, reading and speaking",
+    x = "Mean band score",
+    y = NULL,
+    caption = "Data: IELTS test statistics via TidyTuesday 2026-08-18. Group means, unweighted by number of test takers."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(color = "grey90", linewidth = 0.3),
+    axis.text.y = element_text(color = "grey20", size = 10),
+    axis.title.x = element_text(color = "grey40", size = 10, hjust = 0),
+    plot.title = element_text(face = "bold", size = 17),
+    plot.subtitle = element_text(color = "grey30", margin = margin(b = 10)),
+    plot.caption = element_text(color = "grey45", hjust = 0, size = 8.5),
+    plot.title.position = "plot",
+    plot.caption.position = "plot",
+    plot.margin = margin(12, 16, 10, 10)
+  )
+
+p
+```
+
+```{r}
+#| label: writing-gap-callouts
+#| echo: true
+#| output: true
+
+academic_latest %>%
+  filter(row_number() %in% c(1:3, (n() - 2):n()) | is_english) %>%
+  transmute(language, writing = round(writing, 2), other_three = round(other_three, 2), gap = round(gap, 2))
+```
+
+German speakers have the widest gap, about 1.2 bands, and they still have the highest writing mean of any group. They just do even better on the other sections. At the other end are Vietnamese, Punjabi, Japanese, and Chinese speakers, where writing is barely below the rest. For three of them that isn't because their writing is strong. Japanese, Chinese, and Vietnamese speakers have the three lowest speaking means in the table, which pulls the comparison point down.
+
+The English row was the one I wanted to see. The dataset's first suggested question asks whether English speakers get top marks on an English test. They don't. Native English speakers come third overall in the Academic table, behind German and Greek speakers, and their writing mean of `r sprintf("%.2f", english_row$writing)` is lower than the German group's. Academic writing is its own skill: a timed essay and a chart description, marked on structure and register. Speaking English since childhood doesn't get you there automatically.
+
+::: {.callout-note}
+These are group means. A half-band gap between two section means says nothing about any one person's score profile, and the source gives no group sizes or spreads, so I haven't attached uncertainty to any of it.
+:::
+
+# A caveat about listening and reading
+
+General Training looked odd in the summary table, and the reason is the other two sections. In the 2022-23 and 2023-24 releases, listening averages well above reading for both test types: about 0.3 bands higher for Academic and 0.45 for General Training. In 2024-25 that flips. Reading comes out ahead of listening by almost exactly the same margins.
+
+```{r}
+#| label: section-means-by-year
+#| echo: true
+#| output: true
+
+performance_by_first_language %>%
+  filter(part %in% c("listening", "reading", "writing", "speaking")) %>%
+  group_by(type, year, part) %>%
+  summarise(mean_of_groups = round(mean(score), 2), .groups = "drop") %>%
+  pivot_wider(names_from = part, values_from = mean_of_groups)
+```
+
+Whole populations don't usually swap their two best skills in a year. So I checked which 2024-25 column looks more like the previous year's listening scores, language by language.
+
+```{r}
+#| label: fig-listening-reading-check
+#| fig-cap: "Each point is a first-language group present in both the 2023-24 and 2024-25 releases. The x-axis is the 2023-24 listening mean. The two panels show the 2024-25 column labelled listening and the one labelled reading. The dashed line is y = x. Correlations are printed in each panel."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 5.6
+#| fig-dpi: 300
+
+swap_check <- performance_by_first_language %>%
+  filter(year %in% c("2023-2024", "2024-2025"), part %in% c("listening", "reading")) %>%
+  pivot_wider(names_from = c(part, year), values_from = score) %>%
+  filter(!is.na(`listening_2023-2024`), !is.na(`listening_2024-2025`)) %>%
+  pivot_longer(
+    c(`listening_2024-2025`, `reading_2024-2025`),
+    names_to = "label_2024", values_to = "score_2024"
+  ) %>%
+  mutate(
+    label_2024 = if_else(
+      label_2024 == "listening_2024-2025",
+      "2024-25 column labelled listening",
+      "2024-25 column labelled reading"
+    ),
+    type = str_replace(type, "_", " ")
+  )
+
+cat(sprintf("swap_check: %d rows, %d cols\n", nrow(swap_check), ncol(swap_check)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(swap_check) > 0)
+
+swap_cor <- swap_check %>%
+  group_by(type, label_2024) %>%
+  summarise(r = cor(`listening_2023-2024`, score_2024), n = n(), .groups = "drop") %>%
+  mutate(
+    label = sprintf("%s: r = %.2f (n = %d)", type, r, n),
+    label_y = if_else(type == "Academic", 8.25, 7.95)
+  )
+
+swap_cor
+
+p_swap <- swap_check %>%
+  ggplot(aes(`listening_2023-2024`, score_2024, color = type)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "22", color = "grey55") +
+  geom_point(alpha = 0.8, size = 2.2) +
+  geom_text(
+    data = swap_cor,
+    aes(x = 4.45, y = label_y, label = label),
+    hjust = 0, vjust = 1, size = 3.2,
+    show.legend = FALSE
+  ) +
+  facet_wrap(~ label_2024) +
+  scale_color_manual(values = c("Academic" = ink_navy, "General Training" = ink_red), name = NULL) +
+  coord_equal(xlim = c(4.4, 8.3), ylim = c(4.4, 8.3)) +
+  labs(
+    title = "For Academic, the 2024-25 reading column tracks the old listening scores",
+    subtitle = "Each 2024-25 column plotted against the 2023-24 listening mean for the same group",
+    x = "2023-24 listening mean",
+    y = "2024-25 mean"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),
+    strip.text = element_text(face = "bold", hjust = 0),
+    plot.title = element_text(face = "bold"),
+    plot.title.position = "plot",
+    legend.position = "top",
+    legend.justification = "left"
+  )
+
+p_swap
+```
+
+A group's listening mean one year should predict its listening mean the next year better than anything else. For Academic it doesn't. The 2024-25 column labelled reading matches 2023-24 listening at r = 0.98, and the column labelled listening only manages 0.89. For General Training the check doesn't settle anything, because both columns correlate about equally (0.92 and 0.91). The section means still flip there, though. I checked the IELTS spreadsheet for 2024-25 and the headers there do say Listening, then Reading, so this isn't a mistake in the TidyTuesday cleaning script. It could be a real change in the test, a change in how IELTS builds the table, or two columns swapped at the source. I can't tell which from here.
+
+This matters for General Training. Reading has the lowest mean of the four sections in the first two releases, and listening has it in the last one. That looks like the same two columns trading places, and it's why writing's position in General Training is harder to read than in Academic. It doesn't affect the writing result, because writing doesn't depend on which of those two columns is which, and the comparison uses the average of all three other sections either way.
+
+# Final thoughts and takeaways
+
+For IELTS Academic, writing is the weakest section for every first-language group in the latest release, and for 39 or 40 of 40 groups in each of the earlier ones. The gap is usually around half a band. Native English speakers show the same gap and don't top the table. If I were advising someone preparing for this test, I'd tell them to spend the extra hours on the essay.
+
+The limits are real. These are unweighted means of means with no group sizes, so I can't say anything about individuals or put intervals on the gaps. The 2022-23 figures are rounded to one decimal. And the listening/reading flip in the 2024-25 release means I wouldn't build anything on year-over-year changes in those two sections until IELTS explains it.
