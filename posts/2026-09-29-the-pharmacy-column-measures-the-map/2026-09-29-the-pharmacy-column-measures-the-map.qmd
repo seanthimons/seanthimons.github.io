@@ -1,0 +1,391 @@
+---
+title: "Tidy Tuesday: Shanghai has 451 hospitals and no pharmacies, according to this map"
+author: "Sean Thimons"
+date: "2026-09-29"
+description: "The GHSL urban centre health data has hospital and pharmacy counts for 11,422 cities. Most cities have no pharmacy number at all, and which ones do depends more on the country than on the city."
+categories:
+  - tidytuesday
+  - R
+  - health
+  - urban
+  - data-quality
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "lanonc_lancet"
+palette_source <- "ggsci"
+palette_type <- "discrete"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-09-29).
+
+> This week we're exploring the Global Human Settlement Urban Centre Database Produced by the Joint Research Centre (JRC) of the European Commission, part of the Copernicus Emergency Management Service. These are open and free data and tools to assess the human presence on the planet. The dataset covers more than 10,000 urban centres worldwide, each delineated using a population density, size, and grid-cell contiguity method called the Degree of Urbanisation. Here, we are specifically looking at the Health component which details information regarding hospitals and pharmacies in urban centers.
+
+Gabriela Palomo-Munoz curated this one, and the first suggested question asks which city or country has the most hospitals and pharmacies per capita. I started down that road and stopped fast. Shanghai, a city of about 31 million people, has no pharmacy count in this file. Neither does Istanbul or Cairo. Mumbai has four. Once I looked at which cities *do* have a pharmacy number, it was clear the pharmacy column says more about how well each country's facilities have been mapped than about how many pharmacies it has.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidytuesdayR)
+library(skimr)
+library(scales)
+library(paletteer)
+
+`%ni%` <- Negate(`%in%`)
+
+lancet <- as.character(paletteer::paletteer_d("ggsci::lanonc_lancet"))
+hospital_col <- lancet[1]
+pharmacy_col <- lancet[2]
+ink <- lancet[9]
+fog <- lancet[8]
+paper <- "#F7F8F8"
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-09-29")
+
+health <- raw$health
+```
+
+# Exploratory data analysis
+
+The column names are the GHSL codes, so I'm giving them short names first. I'm dropping the ID and the city name from the skim, since neither is useful to summarize.
+
+```{r}
+#| label: eda-health
+#| echo: true
+#| output: true
+
+centres <- health %>%
+  transmute(
+    id = ID_UC_G0,
+    city = GC_UCN_MAI_2025,
+    country = GC_CNT_GAD_2025,
+    area_km2 = GC_UCA_KM2_2025,
+    pop = GC_POP_TOT_2025,
+    income = GC_DEV_WIG_2025,
+    region = GC_DEV_USR_2025,
+    hospitals = HL_FCL_HOS_2024,
+    pharmacies = HL_FCL_PHA_2024,
+    share_near_hospital = HL_SHP_HOS_2025,
+    share_near_pharmacy = HL_SHP_PHA_2025
+  )
+
+centres %>%
+  select(-id, -city) %>%
+  skim()
+
+centres %>%
+  count(income)
+```
+
+The thing that jumps out is the missingness. Out of `r comma(nrow(centres))` urban centres, `r comma(sum(is.na(centres$hospitals)))` have no hospital count and `r comma(sum(is.na(centres$pharmacies)))` have no pharmacy count. That's `r percent(mean(is.na(centres$pharmacies)), accuracy = 1)` of the file with no pharmacy number at all.
+
+The counts are odd in another way, too. The smallest count in either column is 2, never 0 or 1, and most counts are even:
+
+```{r}
+#| label: count-parity
+#| echo: true
+#| output: true
+
+centres %>%
+  pivot_longer(c(hospitals, pharmacies), names_to = "facility", values_to = "n") %>%
+  filter(!is.na(n)) %>%
+  group_by(facility) %>%
+  summarise(
+    centres_with_count = n(),
+    smallest = min(n),
+    even_counts = mean(n %% 2 == 0)
+  )
+```
+
+The data dictionary doesn't explain this. My guess is that a missing value here means "nothing was found," not "no one checked," since a city with zero facilities would otherwise show up as 0 somewhere. I can't confirm it from the metadata, though, so I'm calling these cities "no pharmacy recorded" and not "no pharmacies."
+
+# Where the pharmacies are missing
+
+If missing pharmacy counts were mostly a small-town problem, I'd expect them to disappear in the biggest cities. They don't.
+
+```{r}
+#| label: missing-by-size
+#| echo: true
+#| output: true
+
+missing_by_size <- centres %>%
+  mutate(
+    size_band = cut(
+      pop,
+      breaks = c(0, 1e5, 2.5e5, 1e6, 5e6, Inf),
+      labels = c("50k-100k", "100k-250k", "250k-1M", "1M-5M", "Over 5M")
+    )
+  ) %>%
+  group_by(size_band) %>%
+  summarise(
+    centres = n(),
+    no_hospital = mean(is.na(hospitals)),
+    no_pharmacy = mean(is.na(pharmacies))
+  )
+
+missing_by_size
+
+megacities <- centres %>%
+  filter(pop > 5e6)
+
+mega_no_pharmacy <- megacities %>%
+  filter(is.na(pharmacies)) %>%
+  arrange(desc(pop))
+
+shanghai <- centres %>%
+  filter(city == "Shanghai")
+
+stopifnot(nrow(shanghai) == 1, nrow(mega_no_pharmacy) > 0)
+```
+
+Every one of the `r nrow(megacities)` urban centres over five million people has a hospital count. `r nrow(mega_no_pharmacy)` of them have no pharmacy count, and `r sum(mega_no_pharmacy$country == "China")` of those are in China: Shanghai, Suzhou, Nanjing, Hangzhou, Chengdu, Chongqing, and more. Shanghai has `r shanghai$hospitals` hospitals recorded and no pharmacies. Turkey and Egypt look the same. Istanbul has `r centres$hospitals[centres$city %in% "Istanbul"]` hospitals and no pharmacy count. Cairo has `r centres$hospitals[centres$city %in% "Cairo"]` hospitals and none either.
+
+Those aren't cities without pharmacies. They're cities where this source didn't pick any up. So the next step is to look at coverage by country.
+
+```{r}
+#| label: build-country-coverage
+#| echo: true
+#| output: true
+
+income_levels <- c("High income", "Upper Middle", "Lower Middle", "Low income")
+
+country_coverage <- centres %>%
+  filter(!is.na(income)) %>%
+  group_by(country, income) %>%
+  summarise(
+    centres = n(),
+    with_hospital = mean(!is.na(hospitals)),
+    with_pharmacy = mean(!is.na(pharmacies)),
+    .groups = "drop"
+  ) %>%
+  filter(centres >= 50) %>%
+  mutate(
+    income = factor(income, levels = income_levels),
+    country = fct_reorder(country, with_pharmacy)
+  )
+
+cat(sprintf("country_coverage: %d rows, %d cols\n", nrow(country_coverage), ncol(country_coverage)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(country_coverage) > 0)
+stopifnot("Income levels didn't match" = !anyNA(country_coverage$income))
+
+country_coverage %>%
+  arrange(desc(with_pharmacy)) %>%
+  mutate(across(starts_with("with_"), ~ percent(.x, accuracy = 1))) %>%
+  print(n = Inf)
+
+overall_pharmacy <- mean(!is.na(centres$pharmacies))
+```
+
+These are the `r nrow(country_coverage)` countries with at least 50 urban centres. In France, `r percent(country_coverage$with_pharmacy[country_coverage$country == "France"], accuracy = 1)` of urban centres have a pharmacy count. In Japan it's `r percent(country_coverage$with_pharmacy[country_coverage$country == "Japan"], accuracy = 1)`. In China it's `r percent(country_coverage$with_pharmacy[country_coverage$country == "China"], accuracy = 1)`, across `r comma(country_coverage$centres[country_coverage$country == "China"])` urban centres. Hospital coverage varies too, but it's higher than pharmacy coverage almost everywhere. Japan and Canada are the only exceptions. The biggest gap is Turkey: `r percent(country_coverage$with_hospital[country_coverage$country == "Turkey"], accuracy = 1)` of its urban centres have a hospital count and `r percent(country_coverage$with_pharmacy[country_coverage$country == "Turkey"], accuracy = 1)` have a pharmacy count.
+
+```{r}
+#| label: fig-pharmacy-coverage
+#| fig-cap: "Share of each country's urban centres that have a hospital count (blue) and a pharmacy count (red) in the GHSL health data. Only countries with at least 50 urban centres are shown, grouped by the World Bank income group in the file. A missing count means no facility was recorded, which isn't the same as no facility existing. Shanghai is called out because it's the largest city with no pharmacy count. The dashed line is the share of all 11,422 urban centres with a pharmacy count."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 12
+#| fig-dpi: 300
+
+coverage_long <- country_coverage %>%
+  pivot_longer(
+    c(with_hospital, with_pharmacy),
+    names_to = "facility",
+    values_to = "share"
+  ) %>%
+  mutate(facility = recode(facility, with_hospital = "Hospital", with_pharmacy = "Pharmacy"))
+
+stopifnot(nrow(coverage_long) == 2 * nrow(country_coverage))
+
+key_labels <- coverage_long %>%
+  filter(country == "Russia") %>%
+  mutate(label = if_else(facility == "Hospital", "hospital count", "pharmacy count"))
+
+china <- country_coverage %>%
+  filter(country == "China")
+
+# The China segment ends at its hospital share, so the note starts just past it
+china_note <- tibble(
+  income = factor("Upper Middle", levels = income_levels),
+  x = china$with_hospital + 0.03,
+  y = "China",
+  label = sprintf("Shanghai: %d hospitals, no pharmacies recorded", shanghai$hospitals)
+)
+
+overall_note <- tibble(
+  income = factor("Low income", levels = income_levels),
+  x = overall_pharmacy,
+  y = "North Korea",
+  label = sprintf("All urban centres: %s have a pharmacy count", percent(overall_pharmacy, accuracy = 1))
+)
+
+p <- ggplot(country_coverage, aes(y = country)) +
+  geom_vline(xintercept = overall_pharmacy, linetype = "22", color = ink, linewidth = 0.4) +
+  geom_segment(
+    aes(x = with_pharmacy, xend = with_hospital, yend = country),
+    color = fog, linewidth = 1.1
+  ) +
+  geom_point(
+    data = coverage_long,
+    aes(x = share, color = facility),
+    size = 2.8
+  ) +
+  geom_text(
+    data = key_labels,
+    aes(x = share, label = label, color = facility),
+    vjust = -1, size = 3, fontface = "bold"
+  ) +
+  geom_text(
+    data = china_note,
+    aes(x = x, y = y, label = label),
+    hjust = 0, vjust = 0.5, size = 3.1, color = pharmacy_col, fontface = "italic"
+  ) +
+  geom_text(
+    data = overall_note,
+    aes(x = x, y = y, label = label),
+    hjust = 0, nudge_x = 0.01, vjust = 0.5, size = 3, color = ink
+  ) +
+  scale_color_manual(values = c(Hospital = hospital_col, Pharmacy = pharmacy_col), guide = "none") +
+  scale_x_continuous(
+    labels = label_percent(),
+    breaks = seq(0, 1, 0.25),
+    limits = c(0, 1),
+    expand = expansion(mult = c(0.01, 0.02))
+  ) +
+  facet_grid(income ~ ., scales = "free_y", space = "free_y", switch = "y") +
+  coord_cartesian(clip = "off") +
+  labs(
+    title = "Whether a city has a pharmacy count depends on its country",
+    subtitle = "Share of urban centres with at least one hospital or pharmacy recorded in the 2024 counts",
+    x = "Share of the country's urban centres with a count",
+    y = NULL,
+    caption = "Data: GHS Urban Centre Database R2024A, health theme (European Commission JRC), via TidyTuesday 2026-09-29.\nCountries with at least 50 urban centres. Income groups are the World Bank groups carried in the file."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = paper, color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "grey88", linewidth = 0.3),
+    panel.spacing.y = unit(0.9, "lines"),
+    strip.placement = "outside",
+    strip.text.y.left = element_text(angle = 0, hjust = 1, vjust = 1, face = "bold", color = ink, size = 10),
+    axis.text.y = element_text(color = "grey25", size = 9.5),
+    axis.text.x = element_text(color = "grey35"),
+    axis.title.x = element_text(color = "grey30", size = 10, hjust = 0, margin = margin(t = 8)),
+    plot.title = element_text(face = "bold", size = 18, color = ink),
+    plot.subtitle = element_text(color = "grey30", size = 10.5, margin = margin(b = 12)),
+    plot.caption = element_text(color = "grey45", hjust = 0, size = 8.5, lineheight = 1.1),
+    plot.title.position = "plot",
+    plot.caption.position = "plot",
+    plot.margin = margin(14, 18, 10, 10)
+  )
+
+p
+```
+
+Read the red dots from top to bottom inside each income group. The high-income countries mostly sit on the right, but not all of them: Spain and Italy are well below Brazil and Russia. Ukraine, a lower-middle income country in this file, has better pharmacy coverage than Germany. And China, an upper-middle income country with plenty of pharmacies, has the same pharmacy coverage as Egypt, North Korea, and Yemen: next to none.
+
+::: {.callout-note}
+This matters for the suggested income question. Here's the median pharmacies per 100,000 people by income group, using only the cities that have a count:
+
+```{r}
+#| label: income-per-capita
+#| echo: true
+#| output: true
+
+centres %>%
+  filter(!is.na(income)) %>%
+  mutate(income = factor(income, levels = income_levels)) %>%
+  group_by(income) %>%
+  summarise(
+    centres = n(),
+    with_pharmacy = percent(mean(!is.na(pharmacies)), accuracy = 1),
+    median_pharmacies_per_100k = median(pharmacies / pop * 1e5, na.rm = TRUE)
+  )
+```
+
+The median rises with income. But in low-income countries that median comes from the few cities with any pharmacy recorded, and in high-income countries from most of them. Those aren't comparable groups.
+:::
+
+# Final thoughts and takeaways
+
+I wouldn't use the pharmacy column to rank cities or countries. It works as a map of where pharmacies have been recorded, and that map follows national data coverage more than wealth, size, or anything about health care. France and Japan are nearly complete. China, Turkey, and Egypt are nearly empty, even in cities of 14 to 31 million people.
+
+The hospital column is in better shape. Every urban centre over five million has a count. But it has the same problem at a smaller scale: `r percent(mean(is.na(centres$hospitals[centres$pop <= 1e5])), accuracy = 1)` of centres under 100,000 people have no hospital count, against `r percent(mean(is.na(centres$hospitals[centres$pop > 1e6])), accuracy = 1)` of centres over a million. A per-capita hospital ranking would quietly drop more than half of the small cities before it started.
+
+The caveats are mostly about what I don't know. The TidyTuesday metadata says the database draws on "a variety of open source datasets" and doesn't say which ones feed the facility counts, so I can't tell you *why* China's pharmacies are missing, only that they are. I also don't know why the counts start at 2 and are mostly even. If someone knows the GHSL facility method, I'd like to hear it. Until then, the honest answer to "which city has the most pharmacies per capita" is "whichever one got mapped best."

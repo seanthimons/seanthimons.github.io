@@ -1,0 +1,352 @@
+---
+title: "Tidy Tuesday: In 1990, 83 cities were more than 40% green. By 2020, none were."
+author: "Sean Thimons"
+date: "2026-09-22"
+description: "UN-Habitat's satellite estimates of urban green space show the greenest cities of 1990 losing the most. Every one of them dropped, and most lost more than half their green share."
+categories:
+  - tidytuesday
+  - R
+  - urban
+  - environment
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "Olympic"
+palette_source <- "NatParksPalettes"
+palette_type <- "discrete"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-09-22).
+
+> This week we are exploring the average share of green areas in cities and urban areas and green area per capita around the world. The dataset this week comes from [UN Habitat Urban Indicators Dataset](https://data.unhabitat.org/pages/open-spaces-and-green-areas). Within each city/urban area, the green areas are extracted using satellite imagery analysis for five time periods 1990, 2000, 2010, 2020 and 2025 based on the Normalized Difference Vegetation Index (NDVI), which assesses the level of greenness from satellite imagery. In this analysis, green areas are defined as parts of the city that are green for most parts of the year, and include individual trees, forests or forested areas, shrubs, perennial grasses and such other types of long-term vegetation. Waterbodies are not considered as green areas in this assessment.
+
+Gabriela Palomo-Munoz curated this one. Two of the suggested questions ask which cities lost and gained the most green area since 1990. When I lined up every city's 1990 value against its 2020 value, the losers and gainers weren't spread around at random. The cities that had the most green to begin with lost the most of it, and the very greenest group lost ground without a single exception.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidytuesdayR)
+library(skimr)
+library(scales)
+library(paletteer)
+library(ggrepel)
+
+`%ni%` <- Negate(`%in%`)
+
+olympic <- as.character(paletteer::paletteer_d("NatParksPalettes::Olympic"))
+moss <- olympic[2]
+fern <- olympic[3]
+lichen <- olympic[4]
+cedar <- olympic[1]
+bark <- olympic[9]
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-09-22")
+
+urban <- raw$urban
+```
+
+# Exploratory data analysis
+
+I'm leaving `dataSource` and `footNote` out of the skim. The first is the same string on every row, and the second is boilerplate methodology text.
+
+```{r}
+#| label: eda-urban
+#| echo: true
+#| output: true
+
+urban %>%
+  select(-dataSource, -footNote) %>%
+  skim()
+
+urban %>%
+  count(year)
+
+urban %>%
+  count(sdgRegion, sort = TRUE)
+```
+
+Two things jump out. First, some rows aren't cities. There are eight rows with no `cityCode`, one per region plus a "Global Average", and their footnote says they're simple averages of the city values. Their region names are spelled a little differently from the city rows ("Central and Southern Asia" versus "Central Asia and Southern Asia"), which is why the region count above has near-duplicates. I'm pulling those out.
+
+Second, 2025 is mostly empty.
+
+```{r}
+#| label: missing-by-year
+#| echo: true
+#| output: true
+
+urban_cities <- urban %>%
+  filter(!is.na(cityCode))
+
+urban_cities %>%
+  group_by(year) %>%
+  summarise(
+    cities = n(),
+    missing_share = sum(is.na(averageShareOfGreenAreaInCityUrbanAreaPct)),
+    median_share = median(averageShareOfGreenAreaInCityUrbanAreaPct, na.rm = TRUE)
+  )
+```
+
+Out of `r comma(n_distinct(urban_cities$cityCode))` cities, only `r sum(urban_cities$year == 2025 & !is.na(urban_cities$averageShareOfGreenAreaInCityUrbanAreaPct))` have a 2025 value. A comparison that ends in 2025 would really be a comparison of whichever cities got updated, so I'm stopping at 2020, where every city has a number. The regional summary rows tell the overall story: the global average share went from `r number(urban$averageShareOfGreenAreaInCityUrbanAreaPct[urban$countryOrTerritoryName == "Global Average" & urban$year == 1990], accuracy = 0.1)`% in 1990 to `r number(urban$averageShareOfGreenAreaInCityUrbanAreaPct[urban$countryOrTerritoryName == "Global Average" & urban$year == 2020], accuracy = 0.1)`% in 2020.
+
+# Who lost the green
+
+```{r}
+#| label: build-change
+#| echo: true
+#| output: true
+
+green_change <- urban_cities %>%
+  filter(year %in% c(1990, 2020)) %>%
+  select(
+    cityCode, cityName, countryOrTerritoryName, sdgRegion, year,
+    share = averageShareOfGreenAreaInCityUrbanAreaPct
+  ) %>%
+  pivot_wider(names_from = year, values_from = share, names_prefix = "share_") %>%
+  mutate(
+    change = share_2020 - share_1990,
+    start_band = cut(
+      share_1990,
+      breaks = c(-Inf, 5, 10, 20, 40, Inf),
+      labels = c("5% or less", "5-10%", "10-20%", "20-40%", "Over 40%")
+    )
+  )
+
+cat(sprintf("green_change: %d rows, %d cols\n", nrow(green_change), ncol(green_change)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(green_change) > 0)
+stopifnot("Missing 1990 or 2020 values" = !anyNA(green_change$share_1990), !anyNA(green_change$share_2020))
+
+by_band <- green_change %>%
+  group_by(start_band) %>%
+  summarise(
+    cities = n(),
+    pct_that_fell = mean(change < 0),
+    median_1990 = median(share_1990),
+    median_2020 = median(share_2020),
+    pct_lost_half = mean(share_2020 < share_1990 / 2)
+  )
+
+by_band
+
+greenest <- green_change %>%
+  filter(start_band == "Over 40%")
+
+top_2020 <- green_change %>%
+  slice_max(share_2020, n = 1)
+```
+
+Sorting the cities by how green they started makes the pattern hard to miss. Among cities that were 5% green or less in 1990, `r percent(by_band$pct_that_fell[1], accuracy = 1)` got less green. In the 20-40% band, `r percent(by_band$pct_that_fell[4], accuracy = 1)` did. All `r nrow(greenest)` cities that started above 40% fell, and `r sum(greenest$share_2020 < greenest$share_1990 / 2)` of them lost more than half of their green share. The greenest city in 2020 was `r top_2020$cityName` at `r number(top_2020$share_2020, accuracy = 0.1)`%, so the over-40% club went from `r nrow(greenest)` members to none.
+
+Those `r nrow(greenest)` cities aren't one region's story, either:
+
+```{r}
+#| label: greenest-by-region
+#| echo: true
+#| output: true
+
+greenest %>%
+  count(sdgRegion, sort = TRUE)
+```
+
+They're mostly in Latin America, East and Southeast Asia, and Sub-Saharan Africa, with only `r sum(greenest$sdgRegion == "Northern America and Europe")` in North America and Europe. The biggest drops were in Sierra Leone, Guinea-Bissau, eastern DR Congo, and a handful of fast-growing Chinese cities. Kenema went from `r number(green_change$share_1990[green_change$cityName == "Kenema"], accuracy = 0.1)`% green to `r number(green_change$share_2020[green_change$cityName == "Kenema"], accuracy = 0.1)`%. Chengdu went from `r number(green_change$share_1990[green_change$cityName == "Chengdu"], accuracy = 0.1)`% to `r number(green_change$share_2020[green_change$cityName == "Chengdu"], accuracy = 0.1)`%.
+
+```{r}
+#| label: fig-green-share-1990-2020
+#| fig-cap: "Each point is one city: its green share in 1990 against its green share in 2020. Points below the dashed diagonal got less green. Cities that started above 40% are in green, and the seven labeled cities are the six largest losses plus the greenest city in 2020. The 2025 estimates are left out because most cities don't have one."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 9
+#| fig-dpi: 300
+
+label_cities <- green_change %>%
+  slice_min(change, n = 6) %>%
+  bind_rows(top_2020) %>%
+  mutate(label = sprintf("%s\n%.0f%% to %.0f%%", cityName, share_1990, share_2020))
+
+plot_context <- green_change %>%
+  filter(start_band != "Over 40%")
+
+stopifnot(nrow(plot_context) > 0, nrow(greenest) > 0, nrow(label_cities) == 7)
+
+band_note <- sprintf(
+  "%d cities were more than 40%% green in 1990.\nAll %d lost green share. %d lost more than half.",
+  nrow(greenest), nrow(greenest), sum(greenest$share_2020 < greenest$share_1990 / 2)
+)
+
+ceiling_note <- sprintf(
+  "The 40%% line in 2020: no city reached it.\nThe highest was %s, at %.1f%%.",
+  top_2020$cityName, top_2020$share_2020
+)
+
+p <- ggplot(green_change, aes(x = share_1990, y = share_2020)) +
+  annotate(
+    "rect",
+    xmin = 40, xmax = 80, ymin = -Inf, ymax = Inf,
+    fill = lichen, alpha = 0.25
+  ) +
+  geom_abline(slope = 1, intercept = 0, linetype = "22", color = "grey40", linewidth = 0.5) +
+  annotate(
+    "text",
+    x = 66, y = 69, angle = 45, label = "no change",
+    color = "grey40", size = 3.4, fontface = "italic", vjust = -0.4
+  ) +
+  geom_hline(yintercept = 40, color = bark, linewidth = 0.6) +
+  annotate(
+    "text",
+    x = 1, y = 41.5, label = ceiling_note,
+    hjust = 0, vjust = 0, size = 3.5, color = bark, lineheight = 1.05
+  ) +
+  geom_point(
+    data = plot_context,
+    color = "grey60", alpha = 0.45, size = 1.6, stroke = 0
+  ) +
+  geom_point(
+    data = greenest,
+    color = moss, alpha = 0.9, size = 2.4, stroke = 0
+  ) +
+  geom_point(
+    data = label_cities,
+    shape = 21, fill = NA, color = cedar, size = 3.4, stroke = 0.7
+  ) +
+  geom_text_repel(
+    data = label_cities,
+    aes(label = label),
+    size = 3.2, color = cedar, lineheight = 0.95,
+    bg.color = "#FBF9EF", bg.r = 0.2,
+    segment.color = "grey45", segment.size = 0.3,
+    box.padding = 0.9, point.padding = 0.4, min.segment.length = 0,
+    max.overlaps = Inf, seed = 22
+  ) +
+  annotate(
+    "label",
+    x = 79, y = 78, label = band_note,
+    hjust = 1, vjust = 1, size = 3.6, color = moss, fontface = "bold",
+    fill = "#FBF9EF", linewidth = 0, lineheight = 1.05
+  ) +
+  scale_x_continuous(
+    labels = label_percent(scale = 1),
+    breaks = seq(0, 80, 20),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  scale_y_continuous(
+    labels = label_percent(scale = 1),
+    breaks = seq(0, 80, 20),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  coord_equal(xlim = c(0, 80), ylim = c(0, 80), clip = "off") +
+  labs(
+    title = "The greenest cities of 1990 lost the most green",
+    subtitle = sprintf(
+      "Share of each city's area that stays green most of the year, from satellite imagery. %s cities, 1990 vs. 2020.",
+      comma(nrow(green_change))
+    ),
+    x = "Green share in 1990",
+    y = "Green share in 2020",
+    caption = "Data: UN-Habitat Urban Indicators Database via TidyTuesday 2026-09-22.\nCity boundaries follow the Degree of Urbanization definition, not official municipal limits."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "#FBF9EF", color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "grey88", linewidth = 0.3),
+    axis.text = element_text(color = "grey35"),
+    axis.title = element_text(color = "grey30", size = 10.5),
+    axis.title.x = element_text(hjust = 0, margin = margin(t = 8)),
+    axis.title.y = element_text(hjust = 0, margin = margin(r = 8)),
+    plot.title = element_text(face = "bold", size = 19, color = cedar),
+    plot.subtitle = element_text(color = "grey30", size = 10, margin = margin(b = 10)),
+    plot.caption = element_text(color = "grey45", hjust = 0, size = 8.5, lineheight = 1.1),
+    plot.title.position = "plot",
+    plot.caption.position = "plot",
+    plot.margin = margin(14, 24, 10, 10)
+  )
+
+p
+```
+
+Most of the grey cloud sits close to the diagonal and a bit under it. The green points don't. They fall off a cliff, and by 2020 most of them sit between 10% and 35%, right in with the cities that started far lower. Above the 40% line on the right side of the chart, there's nothing.
+
+::: {.callout-note}
+Part of this pattern is built into the measurement. A city that's 3% green can't lose more than 3 points, and a city that's 75% green has a lot of room to fall. Some of it is probably regression to the mean too, since an unusually high reading in one year tends to come back down in the next. But mechanics don't explain why every one of the 83 dropped, or why most of them lost more than half their green share. The cities that started greenest also lost the biggest *fraction* of their green area, not just the most points.
+:::
+
+# Final thoughts and takeaways
+
+The cities that lost the most were mostly places with a lot of tree cover to start with: Kenema and Bo in Sierra Leone, Bissau, Butembo and Bunia in the eastern DRC, and Chengdu, Qingdao, and Hangzhou in China. In 1990, a city in the forest belt could easily be two-thirds green. Thirty years of growth took that down to something closer to a European city.
+
+The other end of the chart is less dramatic. Cities that started with almost no green mostly stayed that way, and more of them gained a few points than lost any. European cities, as a group, held about even.
+
+The caveats are real ones. The green share comes from NDVI on Landsat and Sentinel imagery, so a drought year, a sensor change, or a shift in the "green most of the year" threshold can move a city's number without a single tree being cut. The city boundaries follow UN-Habitat's Degree of Urbanization definition, and the metadata doesn't say whether those boundaries were held fixed or redrawn as cities grew. If they grew, some of the drop is new built-up land coming inside the line. I'd treat any one city's number with suspicion. The direction across all 83 is a lot harder to explain away.

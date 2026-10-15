@@ -1,0 +1,344 @@
+---
+title: "Tidy Tuesday: Bottled avocado oil mostly passes. The avocado oil in chips and dressing mostly doesn't."
+author: "Sean Thimons"
+date: "2026-10-06"
+description: "Two UC Davis studies tested avocado oil six years apart. 16 of 22 bottles looked like avocado oil. Only 6 of 54 lots of avocado-oil chips, mayo, and dressing did."
+categories:
+  - tidytuesday
+  - R
+  - food
+  - chemistry
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "VanGogh3"
+palette_source <- "MetBrewer"
+palette_type <- "discrete"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-10-06).
+
+This week's data comes from two UC Davis studies on avocado oil fraud, curated by [Tony Galvan](https://github.com/gdatascience). The first ([Green & Wang, 2020](https://upload.wikimedia.org/wikipedia/commons/a/a4/First_report_on_quality_and_purity_evaluations_of_avocado_oil_sold_in_the_US.pdf)) bought 22 bottles of avocado oil in the US and ran the fatty acids, sterols, and vitamin E on each one. The second (Lopez-Alvarez et al., 2026, *Applied Food Research*, [doi:10.1016/j.afres.2026.102389](https://doi.org/10.1016/j.afres.2026.102389)) measured fatty acids and sterols in chips, mayonnaise, and salad dressings that say they're made with avocado oil or olive oil. Each product was bought twice, as two separate lots.
+
+The README frames the second study as fraud "spreading" from bottles into processed foods. I'm not sure two convenience samples six years apart can show spread, but they can be put on the same axis. Both studies measured palmitoleic acid, one of the fatty acids that marks real avocado oil, so that's what I lined up.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidytuesdayR)
+library(skimr)
+library(scales)
+library(paletteer)
+
+`%ni%` <- Negate(`%in%`)
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-10-06")
+bottles <- raw$avocado_oil_bottles
+processed <- raw$avocado_oil_processed_foods
+```
+
+# Exploratory data analysis
+
+Both tables are wide, with one column per fatty acid or sterol. I skimmed the label and price columns plus the handful of markers the data dictionary calls out as the useful ones.
+
+```{r}
+#| label: eda-bottles
+#| echo: true
+#| output: true
+
+bottles %>%
+  select(grade_labeled, cost_per_fl_oz, c16_1_palmitoleic_pct, c18_2_linoleic_pct, beta_sitosterol_pct) %>%
+  skim()
+
+bottles %>%
+  count(grade_labeled, purity_result, adulterant)
+```
+
+```{r}
+#| label: eda-processed
+#| echo: true
+#| output: true
+
+processed %>%
+  select(category, oil_type, retail_price_usd, c16_1_palmitoleic_pct, c18_1n7_vaccenic_pct, beta_sitosterol_pct) %>%
+  skim()
+
+processed %>%
+  count(oil_type, category, authentic)
+```
+
+The bottle table has 22 rows. Sixteen are rated `pure`. Three (`EV3`, `EV6`, `U6`) are `adulterated` with soybean oil, and two of those were sold as extra virgin. Three more are `suspected` of cut with high-oleic sunflower or safflower oil.
+
+The processed-foods table has 74 rows: 54 avocado-oil lots from 27 products and 20 olive-oil lots from 10 products. The olive-oil lots almost all pass (19 of 20). The avocado-oil lots almost all fail. Olive oil has its own Codex profile and naturally low palmitoleic acid, so I leave it out of the plot below. It's a useful control, but it lives on a different scale.
+
+One thing to know about the `authentic` column: the paper didn't publish a pass/fail per lot. The curator rebuilt it from the Codex ranges with a 10% tolerance and a "more than two markers out of range" rule, and says it reproduces the paper's category counts exactly. The bottle `purity_result` column is typed in from the 2020 paper's text.
+
+# One marker, two studies
+
+The data dictionary puts the Codex range for palmitoleic acid (C16:1) in avocado oil at 4.0 to 17.1% of total fatty acids. Soybean and sunflower oil have almost none. If someone swaps out the avocado oil, this number drops.
+
+```{r}
+#| label: palmitoleic-combined
+#| echo: true
+#| output: true
+
+codex_low <- 4.0
+
+palmitoleic <- bind_rows(
+  bottles %>%
+    transmute(
+      study = "2020: bottled oil",
+      group = "Bottles",
+      id = sample_code,
+      palmitoleic = c16_1_palmitoleic_pct,
+      passed = purity_result == "pure"
+    ),
+  processed %>%
+    filter(oil_type == "avocado") %>%
+    transmute(
+      study = "2026: foods made with avocado oil",
+      group = recode(category, chips = "Chips", mayonnaise = "Mayonnaise", salad_dressing = "Salad dressing"),
+      id = as.character(sample_number),
+      palmitoleic = c16_1_palmitoleic_pct,
+      passed = authentic
+    )
+) %>%
+  mutate(in_codex = palmitoleic >= codex_low)
+
+cat(sprintf("palmitoleic: %d rows, %d cols\n", nrow(palmitoleic), ncol(palmitoleic)))
+stopifnot("Plot data has 0 rows" = nrow(palmitoleic) > 0)
+
+group_summary <- palmitoleic %>%
+  group_by(study, group) %>%
+  summarise(
+    samples = n(),
+    passed = sum(passed),
+    in_codex = sum(in_codex),
+    max_palmitoleic = max(palmitoleic),
+    .groups = "drop"
+  )
+
+group_summary
+
+palmitoleic %>%
+  count(study, passed, in_codex)
+```
+
+The verdicts in both studies use a dozen or more markers, but palmitoleic acid alone nearly reproduces them. Every bottle rated pure is at 4.2% or higher, and every bottle that isn't is at 2.0% or lower. In 2026, all six passing lots are between 4.9 and 7.2%. Of the 48 failing lots, 47 are under the Codex floor. The one exception is a lot of organic chips (sample 25) at exactly 4.0%, which failed on other markers.
+
+```{r}
+#| label: fig-palmitoleic-hero
+#| fig-cap: "Palmitoleic acid in each sample, as a percent of total fatty acids. Filled points passed the study's purity check and hollow points did not. The shaded band is the Codex range for avocado oil, which runs from 4.0% to 17.1%. Bottles are single samples from 2020. The 2026 points are product lots, two per product, and the olive-oil comparison products are left out. Points are jittered vertically only."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 6.5
+
+vg <- paletteer::paletteer_d("MetBrewer::VanGogh3")
+flesh <- as.character(vg[1])
+leaf <- as.character(vg[5])
+skin <- as.character(vg[7])
+
+study_bottles <- "2020: bottled oil"
+study_foods <- "2026: foods made with avocado oil"
+
+plot_data <- palmitoleic %>%
+  mutate(
+    group = factor(group, levels = rev(c("Bottles", "Chips", "Mayonnaise", "Salad dressing"))),
+    verdict = if_else(passed, "Passed", "Failed or suspected")
+  )
+
+row_labels <- group_summary %>%
+  mutate(
+    group = factor(group, levels = levels(plot_data$group)),
+    label = paste0(passed, " of ", samples, " pass")
+  )
+
+soy_bottles <- plot_data %>% filter(study == study_bottles, palmitoleic < 0.5)
+dots_jitter <- position_jitter(width = 0, height = 0.18, seed = 1006)
+
+p <- plot_data %>%
+  ggplot(aes(palmitoleic, group)) +
+  annotate("rect", xmin = codex_low, xmax = Inf, ymin = -Inf, ymax = Inf, fill = flesh, alpha = 0.8) +
+  geom_vline(xintercept = codex_low, color = leaf, linewidth = 0.6) +
+  geom_point(
+    aes(shape = verdict, color = verdict),
+    position = dots_jitter, size = 3, stroke = 0.9
+  ) +
+  # same data and seed as the dots, so the ring lands on sample 25
+  geom_point(
+    aes(alpha = if_else(id == "25" & study == study_foods, 1, 0)),
+    position = dots_jitter, shape = 21, size = 6.5, stroke = 0.6, color = "grey20", fill = NA
+  ) +
+  scale_alpha_identity() +
+  geom_text(
+    data = row_labels,
+    aes(x = 10.5, y = group, label = label),
+    inherit.aes = FALSE, hjust = 1, size = 4, fontface = "bold", color = skin
+  ) +
+  geom_text(
+    data = tibble(study = study_bottles, group = factor("Bottles", levels = levels(plot_data$group))),
+    aes(x = codex_low + 0.08, y = 1.42, label = "Codex range for avocado oil starts at 4.0%"),
+    inherit.aes = FALSE, hjust = 0, size = 3.1, color = leaf
+  ) +
+  geom_text(
+    data = soy_bottles %>% slice(1),
+    aes(x = 0, y = 1.42, label = paste0(nrow(soy_bottles), " bottles were soybean oil (0.1%)")),
+    inherit.aes = FALSE, hjust = 0, size = 3.1, color = "grey30"
+  ) +
+  geom_text(
+    data = tibble(study = study_foods, group = factor("Chips", levels = levels(plot_data$group))),
+    aes(x = 3.75, y = 2.5, label = "The circled chip lot hit 4.0%\nbut failed on other markers"),
+    inherit.aes = FALSE, hjust = 1, size = 3.1, color = "grey30", lineheight = 0.9
+  ) +
+  facet_grid(
+    study ~ ., scales = "free_y", space = "free_y", switch = "y",
+    labeller = as_labeller(setNames(c("2020", "2026"), c(study_bottles, study_foods)))
+  ) +
+  scale_shape_manual(values = c("Passed" = 16, "Failed or suspected" = 1), name = NULL) +
+  scale_color_manual(values = c("Passed" = leaf, "Failed or suspected" = skin), name = NULL) +
+  scale_x_continuous(
+    breaks = 0:9,
+    labels = label_percent(scale = 1),
+    limits = c(0, 10.6),
+    expand = expansion(mult = c(0.01, 0))
+  ) +
+  labs(
+    title = "Bottled avocado oil mostly passed. Avocado-oil snacks mostly didn't.",
+    subtitle = "Palmitoleic acid, a marker of real avocado oil, in 22 bottles bought for a 2020 study\nand 54 lots of chips, mayo, and dressing bought for a 2026 study",
+    x = "Palmitoleic acid (C16:1), % of total fatty acids",
+    y = NULL,
+    caption = "Data: Green & Wang (2020); Lopez-Alvarez et al. (2026), via TidyTuesday 2026-10-06"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "#FBFAF3", color = NA),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(color = "grey85", linewidth = 0.3),
+    strip.placement = "outside",
+    strip.text.y.left = element_text(angle = 0, face = "bold", color = leaf, size = 13),
+    axis.text.y = element_text(face = "bold", color = "grey20", size = 11),
+    panel.spacing.y = unit(1.1, "lines"),
+    plot.title.position = "plot",
+    plot.title = element_text(face = "bold", size = 16, color = skin),
+    plot.subtitle = element_text(color = "grey30", margin = margin(b = 10)),
+    plot.caption = element_text(color = "grey45", size = 9),
+    axis.title.x = element_text(color = "grey30", margin = margin(t = 8)),
+    legend.position = "top",
+    legend.justification = "left",
+    plot.margin = margin(12, 16, 10, 12)
+  )
+
+p
+```
+
+The bottles cluster where avocado oil should be, with three soybean oils down at zero and three suspected sunflower blends in between. The 2026 rows are the mirror image. Most of the processed-food lots sit between 0.5 and 2%, the same neighborhood as the three bottles suspected of being cut with sunflower or safflower oil. No salad dressing passed. Four of the 14 mayonnaise lots passed, and they come from just two products.
+
+# The labels don't help
+
+You might hope the louder claims on the front of the package would be the safer ones. They aren't.
+
+```{r}
+#| label: front-label-claims
+#| echo: true
+#| output: true
+
+processed %>%
+  filter(oil_type == "avocado") %>%
+  mutate(says_100_percent = str_detect(front_label, "100%")) %>%
+  group_by(says_100_percent) %>%
+  summarise(
+    products = n_distinct(product_id),
+    lots = n(),
+    lots_passed = sum(authentic),
+    .groups = "drop"
+  )
+
+processed %>%
+  filter(oil_type == "avocado", authentic) %>%
+  select(sample_number, product_id, lot, category, front_label, retail_price_usd, package_size_oz)
+```
+
+Eight avocado-oil products say "100%" on the front, and none of their 16 lots passed. The four passing mayonnaise lots are labeled "With Avocado Oil," which is about as modest as the claims get. They were also the most expensive mayonnaise in the set at $12.99 for 7.95 oz. That's two products, though, so I wouldn't call price a test. Only two products passed on both lots. Two more passed on one lot and failed on the other.
+
+# Final thoughts and takeaways
+
+In this sample, a bottle of avocado oil had a decent chance of being avocado oil. A bag of chips or a jar of dressing that says it's made with avocado oil mostly didn't. Palmitoleic acid alone tells most of the story. It agrees with the full verdict for all 22 bottles and 53 of the 54 processed-food lots.
+
+The olive-oil products tested in the same study passed 19 of 20 times. The README credits decades of olive-oil regulation for that. That's plausible, but this data can't separate regulation from other differences in how the two oils are bought, blended, and priced.
+
+Caveats. Neither study is a random sample of the market. They're small sets of products bought in particular stores and online. The 2026 pass/fail column was rebuilt by the curator from the published Codex ranges, not copied from a per-lot table. Lots from the same product aren't independent, so the 54 lots are really 27 products. And the 2020 and 2026 results come from different labs, different methods, and different product types, so the gap between the rows doesn't show fraud getting worse over time. It shows where it was found in each study. If I bought avocado oil, I'd buy it in a bottle.
