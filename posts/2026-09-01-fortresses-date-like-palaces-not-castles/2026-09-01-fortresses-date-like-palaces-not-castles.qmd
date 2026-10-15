@@ -1,0 +1,340 @@
+---
+title: "Tidy Tuesday: Fortresses date like palaces, not castles"
+author: "Sean Thimons"
+date: "2026-09-01"
+description: "The Castlemap dataset sorts 5,793 landmarks into castles, fortresses, palaces and ruins. Going by founding year, fortresses sit with the palaces: most were built in 1500 or later. Most castles were built before that."
+categories:
+  - tidytuesday
+  - R
+  - history
+  - architecture
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "view_of_Delft"
+palette_source <- "dutchmasters"
+palette_type <- "discrete"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-09-01).
+
+> This week we're exploring the [Castlemap](https://thecastlemap.com/data/) dataset of 5,793 castles, fortresses, palaces and ruins in 138 countries. The data comes from Wikidata, and every landmark has verified coordinates, a Wikipedia article and a photo on Wikimedia Commons. Each also has a fame rank, based on how many languages have an article on it and how often that article is read. The Great Wall of China is first.
+
+Georgios Karamanis curated it. One of the suggested questions is whether palaces are newer than fortresses. They are, but only by about fifty years at the median, which is less interesting than what the question assumes. I expected fortresses to sit with castles as the "old, military" pile. Going by founding year, they sit with the palaces instead.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidytuesdayR)
+library(skimr)
+library(scales)
+library(paletteer)
+library(ggdist)
+
+`%ni%` <- Negate(`%in%`)
+
+delft <- as.character(paletteer::paletteer_d("dutchmasters::view_of_Delft"))
+delft_sky <- delft[1]
+delft_brick <- delft[6]
+delft_brown <- delft[11]
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-09-01")
+world_castles <- raw$world_castles
+```
+
+# Exploratory data analysis
+
+I'm leaving out the IDs, names, and URLs, plus `century`, which is just `year` turned into text.
+
+```{r}
+#| label: eda-world-castles
+#| echo: true
+#| output: true
+
+world_castles %>%
+  select(category, country, lat, lon, year, year_approx, sitelinks, pageviews, fame_rank) %>%
+  skim()
+
+world_castles %>%
+  count(category, sort = TRUE)
+
+world_castles %>%
+  group_by(category) %>%
+  summarise(
+    landmarks = n(),
+    dated = sum(!is.na(year)),
+    share_dated = dated / landmarks,
+    approx_years = sum(year_approx == 1 & !is.na(year))
+  )
+```
+
+There are four categories, spelled exactly `castle`, `fortress`, `palace` and `ruin`. Castles make up almost half the file. The big gap is `year`. A bit under 40% of landmarks have no founding year at all, and castles are the worst covered: only 56% have one, against 77% for palaces. Some 508 rows are flagged as approximate.
+
+The year range runs from -3000 to 2009. The far end of that range has some obvious problems:
+
+```{r}
+#| label: eda-odd-years
+#| echo: true
+#| output: true
+
+world_castles %>%
+  filter(year > 2000) %>%
+  select(name, category, country, year, year_approx) %>%
+  arrange(year)
+```
+
+The Citadel of Erbil is a settlement mound that has been occupied for thousands of years, and it's listed as founded in 2007. Wikidata's founding date is sometimes a rebuild, a restoration, or the date a site got its current name. I'm not going to try to hand-correct 5,000 rows. Most of these oddities are a handful of points at the ends of the range, so they barely move medians or shares. Still, keep them in mind.
+
+# Splitting at 1500
+
+The question I'm asking is simple: of the dated landmarks in each category, what share were founded before 1500 and what share in 1500 or later? 1500 is a round number, and it's close to when artillery forts with low, angled bastions started replacing tall stone walls in Europe. I'm not testing that history here. I just picked a cut point that would mean something if the categories split around it.
+
+```{r}
+#| label: split-at-1500
+#| echo: true
+#| output: true
+
+category_order <- c("ruin", "castle", "fortress", "palace")
+
+dated <- world_castles %>%
+  filter(!is.na(year)) %>%
+  mutate(category = factor(category, levels = category_order))
+
+cat(sprintf("dated: %d rows, %d cols\n", nrow(dated), ncol(dated)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(dated) > 0)
+
+era_split <- dated %>%
+  group_by(category) %>%
+  summarise(
+    dated = n(),
+    median_year = median(year),
+    share_1500_on = mean(year >= 1500),
+    share_before = 1 - share_1500_on
+  ) %>%
+  left_join(count(world_castles, category, name = "landmarks"), by = c("category"))
+
+era_split
+```
+
+Fortresses and palaces are almost the same: `r percent(era_split$share_1500_on[era_split$category == "fortress"], accuracy = 1)` of dated fortresses and `r percent(era_split$share_1500_on[era_split$category == "palace"], accuracy = 1)` of dated palaces were founded in 1500 or later. For castles it's `r percent(era_split$share_1500_on[era_split$category == "castle"], accuracy = 1)`. Ruins are even older, which makes sense. A lot of them are castles that fell down.
+
+Two things could fake this result. Approximate years could bunch up on round centuries, and the fortress list is much more global than the castle list. Fortresses include colonial forts in the United States, Brazil, Ghana and Canada, and those can't predate the 1500s. So I re-ran the split with exact years only, and then on a rough Europe box (longitude -11 to 40, latitude above 35). The box is crude, but it's good enough for this check.
+
+```{r}
+#| label: robustness-checks
+#| echo: true
+#| output: true
+
+dated %>%
+  filter(category == "fortress", country %in% c("United States", "Brazil", "Ghana", "Canada")) %>%
+  group_by(country) %>%
+  summarise(fortresses = n(), earliest = min(year), median_year = median(year))
+
+robustness <- bind_rows(
+  dated %>% mutate(subset = "all dated"),
+  dated %>% filter(year_approx == 0) %>% mutate(subset = "exact years only"),
+  dated %>% filter(between(lon, -11, 40), lat > 35) %>% mutate(subset = "rough Europe box")
+) %>%
+  group_by(subset, category) %>%
+  summarise(share_1500_on = mean(year >= 1500), .groups = "drop") %>%
+  mutate(share_1500_on = percent(share_1500_on, accuracy = 1)) %>%
+  pivot_wider(names_from = category, values_from = share_1500_on)
+
+robustness
+```
+
+Dropping approximate years changes almost nothing. Restricting to Europe makes everything a bit older, but castles drop the most, to about a quarter founded in 1500 or later. European fortresses are still three-quarters 1500-or-later. The colonial forts push the global fortress share up, but they aren't the reason fortresses look young.
+
+```{r}
+#| label: fig-founding-years
+#| fig-cap: "Distribution of founding years for dated landmarks in each category, 1000 to 2010. Each ridge is scaled to its own height. Percentages are computed on all dated landmarks in the category, including the few founded before 1000 that fall off the left edge. Landmarks with no founding year in Wikidata are excluded."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 7
+#| fig-dpi: 300
+
+plot_years <- dated %>%
+  filter(year >= 1000) %>%
+  mutate(category = fct_rev(category))
+
+cat(sprintf("plot_years: %d rows, %d cols\n", nrow(plot_years), ncol(plot_years)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(plot_years) > 0)
+
+n_off_left <- nrow(dated) - nrow(plot_years)
+
+row_labels <- era_split %>%
+  mutate(
+    label = sprintf("%s\n%s of %s dated", str_to_title(category), comma(dated), comma(landmarks))
+  ) %>%
+  select(category, label) %>%
+  deframe()
+
+share_labels <- era_split %>%
+  mutate(category = factor(category, levels = rev(category_order)))
+
+p <- plot_years %>%
+  ggplot(aes(x = year, y = category)) +
+  annotate(
+    "rect",
+    xmin = 1500, xmax = 2010, ymin = -Inf, ymax = Inf,
+    fill = delft_sky, alpha = 0.08
+  ) +
+  geom_vline(xintercept = 1500, color = "grey35", linewidth = 0.5, linetype = "22") +
+  annotate(
+    "text",
+    x = 1505, y = 4.95,
+    label = "1500",
+    hjust = 0, vjust = 1, size = 3.4, fontface = "bold", color = "grey30"
+  ) +
+  stat_slab(
+    aes(fill = after_stat(x >= 1500)),
+    normalize = "groups",
+    height = 0.68,
+    color = NA,
+    adjust = 0.6
+  ) +
+  stat_pointinterval(
+    point_interval = "median_qi",
+    .width = 0.5,
+    position = position_nudge(y = -0.25),
+    color = "grey20",
+    point_size = 2.2,
+    interval_size_range = c(0.8, 1.6)
+  ) +
+  geom_text(
+    data = share_labels,
+    aes(x = 1010, y = category, label = paste0(percent(share_before, accuracy = 1), " before 1500")),
+    hjust = 0, vjust = 1.6, size = 3.5, color = delft_brick, fontface = "bold",
+    inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = share_labels,
+    aes(x = 2005, y = category, label = paste0(percent(share_1500_on, accuracy = 1), " in 1500 or later")),
+    hjust = 1, vjust = 1.6, size = 3.5, color = "grey25", fontface = "bold",
+    inherit.aes = FALSE
+  ) +
+  scale_fill_manual(values = c(`FALSE` = delft_brick, `TRUE` = delft_sky), guide = "none") +
+  scale_y_discrete(labels = row_labels, expand = expansion(add = c(0.45, 0.9))) +
+  scale_x_continuous(
+    breaks = seq(1000, 2000, by = 100),
+    labels = function(x) if_else(x %% 200 == 0, as.character(x), ""),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  coord_cartesian(xlim = c(1000, 2010), clip = "off") +
+  labs(
+    title = "Fortresses date like palaces, not castles",
+    subtitle = sprintf(
+      "Founding years of %s dated landmarks in the Castlemap dataset. Dot and bar show the median and middle half.\n%d landmarks founded before 1000 are off the left edge but counted in the percentages.",
+      comma(nrow(dated)), n_off_left
+    ),
+    x = "Founding year",
+    y = NULL,
+    caption = "Data: Castlemap (Wikidata) via TidyTuesday 2026-09-01. Founding years are as recorded in Wikidata; some are rebuild or restoration dates."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "#FBFAF7", color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "grey88", linewidth = 0.3),
+    axis.text.y = element_text(color = "grey20", hjust = 0, lineheight = 1.1, size = 10.5),
+    axis.text.x = element_text(color = "grey35"),
+    axis.title.x = element_text(color = "grey40", size = 10, hjust = 0, margin = margin(t = 8)),
+    plot.title = element_text(face = "bold", size = 19, color = "grey15"),
+    plot.subtitle = element_text(color = "grey30", size = 10, lineheight = 1.15, margin = margin(b = 14)),
+    plot.caption = element_text(color = "grey45", hjust = 0, size = 8.5),
+    plot.title.position = "plot",
+    plot.caption.position = "plot",
+    plot.margin = margin(14, 18, 10, 10)
+  )
+
+p
+```
+
+The castle and ruin ridges peak in the 1200s and 1300s. Ruins mostly stop at 1500. Castles have a second, smaller bump around 1600 and then fade out. The fortress ridge is almost flat through the medieval centuries, climbs in the 1500s, and stays high all the way to a peak in the 1800s. The palace ridge covers the same stretch, with more of its weight in the 1700s. If you only had the founding-year curve, you could tell a castle from a fortress much more easily than a fortress from a palace.
+
+::: {.callout-note}
+These categories come from how Wikidata classifies each item, not from an architectural survey. A medieval stronghold that someone tagged as a fortress counts as a fortress here, and one that was later turned into a palace may land in either pile. The split is between labels, and it's only as clean as the labels are.
+:::
+
+# Final thoughts and takeaways
+
+To answer the suggested question directly: yes, palaces are newer than fortresses, by about half a century at the median. The bigger gap is between fortresses and castles. Fortresses in this dataset are mostly an early modern thing. Castles are mostly medieval. Ruins are older still. That holds with exact years only, and it holds inside Europe, so it doesn't come from rounded dates or from colonial forts.
+
+The weak spot is the year column. Almost 40% of landmarks have no founding year, and castles are the least likely to have one. If the undated castles skew one way, older because nobody knows when they went up or newer because they're minor 19th-century follies, the castle ridge would move. I'd guess older, but I can't check that with this data. A few dates, like the Citadel of Erbil in 2007, are plainly rebuild dates rather than foundings.
+
+If I came back to this, I'd look at the fame columns next. Do the 19th-century revival castles get read more than the medieval ones, Neuschwanstein-style? That's the third suggested question in different clothes, and the data is already here.
