@@ -74,3 +74,4 @@ post_date,palette,package,type
 "2026-09-15","DeathValley","NatParksPalettes","discrete"
 "2026-09-22","Olympic","NatParksPalettes","discrete"
 "2026-09-29","lanonc_lancet","ggsci","discrete"
+"2026-10-06","VanGogh3","MetBrewer","discrete"
