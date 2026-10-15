@@ -1,0 +1,429 @@
+---
+title: "Tidy Tuesday: 26 songwriters are on half of country radio's hits"
+author: "Sean Thimons"
+date: "2026-08-25"
+description: "Grady Smith logged every song that reached the Top 30 of Billboard's Country Airplay chart from 2014 to 2019. Of the 510 people credited as writers, 26 of them show up on more than half of the 484 songs."
+categories:
+  - tidytuesday
+  - R
+  - music
+  - text
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "SmokyMtns"
+palette_source <- "NatParksPalettes"
+palette_type <- "discrete"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-08-25).
+
+> Today's video is a DEEP DIVE into the world of country music, and I'm determined to figure out if the stereotypes people have about modern country songwriting are actually true. Is it REALLY all about beer and trucks and girls and blue jeans? Are all the lyrics REALLY the same? To find out, I maintained a spreadsheet of every country song that has reached the Top 30 of Billboard's Country Airplay chart for the past six years (2014-2019) and then crunched a whole lot of data.
+
+That's [Grady Smith](https://www.youtube.com/@GradySmith), from his video ["Every country song has these lyrics. Right?"](https://www.youtube.com/watch?v=48ZxNFGJTo8). His spreadsheet has the lyrics, the songwriters and the producers for each song. Ntobeko Sosibo curated it for TidyTuesday.
+
+Everyone goes for the lyrics with this dataset: count the trucks, count the beers. I went for the first suggested question instead: *is country radio run by a small circle of hitmakers?* The writing credits can answer that directly. The short answer is yes, and the circle is smaller than I expected.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidytuesdayR)
+library(skimr)
+library(scales)
+library(paletteer)
+
+`%ni%` <- Negate(`%in%`)
+
+smoky <- as.character(paletteer::paletteer_d("NatParksPalettes::SmokyMtns"))
+pine <- smoky[1]
+barn_red <- smoky[4]
+stone <- smoky[7]
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-08-25")
+country_lyrics <- raw$country_lyrics
+top_all_writers <- raw$top_all_writers
+top_producers <- raw$top_producers
+```
+
+# Exploratory data analysis
+
+I'm dropping the lyrics and the credit strings from the skim, since they're free text, and keeping the year and the index.
+
+```{r}
+#| label: eda-country-lyrics
+#| echo: true
+#| output: true
+
+country_lyrics %>%
+  select(entered_top_30_in, rough_order) %>%
+  skim()
+
+country_lyrics %>%
+  count(entered_top_30_in)
+
+country_lyrics %>%
+  summarise(across(everything(), ~ sum(is.na(.x))))
+```
+
+There are 484 songs. `entered_top_30_in` is only a year, not a date, and 13 songs are stamped 2013, so the window runs a little earlier than "2014-2019" suggests. Most songs have no featured artist, two have no producer listed, and every song has writers. The data dictionary lists a `rules_top_30_country_airplay` column, but it isn't in the file.
+
+The `writers` column is a comma-separated string. Splitting it is easy. The spelling is the annoying part: the same person turns up as `HARDY` and `Hardy`, `T.J. Osborne` and `TJ Osborne`, `Chris DuBois` and `Chris Dubois`. I match names on their lowercase letters only and keep the most common spelling.
+
+```{r}
+#| label: writer-credits
+#| echo: true
+#| output: true
+
+song_writers <- country_lyrics %>%
+  mutate(song_id = row_number()) %>%
+  select(song_id, song, artist, entered_top_30_in, writers) %>%
+  separate_longer_delim(writers, ",") %>%
+  mutate(
+    writer = str_squish(writers),
+    name_key = str_to_lower(str_remove_all(writer, "[^A-Za-z]"))
+  ) %>%
+  filter(writer != "")
+
+# Letters-only matching would merge two different people with the same name. I did not spot any.
+display_names <- song_writers %>%
+  count(name_key, writer) %>%
+  group_by(name_key) %>%
+  slice_max(n, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  select(name_key, writer_clean = writer)
+
+song_writers <- song_writers %>%
+  left_join(display_names, by = "name_key") %>%
+  distinct(song_id, song, artist, entered_top_30_in, writer = writer_clean)
+
+cat(sprintf("song_writers: %d rows, %d cols\n", nrow(song_writers), ncol(song_writers)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(song_writers) > 0)
+
+song_writers %>%
+  summarise(
+    songs = n_distinct(song_id),
+    writers = n_distinct(writer),
+    credits = n()
+  )
+
+song_writers %>%
+  count(song_id, entered_top_30_in, name = "writers_on_song") %>%
+  group_by(entered_top_30_in) %>%
+  summarise(
+    songs = n(),
+    mean_writers = round(mean(writers_on_song), 2),
+    solo_writes = sum(writers_on_song == 1)
+  )
+```
+
+After cleanup there are 510 distinct writers sharing about 1,500 credits. Solo writes are rare (zero to four a year), and the typical hit has three writers. The average creeps up a bit by 2019.
+
+The curated summary table in the release counts slightly differently than I do. For example, it has Josh Osborne on 28 songs and my split finds 29. The top of the list is the same either way.
+
+```{r}
+#| label: compare-upstream-counts
+#| echo: true
+#| output: true
+
+song_writers %>%
+  count(writer, name = "my_count") %>%
+  inner_join(top_all_writers, by = "writer") %>%
+  arrange(desc(song_count)) %>%
+  slice_head(n = 8)
+```
+
+# A short list of names
+
+To measure concentration, I rank writers by how many of the 484 songs they're credited on. Then I ask what share of songs has at least one of the top *k* writers, for every *k* from 1 to 510. Co-writing is what makes this worth doing. One busy writer on a three-person team "covers" the whole song.
+
+```{r}
+#| label: coverage-curve
+#| echo: true
+#| output: true
+
+n_songs <- n_distinct(song_writers$song_id)
+
+writer_rank <- song_writers %>%
+  count(writer, name = "songs", sort = TRUE) %>%
+  mutate(rank = row_number())
+
+first_rank <- song_writers %>%
+  left_join(writer_rank %>% select(writer, rank), by = "writer") %>%
+  group_by(song_id) %>%
+  summarise(first_rank = min(rank))
+
+coverage <- writer_rank %>%
+  mutate(
+    songs_covered = map_int(rank, ~ sum(first_rank$first_rank <= .x)),
+    share_covered = songs_covered / n_songs
+  )
+
+cat(sprintf("coverage: %d rows, %d cols\n", nrow(coverage), ncol(coverage)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(coverage) > 0)
+
+heavy <- coverage %>% filter(songs >= 10)
+n_heavy <- nrow(heavy)
+heavy_share <- max(heavy$share_covered)
+n_one_hit <- sum(writer_rank$songs == 1)
+first_one_hit_rank <- min(writer_rank$rank[writer_rank$songs == 1])
+
+songs_all_one_hit <- song_writers %>%
+  left_join(writer_rank %>% select(writer, songs), by = "writer") %>%
+  group_by(song_id) %>%
+  summarise(all_one_hit = all(songs == 1)) %>%
+  pull(all_one_hit) %>%
+  sum()
+
+tibble(
+  writers_with_10_plus = n_heavy,
+  songs_they_cover = max(heavy$songs_covered),
+  share = percent(heavy_share, accuracy = 0.1),
+  one_hit_writers = n_one_hit,
+  songs_written_only_by_one_hit_writers = songs_all_one_hit
+)
+
+coverage %>%
+  filter(rank %in% c(1:5, 10, 26, 50, 100, 200)) %>%
+  select(rank, writer, songs, songs_covered, share_covered)
+```
+
+Ashley Gorley alone is on `r writer_rank$songs[1]` songs, about one hit in eleven. Add Shane McAnally, Ross Copperman, Josh Osborne and Rhett Akins and the top five are on a quarter of everything. Twenty-six writers have ten or more credits each, and at least one of them is on `r percent(heavy_share, accuracy = 1)` of the songs. That's 5% of the writer pool on more than half the hits.
+
+The other end of the list is just as lopsided. `r n_one_hit` writers, more than half of everyone, have exactly one credit. Only `r songs_all_one_hit` of the 484 songs were written entirely by people who never had another Top 30 hit in this window.
+
+```{r}
+#| label: fig-coverage-hero
+#| fig-cap: "Share of the 484 Top 30 Country Airplay songs (2013-2019 entries) credited to at least one of the top-ranked writers, as writers are added in order of credit count. The x-axis is on a log scale. Writers tied on credit count are ordered alphabetically, which only changes the curve within a tie."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 7
+#| fig-dpi: 300
+
+top_five <- coverage %>% filter(rank <= 5)
+
+top_five_note <- paste0(
+  "The top five\n",
+  paste(sprintf("%d  %s, %d songs", top_five$rank, top_five$writer, top_five$songs), collapse = "\n")
+)
+
+hero_note <- sprintf(
+  "%d writers with 10+ credits each\nare on %s of the hits",
+  n_heavy,
+  percent(heavy_share, accuracy = 1)
+)
+
+tail_note <- sprintf(
+  "Shaded: %d writers with a single credit.\nThey add the last %s of songs.",
+  n_one_hit,
+  percent(1 - coverage$share_covered[first_one_hit_rank - 1], accuracy = 1)
+)
+
+p <- coverage %>%
+  ggplot(aes(rank, share_covered)) +
+  annotate(
+    "rect",
+    xmin = first_one_hit_rank, xmax = max(coverage$rank),
+    ymin = -Inf, ymax = Inf,
+    fill = stone, alpha = 0.25
+  ) +
+  annotate(
+    "text",
+    x = max(coverage$rank), y = 0.2,
+    label = tail_note,
+    hjust = 1, size = 3.4, color = "grey30", lineheight = 1.05
+  ) +
+  geom_hline(yintercept = 0.5, linetype = "22", color = "grey55", linewidth = 0.4) +
+  annotate(
+    "text",
+    x = 1, y = 0.515,
+    label = "half of all songs",
+    hjust = 0, vjust = 0, size = 3.2, color = "grey45"
+  ) +
+  geom_step(color = "grey55", linewidth = 0.8) +
+  geom_step(data = heavy, color = barn_red, linewidth = 1.6) +
+  geom_point(data = top_five, color = barn_red, size = 2.6) +
+  geom_text(
+    data = top_five,
+    aes(label = rank),
+    vjust = -0.9, size = 3.2, fontface = "bold", color = barn_red
+  ) +
+  annotate(
+    "text",
+    x = 1, y = 0.96,
+    label = top_five_note,
+    hjust = 0, vjust = 1, size = 3.4, lineheight = 1.15, color = "grey20"
+  ) +
+  annotate(
+    "segment",
+    x = n_heavy, xend = n_heavy, y = 0, yend = heavy_share,
+    color = barn_red, linewidth = 0.4, linetype = "dotted"
+  ) +
+  annotate(
+    "label",
+    x = n_heavy * 1.15, y = heavy_share - 0.13,
+    label = hero_note,
+    hjust = 0, size = 3.8, fontface = "bold", lineheight = 1.05,
+    fill = "white", border.colour = NA, color = barn_red
+  ) +
+  scale_x_log10(
+    breaks = c(1, 5, 10, n_heavy, 50, 100, first_one_hit_rank, max(coverage$rank)),
+    expand = expansion(mult = c(0.02, 0.02))
+  ) +
+  scale_y_continuous(
+    labels = percent_format(),
+    breaks = seq(0, 1, by = 0.25),
+    limits = c(0, 1.02),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  labs(
+    title = sprintf("%d songwriters are on half of country radio's hits", n_heavy),
+    subtitle = sprintf(
+      "Share of %d Top 30 Country Airplay songs with at least one of the top-ranked writers",
+      n_songs
+    ),
+    x = "Writers, ranked by number of songs credited (log scale)",
+    y = NULL,
+    caption = "Data: Grady Smith's Country Airplay spreadsheet via TidyTuesday 2026-08-25. Writer names lightly normalized for spelling."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "#FBFAF7", color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(color = "grey88", linewidth = 0.3),
+    axis.text = element_text(color = "grey30"),
+    axis.title.x = element_text(color = "grey40", size = 10, hjust = 0, margin = margin(t = 8)),
+    plot.title = element_text(face = "bold", size = 18, color = pine),
+    plot.subtitle = element_text(color = "grey30", size = 10.5, margin = margin(b = 12)),
+    plot.caption = element_text(color = "grey45", hjust = 0, size = 8.5),
+    plot.title.position = "plot",
+    plot.caption.position = "plot",
+    plot.margin = margin(14, 18, 10, 10)
+  )
+
+p
+```
+
+A few of those 26 are performers who co-write their own singles: Eric Church, Thomas Rhett, Sam Hunt, Cole Swindell and Tyler Hubbard of Florida Georgia Line all have ten or more credits. Most of the rest are Nashville staff writers who never appear as the artist. Gorley's `r writer_rank$songs[1]` credits are spread across `r song_writers %>% filter(writer == writer_rank$writer[1]) %>% pull(artist) %>% n_distinct()` different acts.
+
+```{r}
+#| label: gorley-spread
+#| echo: true
+#| output: true
+
+song_writers %>%
+  filter(writer == writer_rank$writer[1]) %>%
+  summarise(songs = n(), distinct_artists = n_distinct(artist))
+```
+
+::: {.callout-note}
+A writing credit is a name on a split sheet. It doesn't say who wrote the hook, who fixed the bridge, or how royalties were divided. "On half the hits" means "credited on half the hits," nothing more.
+:::
+
+# The producer side is even tighter
+
+Producers aren't the headline here, but the same check takes one more pipeline. The `producer` field mixes commas and slashes, so I split on both.
+
+```{r}
+#| label: producer-credits
+#| echo: true
+#| output: true
+
+song_producers <- country_lyrics %>%
+  mutate(song_id = row_number()) %>%
+  filter(!is.na(producer)) %>%
+  separate_longer_delim(producer, regex("[,/]")) %>%
+  mutate(producer = str_squish(producer)) %>%
+  filter(producer != "") %>%
+  distinct(song_id, producer)
+
+cat(sprintf("song_producers: %d rows, %d cols\n", nrow(song_producers), ncol(song_producers)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(song_producers) > 0)
+
+song_producers %>%
+  count(producer, sort = TRUE) %>%
+  mutate(share_of_songs = percent(n / n_songs, accuracy = 0.1)) %>%
+  slice_head(n = 6)
+```
+
+Dann Huff produced or co-produced 59 of the 484 songs, about one in eight. That beats even Gorley's 44 writing credits. I didn't clean up producer spellings at all (there's at least one `RIch Redmond` in there), so I'm leaving this as a side note rather than a second chart.
+
+# Final thoughts and takeaways
+
+Grady Smith's question was whether all country songs sound the same. The credits suggest one reason they might: the same couple of dozen people are in the room for a large share of them. Twenty-six writers are credited on just over half of the 484 Top 30 airplay hits in this spreadsheet, and the top five are on a quarter. Meanwhile 267 writers got exactly one song through, and almost no hit was written entirely by outsiders.
+
+I wouldn't stretch this past what it is. It's six-ish years of one chart, as logged by one person, with credits pulled from wherever he found them. A credit doesn't measure contribution. My name cleanup is crude and the upstream summary counts differ from mine by a song here and there. None of that touches the shape of the curve, though. If you wanted a Top 30 country hit between 2014 and 2019, your odds were a lot better with Ashley Gorley or Shane McAnally in the room.
