@@ -1,0 +1,379 @@
+---
+title: "Tidy Tuesday: At Qumran, the sectarian texts are Hebrew and the retold stories are Aramaic"
+author: "Sean Thimons"
+date: "2026-09-15"
+description: "Sorting the Dead Sea Scrolls catalog by the IAA's own composition types, not one sectarian rule, hymn, or pesher is in Aramaic. Nearly half the parabiblical retellings are."
+categories:
+  - tidytuesday
+  - R
+  - history
+  - religion
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "DeathValley"
+palette_source <- "NatParksPalettes"
+palette_type <- "discrete"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-09-15).
+
+> This week we're exploring the Dead Sea Scrolls, seen by many as the most significant archaeological manuscript discovery of the 20th century. The dataset catalogs 809 manuscripts from the Israel Antiquities Authority's official Leon Levy Dead Sea Scrolls Digital Library, covering all 11 Qumran caves plus Masada, Wadi Murabba'at, and Nahal Hever. Each manuscript is classified by its biblical content, canonical status, language, material, paleographic period, and discovery site.
+
+Tony Galvan curated this one. The last suggested question in the readme asks whether a manuscript's language is related to its content. I went with that one, and the answer is a pretty firm yes. Most of the Qumran library is in Hebrew. The Aramaic fragments aren't scattered evenly through it, though. They pile up in one kind of text and are completely missing from another.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidytuesdayR)
+library(skimr)
+library(scales)
+library(paletteer)
+
+`%ni%` <- Negate(`%in%`)
+
+death_valley <- as.character(paletteer::paletteer_d("NatParksPalettes::DeathValley"))
+rust <- death_valley[1]
+sand <- death_valley[3]
+ink <- death_valley[4]
+slate <- death_valley[5]
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-09-15")
+
+dead_sea_scrolls <- raw$dead_sea_scrolls
+```
+
+# Exploratory data analysis
+
+I'm dropping `manuscript_id`, `short_name`, `composition`, and `keywords` from the skim. The first three are close to one value per row, and `keywords` is mostly empty free text.
+
+```{r}
+#| label: eda-dead-sea-scrolls
+#| echo: true
+#| output: true
+
+dead_sea_scrolls %>%
+  select(-manuscript_id, -short_name, -composition, -keywords) %>%
+  skim()
+
+dead_sea_scrolls %>%
+  count(site_parent, sort = TRUE)
+
+dead_sea_scrolls %>%
+  count(language, sort = TRUE)
+```
+
+There are `r comma(nrow(dead_sea_scrolls))` manuscripts, and `r comma(sum(dead_sea_scrolls$site_parent == "Qumran"))` of them come from the Qumran caves. Cave 4 alone accounts for `r comma(sum(dead_sea_scrolls$cave == 4, na.rm = TRUE))`. Hebrew is the main language by a wide margin, Aramaic is a distant second, and Greek is a sliver. `num_images` is very skewed: the median manuscript has `r median(dead_sea_scrolls$num_images)` plates and the biggest has `r max(dead_sea_scrolls$num_images)`.
+
+The file has two ways of saying what a manuscript is. `composition_type` comes straight from the IAA catalog. `canon_status`, `bible_section`, and `content_category` were added by the curation script, which runs a list of regular expressions over the composition name and keeps the first match. That works most of the time, but it slips in places. The Aramaic "Pseudo-Daniel" fragments come out as the book of Daniel, and "Apocryphon of Levi" comes out as Leviticus. So I'm using the IAA's `composition_type` for the grouping. The only cleanup is folding the question-mark variants ("Scripture?", "Pesher?") into their parent types and merging "Unidentified Texts" into "Unidentified Text".
+
+I'm also limiting this to Qumran. The other three sites are separate finds, many of them paleographically dated to the Roman period, and there are only `r sum(dead_sea_scrolls$site_parent != "Qumran")` of them.
+
+```{r}
+#| label: build-qumran
+#| echo: true
+#| output: true
+
+qumran <- dead_sea_scrolls %>%
+  filter(site_parent == "Qumran") %>%
+  mutate(
+    type = composition_type %>%
+      str_remove("\\?$") %>%
+      str_replace("^Unidentified Texts$", "Unidentified Text")
+  )
+
+qumran %>%
+  count(language, sort = TRUE)
+
+qumran_lang <- qumran %>%
+  filter(language %in% c("Hebrew", "Aramaic", "Greek"))
+
+cat(sprintf("qumran_lang: %d rows, %d cols\n", nrow(qumran_lang), ncol(qumran_lang)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(qumran_lang) > 0)
+
+overall_aramaic <- mean(qumran_lang$language == "Aramaic")
+```
+
+`r sum(is.na(qumran$language) | qumran$language %ni% c("Hebrew", "Aramaic", "Greek"))` Qumran manuscripts have no language, an "Unidentified" language, or Nabataean. Those drop out. That leaves `r comma(nrow(qumran_lang))`, and `r percent(overall_aramaic, accuracy = 0.1)` of them are Aramaic.
+
+# Language by composition type
+
+If language had nothing to do with content, every type would land somewhere near that `r percent(overall_aramaic, accuracy = 1)`. Here's what they actually look like:
+
+```{r}
+#| label: type-by-language
+#| echo: true
+#| output: true
+
+by_type <- qumran_lang %>%
+  count(type, language) %>%
+  pivot_wider(names_from = language, values_from = n, values_fill = 0) %>%
+  mutate(
+    total = Hebrew + Aramaic + Greek,
+    aramaic_share = Aramaic / total
+  ) %>%
+  arrange(desc(aramaic_share), desc(total))
+
+by_type %>%
+  select(type, total, Hebrew, Aramaic, Greek, aramaic_share) %>%
+  print(n = Inf)
+```
+
+Every one of the `r sum(by_type$total[by_type$type == "Sectarian Texts"])` "Sectarian Texts" is Hebrew. These are the community's own rulebooks: the Community Rule, the Damascus Document, the War Scroll, and so on. The `r by_type$total[by_type$type == "Pesher"]` pesharim are all Hebrew too, and so are the `r by_type$total[by_type$type == "Poetical/Liturgical Texts"]` poetical and liturgical texts, the legal texts, and the tefillin and mezuzot. The biblical books (the IAA's "Scripture") are `r percent(by_type$Hebrew[by_type$type == "Scripture"] / by_type$total[by_type$type == "Scripture"], accuracy = 1)` Hebrew, and the two Aramaic exceptions aren't surprising. One is a copy of Daniel, which is partly written in Aramaic anyway. The other is a Cave 6 fragment the IAA only tentatively files as scripture, under the name "Text Related to Genesis".
+
+The Aramaic sits in the "Parabiblical Texts", the stories that retell or expand on biblical figures. Two of the best-represented works in that group split cleanly by language:
+
+```{r}
+#| label: enoch-vs-jubilees
+#| echo: true
+#| output: true
+
+parabiblical_works <- qumran_lang %>%
+  filter(type %in% c("Parabiblical Texts", "Apocrypha")) %>%
+  mutate(work = composition %>% str_remove("\\?$") %>% str_remove("^pap")) %>%
+  count(work, language) %>%
+  pivot_wider(names_from = language, values_from = n, values_fill = 0) %>%
+  mutate(copies = Hebrew + Aramaic + Greek) %>%
+  filter(copies >= 3) %>%
+  arrange(desc(copies)) %>%
+  select(work, copies, Hebrew, Aramaic)
+
+parabiblical_works %>%
+  print(n = Inf)
+
+enoch <- qumran_lang %>%
+  filter(str_detect(composition, "^Enoch"))
+
+jubilees <- qumran_lang %>%
+  filter(str_detect(composition, "^(pap)?Jubilees\\??$"))
+
+stopifnot(nrow(enoch) > 0, nrow(jubilees) > 0)
+```
+
+Enoch is `r sum(enoch$language == "Aramaic")` of `r nrow(enoch)` Aramaic. Jubilees is `r sum(jubilees$language == "Hebrew")` of `r nrow(jubilees)` Hebrew. Both books retell Genesis, both were read seriously at Qumran, and they're in different languages. The rest of the Aramaic retellings are smaller works: the Visions of Amram, New Jerusalem, the Aramaic Levi Document, Tobit, and the Pseudo-Daniel fragments.
+
+```{r}
+#| label: fig-language-by-type
+#| fig-cap: "Share of each IAA composition type written in Aramaic, Greek, and Hebrew, for Qumran manuscripts with a known language. Types with fewer than six such manuscripts are left out. The dashed line marks the Aramaic share across all of these manuscripts. The 'Alleged Qumran Documents' were bought on the antiquities market as Cave 4 finds; many scholars think they came from somewhere else."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 8
+#| fig-dpi: 300
+
+plot_types <- by_type %>%
+  filter(total >= 6) %>%
+  mutate(
+    group = if_else(Aramaic > 0, "Some Aramaic copies", "No Aramaic copies at all"),
+    group = factor(group, levels = c("Some Aramaic copies", "No Aramaic copies at all")),
+    type = fct_reorder2(type, aramaic_share, total, .fun = function(x, y) x[1] * 1e4 + y[1]),
+    type = fct_rev(type)
+  )
+
+stopifnot("Expected types in both groups" = n_distinct(plot_types$group) == 2)
+
+plot_long <- plot_types %>%
+  pivot_longer(c(Aramaic, Greek, Hebrew), names_to = "language", values_to = "n") %>%
+  mutate(
+    share = n / total,
+    language = factor(language, levels = c("Greek", "Hebrew", "Aramaic"))
+  )
+
+cat(sprintf("plot_long: %d rows, %d cols\n", nrow(plot_long), ncol(plot_long)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(plot_long) > 0)
+
+aramaic_labels <- plot_types %>%
+  filter(Aramaic > 0) %>%
+  mutate(label = sprintf("%s (%d)", percent(aramaic_share, accuracy = 1), Aramaic))
+
+parabiblical_note <- sprintf(
+  "Enoch: %d of %d copies in Aramaic.\nJubilees: %d of %d in Hebrew.",
+  sum(enoch$language == "Aramaic"), nrow(enoch),
+  sum(jubilees$language == "Hebrew"), nrow(jubilees)
+)
+
+sectarian_note <- sprintf(
+  "Rules, commentaries, hymns, prayers, tefillin:\n%d manuscripts, every one in Hebrew.",
+  sum(plot_types$total[plot_types$group == "No Aramaic copies at all"])
+)
+
+note_layer <- tibble(
+  group = factor(
+    c("Some Aramaic copies", "No Aramaic copies at all"),
+    levels = levels(plot_types$group)
+  ),
+  type = c("Parabiblical Texts", as.character(plot_types$type[plot_types$group == "No Aramaic copies at all"][1])),
+  label = c(parabiblical_note, sectarian_note)
+)
+
+ref_label <- tibble(
+  group = factor("No Aramaic copies at all", levels = levels(plot_types$group)),
+  type = as.character(last(plot_types$type[plot_types$group == "No Aramaic copies at all"])),
+  label = paste0("Aramaic share across all Qumran: ", percent(overall_aramaic, accuracy = 1))
+)
+
+p <- ggplot(plot_long, aes(y = type)) +
+  geom_col(
+    aes(x = share, fill = language),
+    width = 0.72,
+    position = position_stack(reverse = FALSE)
+  ) +
+  geom_vline(xintercept = overall_aramaic, linetype = "22", color = ink, linewidth = 0.5) +
+  geom_label(
+    data = aramaic_labels,
+    aes(x = aramaic_share, label = label),
+    hjust = 0, nudge_x = 0.006, size = 3.4, color = rust, fontface = "bold",
+    fill = "white", linewidth = 0, label.padding = unit(0.15, "lines")
+  ) +
+  geom_text(
+    data = plot_types,
+    aes(x = 1.02, label = paste0("n = ", total)),
+    hjust = 0, size = 3.2, color = "grey35"
+  ) +
+  geom_label(
+    data = note_layer,
+    aes(x = 0.97, label = label),
+    hjust = 1, size = 3.3, lineheight = 1.05,
+    color = ink, fill = "white", linewidth = 0,
+    label.padding = unit(0.3, "lines")
+  ) +
+  geom_label(
+    data = ref_label,
+    aes(x = overall_aramaic, label = label),
+    hjust = 0, nudge_x = 0.01, size = 3.2, color = ink, fill = "white", linewidth = 0
+  ) +
+  facet_grid(group ~ ., scales = "free_y", space = "free_y", switch = "y") +
+  scale_fill_manual(
+    values = c(Aramaic = rust, Greek = slate, Hebrew = alpha(sand, 0.4)),
+    breaks = c("Aramaic", "Greek", "Hebrew"),
+    name = NULL
+  ) +
+  scale_x_continuous(
+    labels = label_percent(),
+    breaks = seq(0, 1, 0.25),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  coord_cartesian(xlim = c(0, 1.1), clip = "off") +
+  labs(
+    title = "At Qumran, the Aramaic is in the retold stories",
+    subtitle = sprintf(
+      "%s of the %s Qumran manuscripts with a known language are Aramaic. They cluster in the parabiblical retellings and a few\ndocuments, and they're missing entirely from the sectarian rules, the pesharim, and the liturgy.",
+      percent(overall_aramaic, accuracy = 1), comma(nrow(qumran_lang))
+    ),
+    x = "Share of manuscripts in each composition type",
+    y = NULL,
+    caption = "Data: Leon Levy Dead Sea Scrolls Digital Library (Israel Antiquities Authority) via TidyTuesday 2026-09-15.\nComposition types as assigned by the IAA, with '?' variants merged. Labels show the Aramaic share and count."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "#F8F3EA", color = NA),
+    panel.grid = element_blank(),
+    panel.grid.major.x = element_line(color = "grey85", linewidth = 0.3),
+    strip.placement = "outside",
+    strip.text.y.left = element_text(angle = 90, face = "bold", color = ink, size = 10),
+    panel.spacing.y = unit(1.1, "lines"),
+    axis.text.y = element_text(color = "grey15", size = 10.5),
+    axis.text.x = element_text(color = "grey35"),
+    axis.title.x = element_text(color = "grey35", size = 10, hjust = 0, margin = margin(t = 8)),
+    legend.position = "top",
+    legend.justification = "left",
+    legend.text = element_text(size = 10, color = "grey25"),
+    plot.title = element_text(face = "bold", size = 19, color = ink),
+    plot.subtitle = element_text(color = "grey30", size = 10, lineheight = 1.15, margin = margin(b = 8)),
+    plot.caption = element_text(color = "grey45", hjust = 0, size = 8.5, lineheight = 1.1),
+    plot.title.position = "plot",
+    plot.caption.position = "plot",
+    plot.margin = margin(14, 30, 10, 10)
+  )
+
+p
+```
+
+The bottom panel is the main result. Every composition type there has at least seven manuscripts, the pesharim alone have `r by_type$total[by_type$type == "Pesher"]`, and none of them has a single Aramaic copy. In the top panel, the parabiblical texts are the one big group that runs well above the dashed line. The "Alleged Qumran Documents" have a higher share, but they're a different kind of thing: deeds and grain accounts that the IAA flags as possibly not from Qumran at all.
+
+There's a well-known explanation in the scholarship, and I'll repeat it rather than claim the data proves it: the Aramaic works were probably written elsewhere, by other Jewish groups, and brought to Qumran. The community copied and kept them, but when it wrote its own texts, it wrote them in Hebrew. The catalog fits that story. It can't show where any particular text was written.
+
+::: {.callout-note}
+The readme quotes a figure of 981 manuscripts. This file has 809, because the curation script only queried certain ID ranges (Cave 4 stops at 4Q576, for example). The `language` field is the IAA's primary language, so a mixed text like Daniel gets one label. "Other" and "Unidentified Text" are catch-all bins, so I wouldn't read much into where they fall.
+:::
+
+# Final thoughts and takeaways
+
+I expected Aramaic to be a little more common in some places and a little less common in others. That's not what the catalog shows. It splits into two groups. Rules, commentaries, hymns, prayers, legal texts, and the boxes worn on the arm and head are Hebrew all the way through, across more than two hundred manuscripts. Aramaic shows up in the retellings of biblical stories and in everyday paperwork.
+
+Enoch and Jubilees are the clearest example. They cover a lot of the same ground, both were copied many times, and they don't share a single language between them.
+
+The weak spots are the catalog itself. About a fifth of these manuscripts fall in the unidentified or catch-all types, the language field gives one answer per manuscript, and the file is missing about 170 manuscripts the readme mentions. Even so, an effect this lopsided would be hard to erase with that much noise. If I came back to this, I'd look at paleographic period next. If the Aramaic retellings skew older than the sectarian texts, that would support the brought-in-from-outside explanation.
