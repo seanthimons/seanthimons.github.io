@@ -1,0 +1,402 @@
+---
+title: "Tidy Tuesday: Cappuccino prices barely move. Barista wages do."
+author: "Sean Thimons"
+date: "2026-09-08"
+description: "James Hoffmann's cappuccino index asks how long a barista works to pay for a small cappuccino. Across countries with at least five cafés, the price of the cup varies a few-fold and the wage varies more than thirty-fold, so the wage ends up setting the ranking."
+categories:
+  - tidytuesday
+  - R
+  - coffee
+  - economics
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "bilbao"
+palette_source <- "scico"
+palette_type <- "continuous"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- as.character(paletteer::paletteer_c(palette_id, n = 5))
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-09-08).
+
+> James Hoffmann is a YouTuber who explores coffee from many different angles. In a recent [video](https://www.youtube.com/watch?v=WtlE3BW9Nqs) he explored how long a barista would need to work to pay for a small cappuccino. In the video, James presents the cappuccino index, which answers this at a country level. There are some important caveats, such as tips being excluded.
+
+Filip Reierson curated it. The readme asks how uncertain the ranking is given some tiny samples, and which countries have the most spread in price. I started there and ended up somewhere else. The index is price divided by wage, and when I pulled those two apart, almost all the action was in the wage. The average small cappuccino in Mexico costs about 70% of what it costs in the UK. The average Mexican barista earns about a sixth of what a British one does.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidytuesdayR)
+library(skimr)
+library(scales)
+library(paletteer)
+library(ggrepel)
+library(broom)
+
+`%ni%` <- Negate(`%in%`)
+
+bilbao <- as.character(paletteer::paletteer_c("scico::bilbao", n = 7))
+espresso <- bilbao[1]
+crema <- bilbao[3]
+```
+
+# Load raw data from package
+
+The readme warns that New Zealand and South Africa are spelled with a non-breaking space, so I swap those for regular spaces right away.
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-09-08")
+
+cafe <- raw$cafe %>%
+  mutate(country = gsub(" ", " ", country))
+
+cappuccino_index <- raw$cappuccino_index %>%
+  mutate(country = gsub(" ", " ", country))
+```
+
+# Exploratory data analysis
+
+I'm dropping `city`, plus the local-currency `price` and `hourly_wage`. Those can't be compared across countries; the `_gbp` columns can.
+
+```{r}
+#| label: eda-cafe
+#| echo: true
+#| output: true
+
+cafe %>%
+  select(country, urban, suburban, rural, hourly_wage_gbp, price_gbp, original_currency) %>%
+  skim()
+
+cafe %>%
+  count(country, sort = TRUE) %>%
+  mutate(size = case_when(
+    n == 1 ~ "1 café",
+    n <= 4 ~ "2 to 4 cafés",
+    n <= 20 ~ "5 to 20 cafés",
+    TRUE ~ "more than 20 cafés"
+  )) %>%
+  count(size, name = "countries")
+```
+
+There are `r comma(nrow(cafe))` cafés in `r n_distinct(cafe$country)` countries, but the USA and UK together make up almost half of them. At the other end, `r sum(count(cafe, country)$n == 1)` countries have exactly one café. One café is one barista's wage and one menu price, which isn't an index. I'll use countries with at least five cafés for everything below. That leaves `r sum(count(cafe, country)$n >= 5)` countries.
+
+The two money columns already look different in the skim. Price in pounds has a fairly tight middle; wage has a long range from well under £1 an hour to over £40.
+
+One more check. The published index is `sum(price) / sum(wage) * 60` for each country. That's the same as mean price over mean wage, so I can rebuild it and split it into its two parts.
+
+```{r}
+#| label: rebuild-index
+#| echo: true
+#| output: true
+
+by_country <- cafe %>%
+  group_by(country) %>%
+  summarise(
+    cafes = n(),
+    price = mean(price_gbp),
+    wage = mean(hourly_wage_gbp),
+    .groups = "drop"
+  ) %>%
+  mutate(index = 60 * price / wage) %>%
+  left_join(select(cappuccino_index, country, published = index), by = c("country"))
+
+stopifnot(
+  "Rebuilt index does not match the published one" =
+    max(abs(by_country$index - by_country$published)) < 1e-6
+)
+
+countries <- by_country %>%
+  filter(cafes >= 5)
+
+cat(sprintf("countries: %d rows, %d cols\n", nrow(countries), ncol(countries)))
+stopifnot("Plot data has 0 rows — check filter values" = nrow(countries) > 0)
+```
+
+It matches to six decimal places.
+
+# Splitting the index into price and wage
+
+If the index is price over wage, then on a log scale it's log price minus log wage. So the question is which of those two moves more from country to country.
+
+```{r}
+#| label: spread-price-vs-wage
+#| echo: true
+#| output: true
+
+spread <- countries %>%
+  pivot_longer(c(price, wage), names_to = "part", values_to = "gbp") %>%
+  group_by(part) %>%
+  summarise(
+    min = min(gbp),
+    p10 = quantile(gbp, 0.10),
+    p90 = quantile(gbp, 0.90),
+    max = max(gbp),
+    sd_log = sd(log(gbp))
+  ) %>%
+  mutate(
+    p90_over_p10 = p90 / p10,
+    max_over_min = max / min
+  )
+
+spread
+```
+
+Among these `r nrow(countries)` countries, the average price of a small cappuccino runs from £`r number(min(countries$price), accuracy = 0.01)` to £`r number(max(countries$price), accuracy = 0.01)`, about `r number(spread$max_over_min[spread$part == "price"], accuracy = 0.1)` to 1. The average barista wage runs from £`r number(min(countries$wage), accuracy = 0.01)` to £`r number(max(countries$wage), accuracy = 0.01)` an hour, about `r number(spread$max_over_min[spread$part == "wage"], accuracy = 1)` to 1. Trim off the top and bottom tenth and the gap is still there: `r number(spread$p90_over_p10[spread$part == "price"], accuracy = 0.1)`x for price and `r number(spread$p90_over_p10[spread$part == "wage"], accuracy = 0.1)`x for wage.
+
+Prices do climb with wages, they just don't climb very far. A straight line on the log-log scale gives the slope directly:
+
+```{r}
+#| label: price-wage-slope
+#| echo: true
+#| output: true
+
+slope_fit <- lm(log(price) ~ log(wage), data = countries)
+
+slope_tbl <- tidy(slope_fit, conf.int = TRUE) %>%
+  filter(term == "log(wage)")
+
+slope_tbl
+glance(slope_fit) %>% select(r.squared, nobs)
+
+set.seed(908)
+boot_slopes <- map_dbl(1:2000, function(i) {
+  resampled <- slice_sample(countries, prop = 1, replace = TRUE)
+  coef(lm(log(price) ~ log(wage), data = resampled))[[2]]
+})
+
+quantile(boot_slopes, c(0.05, 0.95))
+
+slope <- slope_tbl$estimate
+```
+
+The slope is about `r number(slope, accuracy = 0.01)`, and resampling the countries keeps it between `r number(quantile(boot_slopes, 0.05), accuracy = 0.01)` and `r number(quantile(boot_slopes, 0.95), accuracy = 0.01)`. In plain terms, a country where baristas earn twice as much has cappuccinos about `r percent(2^slope - 1, accuracy = 1)` more expensive, not 100% more. A slope of 1 would mean the cup always costs the same number of minutes of work, and every country would tie. A slope of about a quarter means the index is mostly a wage ranking turned upside down.
+
+```{r}
+#| label: fig-price-vs-wage
+#| fig-cap: "Average price of a small cappuccino against average barista wage, both in pounds, for the 46 countries with at least five cafés. Both axes are log scales. The shaded bands show how many minutes of work one cup costs; countries in the same band have similar index values. Point size shows the number of cafés behind each country. 'China' is eight Hong Kong cafés and one in Shenzhen."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 8
+#| fig-dpi: 300
+
+x_lims <- c(0.55, 28)
+y_lims <- c(1.05, 6.6)
+band_breaks <- c(0, 15, 30, 60, 120, Inf)
+band_labels <- c("under 15", "15 to 30", "30 to 60", "60 to 120", "over 120")
+
+band_grid <- expand_grid(
+  wage = exp(seq(log(x_lims[1]), log(x_lims[2]), length.out = 400)),
+  price = exp(seq(log(y_lims[1]), log(y_lims[2]), length.out = 300))
+) %>%
+  mutate(band = cut(60 * price / wage, breaks = band_breaks, labels = band_labels))
+
+minute_lines <- tibble(minutes = c(15, 30, 60, 120)) %>%
+  mutate(
+    label = paste(minutes, "min"),
+    label_wage = pmin(60 * y_lims[2] * 0.97 / minutes, x_lims[2] * 0.62),
+    label_price = label_wage * minutes / 60
+  )
+
+label_countries <- c(
+  "Australia", "Italy", "Switzerland", "Denmark", "UK", "USA", "Poland",
+  "Japan", "China", "Mexico", "Turkey", "Indonesia", "Philippines",
+  "Vietnam", "India", "Argentina", "South Africa"
+)
+
+point_labels <- countries %>%
+  filter(country %in% label_countries) %>%
+  mutate(label = if_else(country == "China", "China (mostly Hong Kong)", country))
+
+stopifnot("Some label countries are missing" = nrow(point_labels) == length(label_countries))
+
+slope_note <- sprintf(
+  "Fitted slope: %s.\nDouble the wage and the\ncup costs about %s more.",
+  number(slope, accuracy = 0.01),
+  percent(2^slope - 1, accuracy = 1)
+)
+
+p <- ggplot(countries, aes(x = wage, y = price)) +
+  geom_raster(
+    data = band_grid,
+    aes(x = wage, y = price, fill = band),
+    alpha = 0.55,
+    interpolate = TRUE
+  ) +
+  geom_abline(
+    data = minute_lines,
+    aes(slope = 1, intercept = log10(minutes / 60)),
+    color = "white",
+    linewidth = 0.4
+  ) +
+  geom_text(
+    data = minute_lines,
+    aes(x = label_wage, y = label_price, label = label),
+    hjust = -0.15, vjust = 1, size = 3.3, color = espresso, fontface = "bold"
+  ) +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x,
+    se = FALSE,
+    color = espresso,
+    linewidth = 0.8,
+    linetype = "22"
+  ) +
+  geom_point(aes(size = cafes), shape = 21, fill = "white", color = espresso, stroke = 0.7) +
+  geom_text_repel(
+    data = point_labels,
+    aes(label = label),
+    size = 3.3,
+    color = "grey10",
+    bg.color = "white",
+    bg.r = 0.12,
+    min.segment.length = 0.2,
+    segment.color = "grey30",
+    box.padding = 0.4,
+    seed = 908
+  ) +
+  annotate(
+    "label",
+    x = 0.6, y = 5.2,
+    label = slope_note,
+    hjust = 0, vjust = 1, size = 3.4, lineheight = 1.05,
+    color = espresso, fill = "white", linewidth = 0
+  ) +
+  scale_fill_manual(
+    values = rev(bilbao[1:5]),
+    name = "Minutes of work for one cup",
+    guide = guide_legend(order = 1, override.aes = list(alpha = 0.55))
+  ) +
+  scale_size_area(
+    max_size = 9,
+    breaks = c(10, 100, 600),
+    name = "Cafés",
+    guide = guide_legend(order = 2)
+  ) +
+  scale_x_log10(
+    breaks = c(0.5, 1, 2, 5, 10, 20),
+    labels = label_currency(prefix = "£", accuracy = 0.1, drop0trailing = TRUE),
+    expand = expansion(0)
+  ) +
+  scale_y_log10(
+    breaks = c(1, 1.5, 2, 3, 4, 5, 6),
+    labels = label_currency(prefix = "£", accuracy = 0.1, drop0trailing = TRUE),
+    expand = expansion(0)
+  ) +
+  coord_cartesian(xlim = x_lims, ylim = y_lims, clip = "on") +
+  labs(
+    title = "Cappuccino prices barely move. Barista wages do.",
+    subtitle = sprintf(
+      "Across %d countries the average cup costs between £%.2f and £%.2f, while the average barista wage spans\nmore than thirty-fold. Countries spread left to right far more than bottom to top, so the wage sets the index.",
+      nrow(countries), min(countries$price), max(countries$price)
+    ),
+    x = "Average barista hourly wage (log scale)",
+    y = "Average price of a small cappuccino (log scale)",
+    caption = "Data: James Hoffmann's cappuccino index via TidyTuesday 2026-09-08. Countries with fewer than five cafés left out. Tips not included."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "#FBF8F3", color = NA),
+    panel.grid = element_blank(),
+    axis.text = element_text(color = "grey30"),
+    axis.title = element_text(color = "grey35", size = 10),
+    axis.title.x = element_text(hjust = 0, margin = margin(t = 8)),
+    axis.title.y = element_text(hjust = 0, margin = margin(r = 8)),
+    legend.position = "bottom",
+    legend.box = "horizontal",
+    legend.title = element_text(size = 9.5, color = "grey25"),
+    legend.text = element_text(size = 9, color = "grey30"),
+    plot.title = element_text(face = "bold", size = 19, color = espresso),
+    plot.subtitle = element_text(color = "grey30", size = 10, lineheight = 1.15, margin = margin(b = 12)),
+    plot.caption = element_text(color = "grey45", hjust = 0, size = 8.5),
+    plot.title.position = "plot",
+    plot.caption.position = "plot",
+    plot.margin = margin(14, 18, 10, 10)
+  )
+
+p
+```
+
+Read it left to right. The cheapest cup in the plot, Indonesia at £1.21, is still more than a fifth of the Swiss or Danish price, and those two are the only places where the average tops £5. Most countries sit between £2 and £4 no matter where they are on the wage axis. Meanwhile the points march straight across the bands, from India and Vietnam, where a cup costs well over two hours of work, to Australia, where it's about ten minutes. Australia isn't cheap. Its cappuccinos are middle of the pack. It just pays baristas well.
+
+There are a few places where price does matter. Italy pays baristas less than most of western Europe, but its average cup is the cheapest of any European country here at £1.62, and that's enough to put it second overall. Turkey and Mexico pay about what Argentina and Brazil pay, but charge more per cup, so their index values are around 73 and 75 minutes against 60 and 57.
+
+::: {.callout-note}
+The readme doesn't say how cafés were picked or how wages were reported. Some countries are effectively one city: the "China" row is eight Hong Kong cafés and one in Shenzhen, and that Shenzhen cup is the second most expensive in the whole file at £9.44. The currency conversion is a single rate per currency, with no adjustment for living costs. That's fine for this index, because price and wage are converted the same way and the rate cancels out, but it does mean the pound axes above are exchange-rate pounds.
+:::
+
+# Final thoughts and takeaways
+
+The cappuccino index looks like a coffee price ranking, but it isn't really one. The cup's price only moves a few-fold between countries and the barista's wage moves more than thirty-fold, so the order of the index is mostly the order of barista pay, flipped. The fitted slope of about a quarter says the same thing: a cappuccino in a high-wage country costs more, but nowhere near in proportion.
+
+My guess at why, which this data can't test: green coffee and espresso machines are bought on world markets, while labour is local. A café in Indonesia and a café in Australia probably pay similar money for beans and kit, then pay very different money for the person making the drink.
+
+The limits are the sample. Even after dropping every country with fewer than five cafés, some countries rest on six or eight cafés, often in one city, and the USA and UK together contribute about half of all rows. I'd trust the broad shape here more than any single country's spot in the ranking. If I picked this back up, I'd take the readme's uncertainty question head on and bootstrap each country's index to see how many of those neighbouring ranks are really ties.
