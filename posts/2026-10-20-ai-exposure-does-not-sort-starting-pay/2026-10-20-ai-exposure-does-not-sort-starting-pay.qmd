@@ -1,0 +1,283 @@
+---
+title: "Tidy Tuesday: AI exposure doesn't sort majors by starting pay"
+author: "Sean Thimons"
+date: "2026-10-20"
+description: "Across 285 college majors, AI exposure and starting salary are unrelated. Engineering is the one field that lands on both sides of the line."
+categories:
+  - tidytuesday
+  - R
+  - economics
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "Egypt"
+palette_source <- "MetBrewer"
+palette_type <- "discrete"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- rep_len(as.character(paletteer::paletteer_d(palette_id, n = 4)), 5)
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-10-20).
+
+This week's data, curated by [Tony Galvan](https://github.com/gdatascience), joins three public sources for 285 college majors. Starting pay is the median earnings one year after graduation for bachelor's degrees, from the College Scorecard. AI exposure is the Felten, Raj and Seamans AIOE score, averaged over the occupations each major feeds into through the NCES/BLS crosswalk. The README is upfront that exposure isn't the same as automation, since AI can help with a job as easily as replace it.
+
+The obvious question is whether the safe majors pay well. I wanted to see where the answer is yes and where it isn't.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidytuesdayR)
+library(skimr)
+library(scales)
+library(ggrepel)
+library(paletteer)
+
+`%ni%` <- Negate(`%in%`)
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-10-20")
+majors <- raw$ai_salary_majors
+occupations <- raw$major_occupations
+```
+
+# Exploratory data analysis
+
+```{r}
+#| label: eda-majors
+#| echo: true
+#| output: true
+
+majors %>%
+  select(median_starting_salary, ai_exposure, ai_exposure_percentile, n_institutions, n_graduates) %>%
+  skim()
+
+majors %>%
+  summarise(
+    pearson = cor(ai_exposure, median_starting_salary),
+    spearman = cor(ai_exposure, median_starting_salary, method = "spearman"),
+    median_salary = median(median_starting_salary),
+    median_exposure = median(ai_exposure)
+  )
+```
+
+Every major has a salary and an exposure score. The correlation between them is about zero, whether I use Pearson or Spearman, so there's no trend line worth drawing. Splitting at the median of each gives me four boxes to count.
+
+# Four boxes, and who is in them
+
+```{r}
+#| label: quadrants
+#| echo: true
+#| output: true
+
+salary_cut <- median(majors$median_starting_salary)
+exposure_cut <- median(majors$ai_exposure)
+
+majors <- majors %>%
+  mutate(
+    box = case_when(
+      ai_exposure < exposure_cut & median_starting_salary >= salary_cut ~ "Less exposed, higher paid",
+      ai_exposure >= exposure_cut & median_starting_salary >= salary_cut ~ "More exposed, higher paid",
+      ai_exposure < exposure_cut ~ "Less exposed, lower paid",
+      TRUE ~ "More exposed, lower paid"
+    ),
+    highlight = case_when(
+      broad_field_short == "Engineering" ~ "Engineering",
+      broad_field_short == "Engineering Tech" ~ "Engineering Tech",
+      TRUE ~ "Everything else"
+    )
+  )
+
+majors %>% count(box)
+
+majors %>%
+  filter(highlight != "Everything else") %>%
+  count(highlight, box) %>%
+  pivot_wider(names_from = box, values_from = n, values_fill = 0)
+```
+
+The four boxes hold 70, 73, 72, and 70 majors. Exposure doesn't tell you which half of the pay distribution a major lands in.
+
+Engineering is the field that makes this clearest, because it appears on both sides. Of its 38 majors, 14 are in the less-exposed, higher-paid box and 24 are in the more-exposed, higher-paid box. Both groups are well paid. Engineering Tech, the hands-on cousin, has 16 of its 17 majors in the less-exposed, higher-paid box.
+
+```{r}
+#| label: fig-exposure-pay
+#| fig-cap: "Starting salary one year after graduation against AI exposure for 285 college majors. Dashed lines are the medians. Engineering and Engineering Tech majors are colored. Exposure is the AIOE score, standardized to mean 0 and standard deviation 1."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 7.5
+
+pal <- as.character(paletteer::paletteer_d("MetBrewer::Egypt"))
+eng_col <- pal[1]
+tech_col <- pal[2]
+
+r_value <- cor(majors$ai_exposure, majors$median_starting_salary)
+
+labeled <- majors %>%
+  filter(
+    str_detect(field_of_study, "^Nuclear Engineering Technology|^Registered Nursing|^Mining and Mineral|^Operations Research|^Naval Architecture|^Practical Nursing")
+  ) %>%
+  mutate(
+    label = case_when(
+      str_detect(field_of_study, "^Nuclear") ~ "Nuclear engineering technology",
+      str_detect(field_of_study, "^Registered") ~ "Registered nursing",
+      str_detect(field_of_study, "^Mining") ~ "Mining and mineral engineering",
+      str_detect(field_of_study, "^Operations") ~ "Operations research",
+      str_detect(field_of_study, "^Naval") ~ "Naval architecture",
+      TRUE ~ "Practical nursing"
+    ),
+    label = paste0(label, " ", dollar(median_starting_salary, scale = 1e-3, suffix = "k", accuracy = 1))
+  )
+
+p <- majors %>%
+  ggplot(aes(ai_exposure, median_starting_salary)) +
+  geom_vline(xintercept = exposure_cut, linetype = "22", color = "grey40", linewidth = 0.4) +
+  geom_hline(yintercept = salary_cut, linetype = "22", color = "grey40", linewidth = 0.4) +
+  geom_point(
+    data = ~ filter(.x, highlight == "Everything else"),
+    color = "grey70", size = 2, alpha = 0.7
+  ) +
+  geom_point(
+    data = ~ filter(.x, highlight != "Everything else"),
+    aes(color = highlight), size = 3, alpha = 0.9
+  ) +
+  geom_text_repel(
+    data = labeled,
+    aes(label = label),
+    size = 3.2, fontface = "bold", color = "grey15", seed = 1020,
+    min.segment.length = 0, segment.color = "grey50", box.padding = 0.6,
+    point.padding = 0.3
+  ) +
+  annotate("text", x = -1.25, y = 112000, hjust = 0, size = 3.4, color = "grey30", fontface = "bold", label = "Less exposed, higher paid: 70") +
+  annotate("text", x = 1.5, y = 112000, hjust = 1, size = 3.4, color = "grey30", fontface = "bold", label = "More exposed, higher paid: 73") +
+  annotate("text", x = -1.25, y = 3000, hjust = 0, size = 3.4, color = "grey30", fontface = "bold", label = "Less exposed, lower paid: 72") +
+  annotate("text", x = 1.5, y = 3000, hjust = 1, size = 3.4, color = "grey30", fontface = "bold", label = "More exposed, lower paid: 70") +
+  annotate(
+    "label",
+    x = -1.25, y = 98000, hjust = 0, size = 3.3, color = "grey20", fill = "grey98", linewidth = 0,
+    label = paste0("Correlation across all 285 majors: ", number(r_value, accuracy = 0.01))
+  ) +
+  scale_color_manual(values = c("Engineering" = eng_col, "Engineering Tech" = tech_col), name = NULL) +
+  scale_x_continuous(breaks = seq(-1, 1, 1), limits = c(-1.3, 1.5), expand = expansion(mult = 0)) +
+  scale_y_continuous(labels = label_dollar(), limits = c(0, 115000), expand = expansion(mult = c(0, 0))) +
+  labs(
+    title = "Being safe from AI doesn't tell you what a major pays",
+    subtitle = "Engineering lands on both sides of the exposure line: 14 of 38 majors are less exposed, 24 more exposed,\nand all 38 start above the median salary",
+    x = "AI exposure (AIOE score, 0 = average occupation)",
+    y = "Median earnings one year after graduation",
+    caption = "Data: College Scorecard, AIOE (Felten, Raj and Seamans 2021), NCES/BLS crosswalk via TidyTuesday 2026-10-20"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "grey98", color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "grey88", linewidth = 0.3),
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(color = "grey30", margin = margin(b = 10)),
+    plot.caption = element_text(color = "grey45", size = 9),
+    axis.title = element_text(color = "grey30"),
+    legend.position = "top",
+    legend.justification = "left",
+    plot.margin = margin(12, 16, 10, 12)
+  )
+
+p
+```
+
+The subtitle's engineering counts come from this check:
+
+```{r}
+#| label: engineering-check
+#| echo: true
+#| output: true
+
+majors %>%
+  filter(broad_field_short == "Engineering") %>%
+  summarise(
+    majors = n(),
+    above_median_pay = sum(median_starting_salary >= salary_cut),
+    less_exposed = sum(ai_exposure < exposure_cut)
+  )
+```
+
+# What sits at the edges
+
+Nuclear engineering technology is the best-paid low-exposure major, at about $101,000 with an exposure score of 0.18. Registered nursing starts around $75,000 and sits at the 20th percentile of exposure, and it also has the largest graduate count of any major listed here. Practical nursing is the cautionary case: it is also among the least exposed majors, at the 3.5th percentile, but pays about $10,000, and it has only 524 graduates with measured earnings. I'd treat that number as a quirk of a small group.
+
+On the other side, mining and mineral engineering, operations research, and naval architecture all pay more than $85,000 with above-average exposure. High exposure isn't a pay penalty in this data. Several of the best-paid majors are above the exposure median.
+
+# Final thoughts and takeaways
+
+If you were hoping to pick a major that's both safe from AI and well paid, the data says there are 70 of them, and about as many that are safe and poorly paid. Exposure alone doesn't help you choose. Field does a bit more: Engineering Tech clusters in the safe, well-paid box, while Engineering is split across the exposure line and still pays well on both sides.
+
+A few cautions. The AIOE measures how much a job's abilities overlap with AI, not whether jobs will disappear. Each major's score is an average over every occupation it can lead to, so a major that maps to many jobs gets a blurry score. The salary is one year out, pooled over institutions as a median of medians, and 45 of the 285 majors are based on only one or two institutions. This is a bachelor's-only slice, so small programs like practical nursing can look odd. I wouldn't read any of this causally.
