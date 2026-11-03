@@ -1,0 +1,303 @@
+---
+title: "Tidy Tuesday: Whether a language puts its verb last depends on its family more than its continent"
+author: "Sean Thimons"
+date: "2026-11-03"
+description: "In Grambank, 43% of languages with a coded answer put the verb last in transitive clauses. Sino-Tibetan sits at 89% and Austronesian at 11%, and the continents hide that gap."
+categories:
+  - tidytuesday
+  - R
+  - linguistics
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "Tiepolo"
+palette_source <- "MetBrewer"
+palette_type <- "discrete"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-11-03).
+
+This week's data is [Grambank](https://grambank.clld.org/), an open database of grammar features for more than 2,400 languages, curated for TidyTuesday by [Ntobeko Sosibo](https://github.com/afrikaniz3d-za). Instead of vocabulary, it records yes/no answers to questions like "are there prepositions?" or "is the usual order of a transitive clause verb-final?". The README asks which features travel together and how language structure spreads across families and regions.
+
+I took the word order question. If you only look at continents, the story is tidy: verb-final languages are common in Eurasia and rare in Africa. I wanted to know how much of that is geography and how much is just which families happen to live there.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidytuesdayR)
+library(skimr)
+library(scales)
+library(ggrepel)
+library(paletteer)
+
+`%ni%` <- Negate(`%in%`)
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-11-03")
+grambank_languages <- raw$grambank_languages
+grambank_parameters <- raw$grambank_parameters
+grambank_values <- raw$grambank_values
+```
+
+# Exploratory data analysis
+
+```{r}
+#| label: eda-grambank
+#| echo: true
+#| output: true
+
+grambank_languages %>%
+  summarise(
+    languages = n(),
+    families = n_distinct(family_name),
+    missing_family = sum(is.na(family_name)),
+    missing_macroarea = sum(is.na(macroarea))
+  )
+
+grambank_languages %>% count(macroarea, sort = TRUE)
+
+grambank_values %>%
+  summarise(
+    rows = n(),
+    languages = n_distinct(language_id),
+    features = n_distinct(parameter_id)
+  )
+
+grambank_parameters %>%
+  filter(parameter_id %in% c("GB131", "GB133")) %>%
+  select(parameter_id, feature_name)
+
+grambank_values %>%
+  filter(parameter_id == "GB133") %>%
+  count(value)
+```
+
+Grambank has about 2,470 languages, and the values table only contains answers that were actually coded, so each language has a different set of features. Papunesia, Eurasia and Africa dominate the language count, which reflects how many languages those regions have. A hundred or so languages have no family listed, mostly isolates, and a handful have no macro-region.
+
+The feature I'm using is `GB133`: whether a pragmatically unmarked constituent order is verb-final for transitive clauses. It is coded 0 or 1, and 2,336 languages have an answer. The coding is not exclusive, though: a few languages are coded as allowing more than one order.
+
+# Verb-final by continent, then by family
+
+```{r}
+#| label: verb-final-data
+#| echo: true
+#| output: true
+
+verb_final <- grambank_values %>%
+  filter(parameter_id == "GB133") %>%
+  inner_join(grambank_languages, by = "language_id") %>%
+  transmute(language_id, family_name, macroarea, verb_final = value == 1)
+
+global_share <- mean(verb_final$verb_final)
+
+by_area <- verb_final %>%
+  filter(!is.na(macroarea)) %>%
+  summarise(languages = n(), share = mean(verb_final), .by = macroarea) %>%
+  arrange(desc(share))
+
+by_area
+
+family_scores <- verb_final %>%
+  filter(!is.na(family_name)) %>%
+  summarise(
+    languages = n(),
+    share = mean(verb_final),
+    area = names(sort(table(macroarea), decreasing = TRUE))[1],
+    .by = family_name
+  ) %>%
+  filter(languages >= 15) %>%
+  arrange(desc(share))
+
+cat(sprintf("family_scores: %d rows, %d cols\n", nrow(family_scores), ncol(family_scores)))
+stopifnot("Plot data has 0 rows" = nrow(family_scores) > 0)
+
+family_scores
+
+# Within a continent, how far apart are its big families?
+family_scores %>%
+  summarise(lowest = min(share), highest = max(share), families = n(), .by = area) %>%
+  arrange(desc(highest - lowest))
+```
+
+```{r}
+#| label: headline-numbers
+#| echo: false
+#| output: false
+
+top_fam <- family_scores %>% slice(1)
+sino <- family_scores %>% filter(family_name == "Sino-Tibetan")
+aus <- family_scores %>% filter(family_name == "Austronesian")
+tng <- family_scores %>% filter(family_name == "Nuclear Trans New Guinea")
+atl <- family_scores %>% filter(family_name == "Atlantic-Congo")
+n_fam <- nrow(family_scores)
+covered <- sum(family_scores$languages)
+total_langs <- nrow(verb_final)
+```
+
+Across all `r comma(total_langs)` languages with an answer, `r percent(global_share, accuracy = 1)` are verb-final. By continent it looks like geography is doing the work: Eurasia is at `r percent(by_area$share[by_area$macroarea == "Eurasia"], accuracy = 1)` and Africa at `r percent(by_area$share[by_area$macroarea == "Africa"], accuracy = 1)`.
+
+Break it down by family and the continents stop making sense. The `r n_fam` families with at least 15 coded languages cover `r comma(covered)` of them, and their verb-final shares run from `r percent(min(family_scores$share), accuracy = 1)` to `r percent(max(family_scores$share), accuracy = 1)`. Papunesia is a good example: the Austronesian family is `r percent(aus$share, accuracy = 1)` verb-final across `r aus$languages` languages, while the Nuclear Trans New Guinea family, in the same region, is `r percent(tng$share, accuracy = 1)` across `r tng$languages`.
+
+```{r}
+#| label: fig-family-verb-final
+#| fig-cap: "Share of languages coded as verb-final for transitive clauses (Grambank feature GB133), for each family with at least 15 coded languages. Point size is the number of languages; color is the continent where most of the family's languages are spoken. The dashed line is the share across all languages with an answer."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 9
+#| dpi: 300
+
+pal <- paletteer::paletteer_d("MetBrewer::Tiepolo")
+area_levels <- c("Eurasia", "Africa", "Papunesia", "North America", "South America", "Australia")
+area_cols <- setNames(as.character(pal)[c(1, 5, 7, 2, 8, 4)], area_levels)
+ink <- "#2B2420"
+paper <- "#F7F1E8"
+
+plot_data <- family_scores %>%
+  mutate(
+    area = factor(area, levels = area_levels),
+    family_name = fct_reorder(family_name, share)
+  )
+
+stopifnot("Plot data has 0 rows" = nrow(plot_data) > 0)
+
+callouts <- plot_data %>%
+  filter(family_name %in% c("Sino-Tibetan", "Austronesian", "Nuclear Trans New Guinea", "Atlantic-Congo", "Afro-Asiatic")) %>%
+  mutate(label = paste0(family_name, ": ", percent(share, accuracy = 1), " (n = ", languages, ")"))
+
+p <- plot_data %>%
+  ggplot(aes(share, family_name)) +
+  annotate("rect", xmin = 0, xmax = 0.5, ymin = -Inf, ymax = Inf, fill = "#EDE3D3", alpha = 0.6) +
+  geom_segment(aes(x = 0, xend = share, yend = family_name), color = "grey75", linewidth = 0.4) +
+  geom_vline(xintercept = global_share, linetype = "22", color = ink, linewidth = 0.5) +
+  geom_point(aes(size = languages, fill = area), shape = 21, color = ink, stroke = 0.4) +
+  geom_text(
+    data = callouts,
+    aes(x = if_else(share > 0.5, share - 0.035, share + 0.035), label = label, hjust = if_else(share > 0.5, 1, 0)),
+    size = 3.2, fontface = "bold", color = ink, vjust = -0.9
+  ) +
+  annotate(
+    "label",
+    x = global_share + 0.01, y = 3, hjust = 0, size = 3.3, color = ink,
+    fill = paper, linewidth = 0,
+    label = paste0("All languages:\n", percent(global_share, accuracy = 1), " verb-final")
+  ) +
+  scale_fill_manual(values = area_cols, name = NULL, drop = FALSE) +
+  scale_size_area(max_size = 12, breaks = c(20, 100, 400), name = "Languages") +
+  scale_x_continuous(labels = label_percent(), limits = c(0, 1.02), expand = expansion(mult = c(0, 0))) +
+  guides(fill = guide_legend(override.aes = list(size = 4), nrow = 1, order = 1), size = guide_legend(nrow = 1, order = 2)) +
+  labs(
+    title = "Verb-final grammar is a family trait more than a continental one",
+    subtitle = "Share of languages with verb-final transitive clauses, by family.\nFamilies in the same region can sit at opposite ends",
+    x = "Share of languages coded verb-final (GB133)",
+    y = NULL,
+    caption = "Data: Grambank v1.0.3 via TidyTuesday 2026-11-03. Families with at least 15 languages that have a GB133 answer.\nShaded band: fewer than half of the family is verb-final."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = paper, color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "grey85", linewidth = 0.3),
+    plot.title = element_text(face = "bold", size = 16, color = ink),
+    plot.title.position = "plot",
+    plot.subtitle = element_text(color = "grey30", margin = margin(b = 10)),
+    plot.caption = element_text(color = "grey45", size = 9, hjust = 0),
+    plot.caption.position = "plot",
+    axis.title.x = element_text(color = "grey30", margin = margin(t = 8)),
+    axis.text.y = element_text(size = 9.5, color = ink),
+    legend.position = "top",
+    legend.box = "vertical",
+    legend.box.just = "left",
+    legend.spacing.y = unit(2, "pt"),
+    legend.justification = "left",
+    plot.margin = margin(12, 16, 10, 12)
+  )
+
+p
+```
+
+# What the plot shows
+
+Sino-Tibetan sits at `r percent(sino$share, accuracy = 1)` and Austronesian at `r percent(aus$share, accuracy = 1)`, and both have more than a hundred coded languages. Atlantic-Congo, the biggest family in Africa, is at `r percent(atl$share, accuracy = 1)`, which is why Africa's overall number is so low. Afro-Asiatic spans Africa and western Asia and lands near a third.
+
+So the continental pattern in the first table is real, but it is mostly a sum of families. Eurasia scores high because Sino-Tibetan, Dravidian and Nakh-Daghestanian are verb-final almost across the board. Papunesia scores low because Austronesian is enormous. Neither number says much about what a new language in either place is likely to do.
+
+# Final thoughts and takeaways
+
+If you want to guess whether a language is verb-final, knowing its family tells you far more than knowing which continent it is on. Families in the same region can be near 0% and near 100%.
+
+A few caveats. Closely related languages inherit word order from a shared ancestor, so the 472 Austronesian languages are not 472 separate experiments. Grambank also doesn't code every language for every feature, and the 101 languages with no family listed are left out of the family chart. I used the most common macro-region for each family's color, so a family like Austronesian, which has languages in Eurasia too, is simplified to one color. I also only looked at one yes/no feature, so I can't say anything here about languages that allow several orders. The feature pairs I didn't get to, such as prepositions with verb-initial order, would be the next thing to check.
