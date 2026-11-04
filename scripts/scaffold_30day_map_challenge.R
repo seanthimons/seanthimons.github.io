@@ -61,6 +61,7 @@ post_template <- function(day, theme, lane, data_idea, fallback) {
     "",
     "```{r}",
     "#| label: setup",
+    "#| include: false",
     "#| message: false",
     "#| warning: false",
     "",
