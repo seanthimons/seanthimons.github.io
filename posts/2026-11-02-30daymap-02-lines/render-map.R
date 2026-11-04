@@ -125,7 +125,7 @@ render_day02 <- function(cache_dir, output_dir, download = FALSE) {
   save_plot(function() grDevices::svg(file.path(output_dir, "day02-night-survey.svg"),
     width = 8, height = 8, bg = cfg$background))
   save_plot(function() grDevices::pdf(file.path(output_dir, "day02-night-survey.pdf"),
-    width = 8, height = 8, bg = cfg$background))
+    width = 8, height = 8, bg = cfg$background, timestamp = FALSE))
   report <- list(config = cfg, source_urls = tile_urls(),
     source_paths = normalizePath(paths), source_bytes = file.info(paths)$size,
     source_md5 = unname(tools::md5sum(paths)),
