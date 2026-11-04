@@ -9,6 +9,7 @@ draft: false
 
 ```{r}
 #| label: build-terrain
+#| include: false
 #| message: false
 #| warning: false
 # Reuse the verified export; run render-map.R explicitly to force a rebuild.
