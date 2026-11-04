@@ -1,10 +1,14 @@
 # 30DayMapChallenge: source/derived data caches are reproducible, not Git assets.
 /data/30daymap/
 /.R-library/
+/.sysdeps/
 /posts/*30daymap*/data/
 /posts/*30daymap*/cache/
 /posts/*30daymap*/**/*.tif
 /posts/*30daymap*/**/*.tiff
+# Large derived vectors can be regenerated; retain compact PNG/PDF/provenance.
+/posts/*30daymap*/artifacts/*.geojson
+/posts/*30daymap*/artifacts/*.svg
 
 .Rproj.user
 .Rhistory

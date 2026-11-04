@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 # All acquisition and terrain processing here are native R. Source safely for tests.
+# Run from the repository root; prefer its ignored, project-local package library.
+if (dir.exists(".R-library")) .libPaths(c(normalizePath(".R-library"), .libPaths()))
 day02_config <- function() {
   list(center = c(-84.505, 39.085), span_m = 24000, buffer_span_m = 40000,
        resolution_m = 20, sigma_m = 20, crs = "EPSG:26916",
@@ -24,7 +26,7 @@ check_dependencies <- function() {
   needed <- c("terra", "sf")
   missing <- needed[!vapply(needed, requireNamespace, logical(1), quietly = TRUE)]
   if (length(missing)) stop("Missing required R packages: ", paste(missing, collapse = ", "),
-    ". No packages were installed. Native R terrain rendering is blocked.", call. = FALSE)
+    ". Load the project-local GIS runtime with `sh scripts/map-r.sh`, or run the explicit setup recipe. Rendering never installs packages automatically.", call. = FALSE)
 }
 
 # A signature check prevents treating an HTTP error page as a cached elevation tile.
@@ -131,7 +133,8 @@ render_day02 <- function(cache_dir, output_dir, download = FALSE) {
     elevation_range_m = limits, contour_features = nrow(contours),
     resampling = "bilinear", smoothing = "normalized 9x9 Gaussian, sigma 20 m, radius 80 m",
     water_mask = "none", session = utils::capture.output(sessionInfo()))
-  dput(report, file = file.path(output_dir, "provenance.R"))
+  writeLines(sub("[[:blank:]]+$", "", utils::capture.output(dput(report))),
+             con = file.path(output_dir, "provenance.R"))
   message("Native R terrain rendered: ", normalizePath(output_dir))
   invisible(report)
 }

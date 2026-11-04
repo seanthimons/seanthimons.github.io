@@ -1,5 +1,7 @@
 # Days 01–03 integration
 
+**Status update, 2026-11-04:** Sean subsequently authorized package installation. Native-R Day02 terrain execution, real-data checks, and the Quarto post's executing render now pass. Initial migration constraints below are historical; see `30daymap-2026-verification.md` and `30daymap-r-runtime.md` for current evidence and setup.
+
 ## Durable location and branch
 
 Repository: `seanthimons/seanthimons.github.io`. Remote default is `master`, not `main`. Integration branch: `feat/30daymap-days-01-03`, forked from `origin/master` at `c9a5b57bf3023c2dcffc6469911ba6b82f9b7551`.
