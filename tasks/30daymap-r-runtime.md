@@ -24,10 +24,10 @@ The extracted runtime package versions are recorded in `tasks/30daymap-runtime-p
 sh scripts/map-r.sh tests/test-day02-map.R
 sh scripts/map-r.sh posts/2026-11-02-30daymap-02-lines/render-map.R
 sh scripts/map-r.sh tests/test-day02-real-output.R
-sh scripts/map-r.sh --quarto render posts/2026-11-02-30daymap-02-lines/2026-11-02-30daymap-02-lines.qmd --execute -M draft:false
+sh scripts/map-r.sh --quarto render posts/2026-11-02-30daymap-02-lines/2026-11-02-30daymap-02-lines.qmd --execute
 ```
 
-`-M draft:false` is a local-review override only. The source remains `draft: true`; do not apply this override in publication automation. Without it, Quarto executes the draft but suppresses the article body in the rendered HTML.
+Days 01–04 are now marked `draft: false` following Sean's publication approval. Earlier draft-review commands used `-M draft:false`; that override is no longer necessary.
 
 If the raw input cache is absent, add `--download` to the terrain command. This invokes R's `download.file()` against USGS. Quarto execution intentionally requires cached inputs; no network requests or installations occur while rendering the post.
 
@@ -42,7 +42,7 @@ The wrapper scopes `LD_LIBRARY_PATH`, `PROJ_DATA`, and `GDAL_DATA` to its subpro
 - Original approved palette/framing studies: `reference/`, labeled historical prototype evidence.
 - Native render: projected elevation range approximately 138.727–294.149 m, complete 40 km terrain coverage, 10 m contours grouped into 15 elevation-level features over the final 24 km crop. This is not directly comparable to the Python prototype's segment count.
 
-Day02 remains `draft: true`. Successful execution is not authorization to publish.
+Day02 uses its verified committed PNG during article rendering. If the image is missing, its build chunk regenerates it from cached raw tiles. Run `render-map.R` explicitly for a forced terrain rebuild.
 
 ## Day 01: Andes earthquake points
 
@@ -52,7 +52,7 @@ Day01 needs only base R graphics, `jsonlite`, and `digest`; it runs with ordinar
 ```sh
 Rscript posts/2026-11-01-30daymap-01-points/render-map.R --download
 Rscript tests/test-day01-map.R
-quarto render posts/2026-11-01-30daymap-01-points/2026-11-01-30daymap-01-points.qmd --execute -M draft:false
+quarto render posts/2026-11-01-30daymap-01-points/2026-11-01-30daymap-01-points.qmd --execute
 ```
 
 The test includes a freeze check, so on a fresh checkout render before testing.
@@ -66,8 +66,7 @@ be retained in the local cache for exact reproduction; Git contains the recipe a
 fingerprints, not the raw data. Package versions are recorded in `artifacts/provenance.R`.
 
 The PNG is 1800 × 3000 pixels; the PDF is a vector export. Both show the same
-projection and point set. Day01 remains `draft: true`; the render override is for
-local review. The legacy TidyTuesday validator looks specifically for
+projection and point set. Day01 is marked for publication. The legacy TidyTuesday validator looks specifically for
 `figure-html/*.png`, so it reports `NO_PLOTS` for this post's `include_graphics()`
 artifact. The Day01 test checks the actual PNG and executed freeze instead.
 
@@ -89,7 +88,7 @@ From the repository root:
 ```sh
 sh scripts/map-r.sh posts/2026-11-03-30daymap-03-polygons/acquire-data.R
 sh scripts/map-r.sh posts/2026-11-03-30daymap-03-polygons/render-map.R
-sh scripts/map-r.sh --quarto render posts/2026-11-03-30daymap-03-polygons/2026-11-03-30daymap-03-polygons.qmd --execute -M draft:false
+sh scripts/map-r.sh --quarto render posts/2026-11-03-30daymap-03-polygons/2026-11-03-30daymap-03-polygons.qmd --execute
 sh scripts/map-r.sh tests/test-day03-map.R
 ```
 
@@ -104,4 +103,41 @@ fetch source data or refresh fingerprints automatically.
 snapshot, preparation functions/configuration, and rock classification table; `--rebuild` forces regeneration.
 The render emits jewel/earth PNG alternatives, a vector PDF, area totals by class
 combination, and compact provenance. Geographic clipping and intersections use
-full geometry; fine fragments are retained. The Day03 post remains a draft.
+full geometry; fine fragments are retained. The Day03 post uses the selected Earth palette and is marked for publication.
+
+## Day 04: industrial reporting-site clusters
+
+Dependencies are `sf`, `dbscan`, `jsonlite`, and `digest`, recorded separately in
+`tasks/30daymap-day04-r.lock`. The current host reuses Day03's local GIS/UDUNITS
+runtime. Install the added package explicitly with
+`pak::pkg_install("dbscan", lib = ".R-library", ask = FALSE)`; nothing installs
+packages during a render. Restore the Day04 lockfile into `.R-library` with renv
+for the recorded R package versions.
+
+From the repository root:
+
+```sh
+sh scripts/map-r.sh posts/2026-11-04-30daymap-04-clusters/render-map.R --download
+sh scripts/map-r.sh --quarto render posts/2026-11-04-30daymap-04-clusters/2026-11-04-30daymap-04-clusters.qmd --execute
+sh scripts/map-r.sh tests/test-day04-map.R
+```
+
+The explicit acquisition flag fetches missing state TRI CSV files and a pinned
+Natural Earth river GeoJSON into ignored `data/30daymap/2026/day04/`. Omit it once
+cached. The checked source snapshot records exact SHA-256 fingerprints. Revised
+EPA state downloads require review before using `render-map.R --snapshot` to
+accept new source bytes and rebuilding/reviewing counts, tests, prose, and figures.
+Ordinary post execution only uses cached inputs and never updates fingerprints.
+
+The script deduplicates chemical rows by TRI ID and combines matching FRS site
+IDs only when coordinates agree. Missing FRS IDs retain their TRI keys. Original
+sector labels and contributing TRI IDs are retained in `reporting-sites.csv`.
+Blank coordinate datums are explicitly assumed WGS84; known NAD27/NAD83 values
+would be transformed from their stated CRS. All distances use EPSG:26916.
+
+DBSCAN uses at least four sites including the point itself, with 3/5/8 km
+neighborhood comparisons. Clustering runs on the full three-state population
+within 20 km of the generalized Ohio River, before applying the display crop.
+The source frame and corridor are analytic choices, not physical impact zones.
+Outputs are a 3000 × 3300 PNG, compact vector PDF, reporting-site CSV, neighborhood
+comparison CSV, and provenance. Day04 is marked for publication.

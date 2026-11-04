@@ -90,3 +90,54 @@ proposal and planning-only status are superseded.
 Sean selected the Earth palette for Day03. The article image, listing image,
 default drawing/PDF export, and executed freeze now use Earth; Jewel remains an
 alternative artifact. The post remains a draft.
+
+## Day 04 industrial archipelago, 2026-11-04
+
+Sean selected the industrial reporting-facility concept for Clusters. The earlier
+street-tree proposal is superseded. The chosen display is a Cincinnati–Louisville
+regional window (86–83.7°W, 38–39.5°N), not an exact city-to-city river segment.
+
+- Native R acquisition: EPA TRI 2024 OH/KY/IN Basic Data CSV files, 9,718
+  chemical-report rows and 2,559 distinct TRI facility IDs. A pinned Natural Earth
+  1:10m river centerline supplies the corridor reference. An attempted USGS NHD
+  service request timed out; no NHD data or geometry are used in the final pipeline.
+- Chemical rows collapse by TRI ID after checking coordinate/identity consistency.
+  Shared FRS IDs with matching coordinates combine into sites; missing registry
+  identifiers retain TRI keys. The three-state input has 2,557 sites, of which
+  354 are within 20 km of the mapped Ohio River. Clustering precedes the image crop.
+- Visible: 224 sites representing 225 TRI IDs. Six industry groups use an explicit
+  sector crosswalk. Source sectors, names, contributing IDs, datum-assumption flags,
+  distances, cluster membership and core status are exported for inspection.
+- Coordinate datum fields are blank for all 2,557 input sites. The pipeline
+  explicitly assumes WGS84 for these kilometer-scale calculations, preserves the
+  original field, and documents uncertainty at thresholds. Known datum values
+  would be transformed from the stated CRS. Analysis uses EPSG:26916.
+- DBSCAN minPts = 4 including self. Visible results: 3 km gives 11 groups / 158
+  grouped / 66 unassigned; 5 km gives 11 / 193 / 31; 8 km gives 7 / 208 / 16.
+  Equal group counts at 3 and 5 km are not asserted to be identical memberships.
+- Halos are display buffers of grouped sites; the blue band is the 20 km selection
+  corridor. Neither is a pollutant, exposure, flood, or impact footprint. Points
+  have equal sizes; no chemical mass is summed or used in clustering.
+- PNG inspected; scale bar and city labels separated, selection-band legend added.
+- `sh scripts/map-r.sh tests/test-day04-map.R`: PASS. Snapshot/completeness,
+  facility/site deduplication, coordinate/CRS selection, independent distance-matrix
+  core connectivity and border membership checks for all three radii, sensitivity
+  counts, source-change rejection, PNG dimensions/signature, and executed freeze.
+- Quarto render with `--execute -M draft:false`: PASS. Both chunks execute from
+  cached source data without network requests or installations. Existing unrelated
+  blog-listing preview warnings remain.
+- `dbscan` installed into ignored `.R-library`; Day03 GIS runtime reused. Separate
+  `30daymap-day04-r.lock` pins the R package set. Raw sources stay ignored; PNG,
+  compact PDF, site/sensitivity tables, provenance, recipe, and fingerprints tracked
+  as reviewable artifacts. Day04 remains draft and uncommitted pending review.
+
+## Publication preparation, 2026-11-04
+
+Sean accepted Day04 and authorized commit, push, PR, merge, and site deployment for
+Days01–04. All four source posts are now `draft: false`, and their frozen output
+was refreshed with execution. Day02 retains the accepted, previously verified map
+export while executing the updated article; it rebuilds terrain only when the PNG
+is missing or when the source script is invoked explicitly. No terrain/image
+change is claimed by this editorial refresh. Day02 configuration/kernel tests
+(including terra integration), and Day01/03/04 real-data/output tests pass.
+The remote default branch is `master`; no `main` branch exists.

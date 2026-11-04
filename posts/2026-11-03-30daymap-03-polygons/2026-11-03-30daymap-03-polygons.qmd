@@ -5,7 +5,7 @@ date: "2026-11-03"
 description: "A stained-glass intersection of soil taxonomy and buried bedrock in northwest Ohio."
 categories: [cartography, R, 30DayMapChallenge, soils, geology]
 image: artifacts/day03-soil-rock-earth.png
-draft: true
+draft: false
 ---
 
 ```{r}

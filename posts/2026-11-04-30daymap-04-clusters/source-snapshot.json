@@ -1,0 +1,33 @@
+{
+  "sources": [
+    {
+      "file": "tri-2024-OH.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_OH/csv",
+      "retrieved_utc": "2026-11-04 19:10:43 UTC",
+      "bytes": 3716589,
+      "sha256": "671840876b20320a49b5889ce3a3cc31bdccc0cb09125e87c5ce927d8f487155"
+    },
+    {
+      "file": "tri-2024-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_KY/csv",
+      "retrieved_utc": "2026-11-04 19:10:50 UTC",
+      "bytes": 1397405,
+      "sha256": "1d47c00a8aac76f063f7c925d7b7e5b4f1856393ef126d9e8fd030a1bc8be409"
+    },
+    {
+      "file": "tri-2024-IN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_IN/csv",
+      "retrieved_utc": "2026-11-04 19:12:17 UTC",
+      "bytes": 2532613,
+      "sha256": "c730865a0e9b0b99f7d47502f094911332bc84b184ae0506c5b159c1e9ec89b1"
+    },
+    {
+      "file": "rivers-natural-earth.geojson",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson/ne_10m_rivers_lake_centerlines.geojson",
+      "retrieved_utc": "2026-11-04 19:12:30 UTC",
+      "bytes": 7307743,
+      "sha256": "bb854a900ecbd3b408df46d5e16e3e0f974ba55993f9d8b5c26e855273c0905a"
+    }
+  ],
+  "note": "Mutable EPA downloads and pinned Natural Earth revision; retain cached raw payloads."
+}

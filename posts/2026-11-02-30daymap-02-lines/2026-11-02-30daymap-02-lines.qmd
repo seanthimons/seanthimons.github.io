@@ -4,14 +4,15 @@ author: "Sean Thimons"
 date: "2026-11-02"
 description: "An unlabeled contour portrait in the Night survey palette. Can you place it?"
 categories: [30DayMapChallenge, R, maps, terrain]
-draft: true
+draft: false
 ---
 
 ```{r}
 #| label: build-terrain
 #| message: false
 #| warning: false
-local({
+# Reuse the verified export; run render-map.R explicitly to force a rebuild.
+if (!file.exists("artifacts/day02-night-survey.png")) local({
   old <- setwd("../..")
   on.exit(setwd(old))
   source("posts/2026-11-02-30daymap-02-lines/render-map.R")
@@ -47,7 +48,7 @@ The map is built entirely in R from the raw elevation tiles. `terra` crops and m
 
 The terrain is processed over a 40 km square, leaving an 8 km margin on each side of the central 24 km crop. That margin keeps processing-edge effects outside the image. Bilinear resampling places the elevation values on the projected grid. A normalized Gaussian kernel with a 20 m standard deviation then lightly smooths the display surface before contours are extracted at 10 m elevation intervals. The unsmoothed projected terrain is retained separately. This is a cartographic study, not a survey product: smoothing can move an individual contour.
 
-The [complete R source](render-map.R) includes acquisition, input checks, terrain processing, exports, and provenance. The executable chunk above rebuilds the map from cached raw inputs during local rendering. Downloads are a separate preparation step, so rendering does not depend on a live data request.
+The [complete R source](render-map.R) includes acquisition, input checks, terrain processing, exports, and provenance. The post reuses the verified map export. If that image is absent, the chunk above builds it from cached raw inputs. Run the source script explicitly to force a terrain rebuild. Downloads are a separate preparation step, so rendering does not depend on a live data request.
 
 ## Reveal and data provenance
 
@@ -58,7 +59,7 @@ The location is **Cincinnati and Northern Kentucky**, around the Ohio River vall
 
 The source uses geographic coordinates in NAD83. Its approximately 10 m horizontal grid spacing describes the sampling grid, while our 10 m contour interval describes the elevation difference between successive lines. Neither specifies vertical accuracy. Elevations are meters referenced to NAVD88. Reprojection changes the horizontal coordinates only; no vertical datum transformation is applied.
 
-USGS `current` endpoints can change. The repository retains the original tile SHA-256 fingerprints, and each map run records MD5 fingerprints of its local inputs, byte sizes, parameters, and R session details. Those records identify the inputs used; they do not make the remote URLs immutable. See the [runtime and reproduction guide](https://github.com/seanthimons/seanthimons.github.io/blob/feat/30daymap-days-01-03/tasks/30daymap-r-runtime.md) for setup and render commands.
+USGS `current` endpoints can change. The repository retains the original tile SHA-256 fingerprints, and each map run records MD5 fingerprints of its local inputs, byte sizes, parameters, and R session details. Those records identify the inputs used; they do not make the remote URLs immutable. See the [runtime and reproduction guide](https://github.com/seanthimons/seanthimons.github.io/blob/master/tasks/30daymap-r-runtime.md) for setup and render commands.
 
 Credit: U.S. Geological Survey. USGS-produced data are in the [U.S. public domain](https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits).
 

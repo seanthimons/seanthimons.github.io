@@ -5,7 +5,7 @@ date: "2026-11-01"
 description: "Earthquake points reveal the descending Nazca plate beneath the central Andes."
 categories: [cartography, R, 30DayMapChallenge, earthquakes]
 image: artifacts/day01-andes-depth.png
-draft: true
+draft: false
 ---
 
 ```{r}
