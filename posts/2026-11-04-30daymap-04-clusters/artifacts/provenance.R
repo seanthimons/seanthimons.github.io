@@ -1,0 +1,20 @@
+list(input_rows = 9718L, input_tri_ids = 2559L, input_sites = 2557L,
+    input_missing_datum = 2557L, visible_tri_ids = 225L, analysis_sites = 354L,
+    visible_sites = 224L, config = list(year = 2024L, crs = 26916L,
+        bounds = c(xmin = -86, ymin = 38, xmax = -83.7, ymax = 39.5
+        ), corridor_m = 20000, radii_m = c(3000, 5000, 8000),
+        primary_m = 5000, minPts = 4L, background = "#14232B",
+        ink = "#E7E1D4", muted = "#AAB9BC", river = "#77B6BF",
+        colors = c(`Chemicals / distribution` = "#78B7BF", Metals = "#D89977",
+        `Equipment / vehicles` = "#DAC17B", `Polymers / materials` = "#99B087",
+        `Energy / petroleum` = "#B29BC4", `Other sectors` = "#ABB5BA"
+        )), sensitivity = structure(list(radius_km = c(3, 5,
+    8), visible_sites = c(224L, 224L, 224L), visible_groups = c(11L,
+    11L, 7L), clustered_sites = c(158L, 193L, 208L), unassigned_sites = c(66L,
+    31L, 16L)), row.names = c(NA, -3L), class = "data.frame"),
+    assumed_datum_note = "Blank datum fields treated as WGS84 for kilometer-scale display/clustering; original datum retained.",
+    snapshot_sha256 = "e4cbc481cc2b8b125ed3b47bbe086cff129f326373d78b940ee43147a8d853a0",
+    package_versions = c(sf = "1.1.3", dbscan = "1.2.7", jsonlite = "2.0.0",
+    digest = "0.6.39"), spatial_libraries = c(GEOS = "3.14.1",
+    GDAL = "3.8.5", proj.4 = "9.6.2", GDAL_with_GEOS = "true",
+    USE_PROJ_H = "true", PROJ = "9.6.2"))

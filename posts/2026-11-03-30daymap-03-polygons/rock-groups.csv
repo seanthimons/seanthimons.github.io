@@ -1,0 +1,14 @@
+source_lithology,rock_group
+Dolomite,Carbonate
+Limestone,Carbonate
+"Limestone and dolomite",Carbonate
+"Dolomite and shale",Carbonate mixture
+"Dolomite, anhydrite, gypsum, salt, and shale",Carbonate mixture
+"Dolomite, limestone, and shale",Carbonate mixture
+"Dolomite, sandstone, and shale",Carbonate mixture
+"Shale and argillaceous limestone",Carbonate mixture
+"Shale, limestone, and dolomite, interbedded",Carbonate mixture
+Shale,Shale / clastic
+"Sandstone, siltstone, and shale",Shale / clastic
+"Shale, siltstone, and very fine-grained sandstone",Shale / clastic
+"Shale, siltstone, sandstone, conglomerate, and limestone",Mixed clastic / carbonate

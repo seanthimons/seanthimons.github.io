@@ -1,0 +1,221 @@
+{
+  "milestone": "https://github.com/seanthimons/seanthimons.github.io/milestone/1",
+  "milestone_number": 1,
+  "parent": "https://github.com/seanthimons/seanthimons.github.io/issues/13",
+  "parent_number": 13,
+  "verified_days": 30,
+  "native_children": 30,
+  "milestone_daily_members": 30,
+  "days": [
+    {
+      "day": 1,
+      "theme": "Points",
+      "topic": "Water-quality stations along the working river",
+      "number": 14,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/14"
+    },
+    {
+      "day": 2,
+      "theme": "Lines",
+      "topic": "Night survey: an unlabeled contour portrait",
+      "number": 15,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/15"
+    },
+    {
+      "day": 3,
+      "theme": "Polygons",
+      "topic": "The watersheds beneath the city",
+      "number": 16,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/16"
+    },
+    {
+      "day": 4,
+      "theme": "Clusters",
+      "topic": "Where the street trees gather",
+      "number": 17,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/17"
+    },
+    {
+      "day": 5,
+      "theme": "Senses: Sight",
+      "topic": "What the river overlooks can see",
+      "number": 18,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/18"
+    },
+    {
+      "day": 6,
+      "theme": "Vintage",
+      "topic": "The riverfront through an old topographic sheet",
+      "number": 19,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/19"
+    },
+    {
+      "day": 7,
+      "theme": "10 minute map",
+      "topic": "Ten minutes to the river",
+      "number": 20,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/20"
+    },
+    {
+      "day": 8,
+      "theme": "Utopia",
+      "topic": "A city where every neighborhood reaches a park",
+      "number": 21,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/21"
+    },
+    {
+      "day": 9,
+      "theme": "Urban-rural",
+      "topic": "Where the city gives way",
+      "number": 22,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/22"
+    },
+    {
+      "day": 10,
+      "theme": "Prompting only",
+      "topic": "One map, built through prompts only",
+      "number": 23,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/23"
+    },
+    {
+      "day": 11,
+      "theme": "Senses: Sound",
+      "topic": "Where quiet might be",
+      "number": 24,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/24"
+    },
+    {
+      "day": 12,
+      "theme": "Power",
+      "topic": "Power along the Ohio",
+      "number": 25,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/25"
+    },
+    {
+      "day": 13,
+      "theme": "Interactions",
+      "topic": "Where tributaries meet the city",
+      "number": 26,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/26"
+    },
+    {
+      "day": 14,
+      "theme": "Borgesian map",
+      "topic": "A river inside a map inside a river",
+      "number": 27,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/27"
+    },
+    {
+      "day": 15,
+      "theme": "Inside out",
+      "topic": "Turn the river inside out",
+      "number": 28,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/28"
+    },
+    {
+      "day": 16,
+      "theme": "Collaborative map",
+      "topic": "A shared map of places worth keeping",
+      "number": 29,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/29"
+    },
+    {
+      "day": 17,
+      "theme": "Light & dark",
+      "topic": "The same hills, two suns",
+      "number": 30,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/30"
+    },
+    {
+      "day": 18,
+      "theme": "NULL",
+      "topic": "NULL is not clean water",
+      "number": 31,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/31"
+    },
+    {
+      "day": 19,
+      "theme": "Senses: Smell",
+      "topic": "A speculative scent map of the city",
+      "number": 32,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/32"
+    },
+    {
+      "day": 20,
+      "theme": "Hexagons",
+      "topic": "The monitoring river in hexagons",
+      "number": 33,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/33"
+    },
+    {
+      "day": 21,
+      "theme": "OpenStreetMap",
+      "topic": "Crossing the river on foot",
+      "number": 34,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/34"
+    },
+    {
+      "day": 22,
+      "theme": "Projections",
+      "topic": "One basin, different projections",
+      "number": 35,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/35"
+    },
+    {
+      "day": 23,
+      "theme": "Senses: Taste",
+      "topic": "A Cincinnati chili geography",
+      "number": 36,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/36"
+    },
+    {
+      "day": 24,
+      "theme": "Network",
+      "topic": "How many ways across?",
+      "number": 37,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/37"
+    },
+    {
+      "day": 25,
+      "theme": "Is this a map?",
+      "topic": "A score for the river valley",
+      "number": 38,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/38"
+    },
+    {
+      "day": 26,
+      "theme": "Water",
+      "topic": "A river measured in moving water",
+      "number": 39,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/39"
+    },
+    {
+      "day": 27,
+      "theme": "New tool",
+      "topic": "A new cartographic grammar for the same city",
+      "number": 40,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/40"
+    },
+    {
+      "day": 28,
+      "theme": "Senses: Feeling",
+      "topic": "The uphill city",
+      "number": 41,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/41"
+    },
+    {
+      "day": 29,
+      "theme": "Raster",
+      "topic": "How far from the river?",
+      "number": 42,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/42"
+    },
+    {
+      "day": 30,
+      "theme": "Pen & paper",
+      "topic": "A pen-and-paper river field sheet",
+      "number": 43,
+      "url": "https://github.com/seanthimons/seanthimons.github.io/issues/43"
+    }
+  ]
+}
