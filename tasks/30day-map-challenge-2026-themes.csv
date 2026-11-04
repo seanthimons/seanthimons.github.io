@@ -1,7 +1,7 @@
 day,theme,package_lane,data_idea,fallback
 1,Points,to-scope,TBD in morning scope,TBD after scope
 2,Lines,raster-terrain,USGS 3DEP Cincinnati contours - crop B Night survey,Hold draft until native R terrain run is verified
-3,Polygons,to-scope,TBD in morning scope,TBD after scope
+3,Polygons,vector-cartography,SSURGO soil suborders x Ohio bedrock - Great Black Swamp region,Reduce extent while retaining source intersections and classification rules
 4,Clusters,to-scope,TBD in morning scope,TBD after scope
 5,Senses: Sight,to-scope,TBD in morning scope,TBD after scope
 6,Vintage,to-scope,TBD in morning scope,TBD after scope

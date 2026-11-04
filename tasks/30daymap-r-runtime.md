@@ -70,3 +70,38 @@ projection and point set. Day01 remains `draft: true`; the render override is fo
 local review. The legacy TidyTuesday validator looks specifically for
 `figure-html/*.png`, so it reports `NO_PLOTS` for this post's `include_graphics()`
 artifact. The Day01 test checks the actual PNG and executed freeze instead.
+
+## Day 03: soil × bedrock mosaic
+
+Native R dependencies: `sf`, `jsonlite`, `httr`, and `digest`. The separate
+`tasks/30daymap-day03-r.lock` records the tested package set without activating
+site-wide renv. Install with `pak::pkg_install(c("sf", "jsonlite", "httr", "digest"),
+lib = ".R-library", ask = FALSE)` or restore that lockfile into `.R-library` with
+`renv`. On the current Fedora 44 host, the GIS runtimes were already installed;
+only the UDUNITS runtime was missing. It was downloaded with `dnf download
+udunits2 --destdir .sysdeps/rpms` and the x86_64 RPM extracted using `rpm2cpio |
+cpio -idm` from within `.sysdeps`. This runs no package installation scripts and
+needs no sudo. `scripts/map-r.sh` scopes the local library and XML paths. Other
+hosts should supply their own native GIS/UDUNITS runtimes.
+
+From the repository root:
+
+```sh
+sh scripts/map-r.sh posts/2026-11-03-30daymap-03-polygons/acquire-data.R
+sh scripts/map-r.sh posts/2026-11-03-30daymap-03-polygons/render-map.R
+sh scripts/map-r.sh --quarto render posts/2026-11-03-30daymap-03-polygons/2026-11-03-30daymap-03-polygons.qmd --execute -M draft:false
+sh scripts/map-r.sh tests/test-day03-map.R
+```
+
+Acquisition is explicit and uses ignored `data/30daymap/2026/day03/`. Raw SDA
+responses and query SQL, bedrock GeoJSON, and source metadata are fingerprinted.
+Changed source payloads stop rendering. Only after reviewing a source change,
+use `render-map.R --snapshot --rebuild` to accept new fingerprints and rebuild;
+review the article, map, and validation expectations together. Renders never
+fetch source data or refresh fingerprints automatically.
+
+`intersection.rds` is an ignored derived cache. Its signature includes the source
+snapshot, preparation functions/configuration, and rock classification table; `--rebuild` forces regeneration.
+The render emits jewel/earth PNG alternatives, a vector PDF, area totals by class
+combination, and compact provenance. Geographic clipping and intersections use
+full geometry; fine fragments are retained. The Day03 post remains a draft.

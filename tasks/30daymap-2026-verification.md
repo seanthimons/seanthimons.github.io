@@ -46,3 +46,47 @@ The planning-only status recorded above is superseded for Day01.
 - PNG inspected locally; label placement corrected after first render.
 - Day01 land/ocean shading was added and Sean approved the result for commit and push.
   Day01 remains draft; Day03 still needs scope decisions.
+
+## Day 03 soil × bedrock mosaic, 2026-11-04
+
+Sean chose SSURGO soil type versus rock type for the former Great Black Swamp
+region and authorized exploring colors and textures. The prior watershed
+proposal and planning-only status are superseded.
+
+- Cached SDA: 79,494 unique source soil polygons in the WGS84 study window
+  84.2–82.6°W, 41.0–41.7°N; 941 map units with component records.
+- ODNR Bedrock Type: 217 source polygons from a query envelope that encloses
+  the whole study window. Source map scale is 1:500,000. An initial east-edge
+  acquisition mismatch was corrected before the final rebuild; preparation and
+  tests now enforce envelope coverage.
+- Native `sf` processing in EPSG:26916: 79,246 clipped soil pieces, five invalid
+  soil inputs and one invalid bedrock input repaired. Final intersection:
+  85,352 valid positive-area pieces, 9,350.799 km² joint coverage. Soil coverage
+  is 9,433.892 km²; areas without joint source coverage are shown separately.
+  Summed intersection area agrees with the union within 0.01 km².
+- Soil color: largest representative component percentage, numeric component-key
+  tie break (no ties in this snapshot), six named suborders plus Other and
+  Unclassified/nonsoil. Bedrock texture: explicit source-lithology crosswalk in
+  `rock-groups.csv`, four groups. Absent combinations have dashes in the legend.
+- Jewel and earth palette PNGs inspected. Labels and legend adjusted after the
+  initial composition. Map window is not asserted to be a historical swamp boundary.
+- `sh scripts/map-r.sh tests/test-day03-map.R`: PASS. Complete unique source
+  counts, component maxima, CRS/validity/areas, sampled bedrock attribution,
+  changed-source rejection, PNG signature/dimensions, and executed freeze checked.
+- Quarto render with `--execute -M draft:false`: PASS, including map rebuild/display
+  chunks from cached real sources. Existing unrelated blog-listing preview warnings
+  remain. No downloads or installations occur during the article render.
+- Source cache, derived RDS, package/runtime libraries, and large vector PDF are
+  ignored. Compact PNG alternatives, area table, provenance, acquisition/processing
+  recipes, source fingerprints, and separate R lockfile are reviewable artifacts.
+- Current host: Fedora 44. `sf` was installed into `.R-library`; missing UDUNITS
+  runtime was downloaded and extracted locally without sudo or system installation.
+  Runtime package fingerprint is in `30daymap-day03-runtime.txt`; GIS and package
+  versions are captured in the map provenance. The runtime wrapper now handles
+  Fedora local libraries as well as the earlier Debian extraction layout.
+- Day03 remains draft. Sean selected the Earth palette and authorized committing
+  and pushing the implementation.
+
+Sean selected the Earth palette for Day03. The article image, listing image,
+default drawing/PDF export, and executed freeze now use Earth; Jewel remains an
+alternative artifact. The post remains a draft.

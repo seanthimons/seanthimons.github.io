@@ -28,3 +28,6 @@
 # Generated notebook intermediates and reveal.js assets from targeted renders
 **/*.quarto_ipynb
 /_freeze/site_libs/
+
+# Day03 full-resolution vector mosaic is large; regenerate from the R recipe.
+/posts/2026-11-03-30daymap-03-polygons/artifacts/day03-soil-rock.pdf

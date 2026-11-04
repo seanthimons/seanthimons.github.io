@@ -1,5 +1,5 @@
 ---
-title: "30DayMapChallenge, day 02: Lines"
+title: "30 Day Map Challenge — Day 02: Lines"
 author: "Sean Thimons"
 date: "2026-11-02"
 description: "An unlabeled contour portrait in the Night survey palette. Can you place it?"
@@ -31,7 +31,7 @@ knitr::include_graphics("artifacts/day02-night-survey.png")
 
 **Can you place it from the terrain alone?**
 
-For the Lines theme, I wanted the contours to carry the whole image. No roads to orient the eye, no neighborhood names, and no locator inset giving away the answer. The broad quiet corridor is the strongest clue. Follow its bends, then look at how the smaller valleys meet it.
+For the Lines theme, I wanted the contours to carry the whole image. No roads to orient the eye, no neighborhood names, and no locator inset giving away the answer. The broad, quiet corridor is the strongest clue. Follow its bends, then look at how the smaller valleys meet it. Each line joins locations at the same elevation. Closely spaced contours indicate steeper ground; wider gaps indicate gentler slopes.
 
 The final crop is a 24 km square. A wider view gave the surrounding hills more space but weakened the central shape. A tighter crop made the river too obvious. This middle framing leaves enough structure to recognize the place without immediately naming it.
 
@@ -45,17 +45,23 @@ There is no separate river polygon. The quiet areas come from the elevation surf
 
 The map is built entirely in R from the raw elevation tiles. `terra` crops and mosaics the inputs, reprojects them to a 20 m NAD83 / UTM zone 16N grid, and extracts contours. `sf` handles contour export and plotting geometry. Base R graphics renders the PNG and vector versions.
 
-A 40 km processing buffer keeps edge effects outside the visible crop. A normalized Gaussian kernel, sigma 20 m, lightly smooths the display surface before contours are extracted at 10 m elevation intervals. The unsmoothed projected terrain is retained separately. This is a cartographic study, not a survey product: smoothing can move an individual contour.
+The terrain is processed over a 40 km square, leaving an 8 km margin on each side of the central 24 km crop. That margin keeps processing-edge effects outside the image. Bilinear resampling places the elevation values on the projected grid. A normalized Gaussian kernel with a 20 m standard deviation then lightly smooths the display surface before contours are extracted at 10 m elevation intervals. The unsmoothed projected terrain is retained separately. This is a cartographic study, not a survey product: smoothing can move an individual contour.
 
-The [complete R source](render-map.R) includes acquisition, input checks, terrain processing, exports, and provenance. The executable chunk above rebuilds the map from cached raw inputs during local rendering, rather than displaying a Python-derived substitute.
+The [complete R source](render-map.R) includes acquisition, input checks, terrain processing, exports, and provenance. The executable chunk above rebuilds the map from cached raw inputs during local rendering. Downloads are a separate preparation step, so rendering does not depend on a live data request.
 
 ## Reveal and data provenance
 
-The location is **Cincinnati and Northern Kentucky**, around the Ohio River valley. Elevation comes from the public-domain [USGS 3DEP one-third arc-second DEM collection](https://www.usgs.gov/3d-elevation-program/about-3dep-products-services). The original tiles were retrieved on November 2, 2026:
+The location is **Cincinnati and Northern Kentucky**, around the Ohio River valley. Elevation comes from the public-domain [USGS 3DEP one-third arc-second DEM collection](https://data.usgs.gov/datacatalog/data/USGS%3A3a81321b-c153-416f-98b7-cc8e5f0e17c3). The original tiles were retrieved on November 2, 2026:
 
 - [USGS_13_n40w085.tif](https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/current/n40w085/USGS_13_n40w085.tif)
 - [USGS_13_n39w085.tif](https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/current/n39w085/USGS_13_n39w085.tif)
 
-The source's roughly 10 m horizontal grid spacing is separate from our 10 m contour interval. Elevations are meters referenced to NAVD88. Reprojection changes the horizontal coordinates only; no vertical datum transformation is applied.
+The source uses geographic coordinates in NAD83. Its approximately 10 m horizontal grid spacing describes the sampling grid, while our 10 m contour interval describes the elevation difference between successive lines. Neither specifies vertical accuracy. Elevations are meters referenced to NAVD88. Reprojection changes the horizontal coordinates only; no vertical datum transformation is applied.
 
-USGS `current` endpoints are mutable. The repository records the original SHA-256 fingerprints, while each R run records local input fingerprints, byte sizes, parameters, and session details. Large rasters and package libraries remain ignored; the download recipe and compact map exports are tracked. See the [runtime and reproduction guide](https://github.com/seanthimons/seanthimons.github.io/blob/feat/30daymap-days-01-03/tasks/30daymap-r-runtime.md) for setup and render commands.
+USGS `current` endpoints can change. The repository retains the original tile SHA-256 fingerprints, and each map run records MD5 fingerprints of its local inputs, byte sizes, parameters, and R session details. Those records identify the inputs used; they do not make the remote URLs immutable. See the [runtime and reproduction guide](https://github.com/seanthimons/seanthimons.github.io/blob/feat/30daymap-days-01-03/tasks/30daymap-r-runtime.md) for setup and render commands.
+
+Credit: U.S. Geological Survey. USGS-produced data are in the [U.S. public domain](https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits).
+
+## What I learned
+
+A single line color is enough to give this terrain depth. The crowded contours make the hills feel darker, while the wider spaces let the background breathe. Removing the usual landmarks made the choice of extent more consequential: the river valley had to provide orientation through its shape alone.

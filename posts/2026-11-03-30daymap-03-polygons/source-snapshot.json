@@ -1,0 +1,367 @@
+{
+  "sources": [
+    {
+      "file": "bedrock-layer.json",
+      "bytes": 29723,
+      "retrieved_utc": "2026-11-04 18:13:24 UTC",
+      "sha256": "989384f614c049b3f789a1568fdd8e6e75d987070b8d205ed115456171056fcb"
+    },
+    {
+      "file": "bedrock-query-url.txt",
+      "bytes": 311,
+      "retrieved_utc": "2026-11-04 18:25:51 UTC",
+      "sha256": "670abd7a9c6c086894d80c0f1903bdaa783a5bd93609398eaf71bc9143ab888b"
+    },
+    {
+      "file": "components.json",
+      "bytes": 759329,
+      "retrieved_utc": "2026-11-04 18:14:16 UTC",
+      "sha256": "901ab4e35e83256c9beeafa055c0aab69173846563bccc6b483ff18c6696b4d7"
+    },
+    {
+      "file": "components.sql",
+      "bytes": 390,
+      "retrieved_utc": "2026-11-04 18:14:16 UTC",
+      "sha256": "aa481591e0375ee6e2f2e335638119b206e349b966226bf03950d7f077d51f6c"
+    },
+    {
+      "file": "count.json",
+      "bytes": 35,
+      "retrieved_utc": "2026-11-04 18:14:17 UTC",
+      "sha256": "fb45630dba3147e101aa6188071bee2d98cb50d8feb8004dd34b1cdf11e3ca44"
+    },
+    {
+      "file": "count.sql",
+      "bytes": 214,
+      "retrieved_utc": "2026-11-04 18:14:17 UTC",
+      "sha256": "81aa5054e1683f6d65cea86c03696a0baf37f8b002978b0694390b0b0914a5a9"
+    },
+    {
+      "file": "soil-001.json",
+      "bytes": 19724928,
+      "retrieved_utc": "2026-11-04 18:15:36 UTC",
+      "sha256": "52b46d39d42b0cd6b97ca7c5b94fbe2f20754e434fb5fdac30c4eb7d9d4ec889"
+    },
+    {
+      "file": "soil-001.sql",
+      "bytes": 295,
+      "retrieved_utc": "2026-11-04 18:15:36 UTC",
+      "sha256": "54cd27fc6c81083fc5c667384a2495d769cfe1b9846f4bfbc0b834a3d3c0dc6d"
+    },
+    {
+      "file": "soil-002.json",
+      "bytes": 12675482,
+      "retrieved_utc": "2026-11-04 18:15:46 UTC",
+      "sha256": "1672c2fb3c86eb714b8a0f044fcf1c0b7db38d2607a3025cb085bdb766d54051"
+    },
+    {
+      "file": "soil-002.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:15:46 UTC",
+      "sha256": "990f9c7449a6f405507e0a5b94243f11266c25551140992965deb8a9dfa61bc2"
+    },
+    {
+      "file": "soil-003.json",
+      "bytes": 17184699,
+      "retrieved_utc": "2026-11-04 18:15:59 UTC",
+      "sha256": "ce00e026da470ea4db699982b7f8741669e4ae21bf555ef79ce706b348c660bf"
+    },
+    {
+      "file": "soil-003.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:15:59 UTC",
+      "sha256": "7fce3bcdd4dfcb09360c981ff7b9f9af878aef1108238c01019ef3b72cff5a3d"
+    },
+    {
+      "file": "soil-004.json",
+      "bytes": 13719454,
+      "retrieved_utc": "2026-11-04 18:16:11 UTC",
+      "sha256": "0036bfa75badfeb4d01b66f132dc0657c6af8a05f31d7027ccd09a73e54cf6b9"
+    },
+    {
+      "file": "soil-004.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:16:11 UTC",
+      "sha256": "4e26fd7b72d184034f877484a5743c7e512e0f67ef2a272d82a76ae2b3f7e2e7"
+    },
+    {
+      "file": "soil-005.json",
+      "bytes": 9686554,
+      "retrieved_utc": "2026-11-04 18:16:20 UTC",
+      "sha256": "5239feb31f964f517cb9c2474df873c7f0b24b15383a50f82319f606bc78a0ef"
+    },
+    {
+      "file": "soil-005.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:16:20 UTC",
+      "sha256": "6af92f49fa77e228a714fbb073ab7b3e0a25a4cee20888c70211cf49f10dbc8c"
+    },
+    {
+      "file": "soil-006.json",
+      "bytes": 15743205,
+      "retrieved_utc": "2026-11-04 18:16:34 UTC",
+      "sha256": "311e426173aaed5148f42cca5e8313a2ba7154d8217d2a1f014f1b992f3464b6"
+    },
+    {
+      "file": "soil-006.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:16:34 UTC",
+      "sha256": "c71b4976457434a0cddcd373c2a13938419dc5e5243baed931a0a93ce7e1aa33"
+    },
+    {
+      "file": "soil-007.json",
+      "bytes": 14865223,
+      "retrieved_utc": "2026-11-04 18:16:47 UTC",
+      "sha256": "f30ad8e16424ed1394a4029145ee4d251e81cb35b5f76a33ab394358c6732e53"
+    },
+    {
+      "file": "soil-007.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:16:47 UTC",
+      "sha256": "3f33bb6331095d0ebabe2fafc444a943a2cc53c12082d5fb1ae4958f80f7af79"
+    },
+    {
+      "file": "soil-008.json",
+      "bytes": 14241873,
+      "retrieved_utc": "2026-11-04 18:16:59 UTC",
+      "sha256": "f5026938b6f6f1926072a8b05cfb0072f8191e3417cfe2ee2572d85e1a4cbf48"
+    },
+    {
+      "file": "soil-008.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:16:59 UTC",
+      "sha256": "f145faf6732f4c00fc03e7e6fb4b43eab816753238e165d4c5b410288853785b"
+    },
+    {
+      "file": "soil-009.json",
+      "bytes": 9809868,
+      "retrieved_utc": "2026-11-04 18:17:08 UTC",
+      "sha256": "364d04bb6ba81755ecbfdfc7f5010d299c0e857a628f937d7c0a76c3cf0e28eb"
+    },
+    {
+      "file": "soil-009.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:17:08 UTC",
+      "sha256": "3556c949b2cacd1c50110aa5c32f9e08ff03665629b89830a94f7923a19ee376"
+    },
+    {
+      "file": "soil-010.json",
+      "bytes": 9290986,
+      "retrieved_utc": "2026-11-04 18:17:17 UTC",
+      "sha256": "1f634c55fe13da52a8cab3de4e71bf062a6c185ff049c51e82fe62d9f7ae54b5"
+    },
+    {
+      "file": "soil-010.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:17:17 UTC",
+      "sha256": "d08be1f4af0b26cc1f92b92b28392bc09831b734ae977f71f0f841d29f05b60c"
+    },
+    {
+      "file": "soil-011.json",
+      "bytes": 9124336,
+      "retrieved_utc": "2026-11-04 18:17:25 UTC",
+      "sha256": "1f69749a9794c3e703dd76845fcb82798bd9530dd13bad515425de547365a2fb"
+    },
+    {
+      "file": "soil-011.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:17:25 UTC",
+      "sha256": "4bc85d5cffbbdd5b1ce6b620fc4747c6234f4c88b2a2d6e7554dc891c9dc0bd3"
+    },
+    {
+      "file": "soil-012.json",
+      "bytes": 9487477,
+      "retrieved_utc": "2026-11-04 18:17:31 UTC",
+      "sha256": "7ed66d9cbff46aaca2929d0bb67d28eb955e7cf9c886925d11353e83f2884dc8"
+    },
+    {
+      "file": "soil-012.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:17:31 UTC",
+      "sha256": "9c5c3726275f39a63c9850323d4cabefc4251750464ae09bb5c4ffe9d489f749"
+    },
+    {
+      "file": "soil-013.json",
+      "bytes": 11154687,
+      "retrieved_utc": "2026-11-04 18:17:37 UTC",
+      "sha256": "8f2fc8ad3d6c3cc17ebaaacd5cb5e42242cce08b8eac6cadf0fcc02f3dc65a85"
+    },
+    {
+      "file": "soil-013.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:17:37 UTC",
+      "sha256": "b66ff17d52db84eabee8825fb340e4930381096ae908e01bf330c4cb404aadb2"
+    },
+    {
+      "file": "soil-014.json",
+      "bytes": 15050381,
+      "retrieved_utc": "2026-11-04 18:17:52 UTC",
+      "sha256": "c5a1f93b0ba08584964d49c59bcf312f2fa90c0927f40f9202d26a07a2a2c730"
+    },
+    {
+      "file": "soil-014.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:17:52 UTC",
+      "sha256": "b9d5d94c0fce3739d1f5b83e41981d49b9a6bb27936e944868af8f4ef72c4e17"
+    },
+    {
+      "file": "soil-015.json",
+      "bytes": 12146218,
+      "retrieved_utc": "2026-11-04 18:18:05 UTC",
+      "sha256": "6d2902074abff0e95dc3b890518858067e97cc755e3ea997d0e05cc49a1d6d02"
+    },
+    {
+      "file": "soil-015.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:18:05 UTC",
+      "sha256": "48b516b449e8d00c780d465f3ac96a390d570dd85ae7590f587cef291ff828b4"
+    },
+    {
+      "file": "soil-016.json",
+      "bytes": 9221739,
+      "retrieved_utc": "2026-11-04 18:18:12 UTC",
+      "sha256": "8c8dec6c08235fc52fb6850610ffd54a341f73d3560fc94c626e48250de8a367"
+    },
+    {
+      "file": "soil-016.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:18:12 UTC",
+      "sha256": "32ec21baada0ad79b3f24d33a3175ace74992bff221c13e90297846e3d98330a"
+    },
+    {
+      "file": "soil-017.json",
+      "bytes": 8916532,
+      "retrieved_utc": "2026-11-04 18:18:20 UTC",
+      "sha256": "6273ca6dfb9de6c7cb1869d8291fc1887e0c6a283defee854b529a140995ff45"
+    },
+    {
+      "file": "soil-017.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:18:20 UTC",
+      "sha256": "00f525adbbde5ddc80390e1749edbcdcef9bec9dbea17b2d3229ff9ee73a86b6"
+    },
+    {
+      "file": "soil-018.json",
+      "bytes": 9741873,
+      "retrieved_utc": "2026-11-04 18:18:31 UTC",
+      "sha256": "30414b3dc6c780a450e400518d2294ba1d470a994dac3e62ab9c6a06576fa5ce"
+    },
+    {
+      "file": "soil-018.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:18:31 UTC",
+      "sha256": "9914fd541611b49b4052a36647f6142d15e9ffdfa8dd213b509d20b9e24b0111"
+    },
+    {
+      "file": "soil-019.json",
+      "bytes": 10037661,
+      "retrieved_utc": "2026-11-04 18:18:41 UTC",
+      "sha256": "a960b0f264e35d6e6175853697fb01843252b7c4089bb5d3ef0203817e10896b"
+    },
+    {
+      "file": "soil-019.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:18:41 UTC",
+      "sha256": "da06bcd23d9acdb341dd3ecea55471ab71a07274aa1c3bb1ada25063478c03c8"
+    },
+    {
+      "file": "soil-020.json",
+      "bytes": 12767652,
+      "retrieved_utc": "2026-11-04 18:18:54 UTC",
+      "sha256": "9a6e84470fa550b73ff803b42de2534b040ba2bff72dad376e4e35ea40614143"
+    },
+    {
+      "file": "soil-020.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:18:54 UTC",
+      "sha256": "76fb4b15ed8914826ea373dae3f80390545900ab2655052e258d792b4f8226e2"
+    },
+    {
+      "file": "soil-021.json",
+      "bytes": 16646025,
+      "retrieved_utc": "2026-11-04 18:19:06 UTC",
+      "sha256": "a43e5d1529a417b5ade7dc5e8df25210d01a51fc59949169b2856849698487ac"
+    },
+    {
+      "file": "soil-021.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:19:06 UTC",
+      "sha256": "3b8862bd30b4f54caffe81dd11fb4f8b6a780cc21c9724c69695ae478865dadf"
+    },
+    {
+      "file": "soil-022.json",
+      "bytes": 15908111,
+      "retrieved_utc": "2026-11-04 18:19:14 UTC",
+      "sha256": "8474153b6d9f8976849a684f740fdae68e147c21d8ec0960f2a8b9b9ab0ded2f"
+    },
+    {
+      "file": "soil-022.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:19:14 UTC",
+      "sha256": "6d6af9e680dbafd7bf448890295167ad44be29730094db10448f421c2fa62dc1"
+    },
+    {
+      "file": "soil-023.json",
+      "bytes": 12410714,
+      "retrieved_utc": "2026-11-04 18:19:24 UTC",
+      "sha256": "4b1aefefc65ffef7d841377935f14ee79d8e76c9ebf53b5f35cc1f057efba337"
+    },
+    {
+      "file": "soil-023.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:19:24 UTC",
+      "sha256": "7516b7aaa0539442913f44362a6ac2e018b345b3769f2d170335bb6e9db6152e"
+    },
+    {
+      "file": "soil-024.json",
+      "bytes": 8096698,
+      "retrieved_utc": "2026-11-04 18:19:32 UTC",
+      "sha256": "0032e426104551a0bafd065c4c96d02c224d0878256f0254a0b0dda8b44d55b4"
+    },
+    {
+      "file": "soil-024.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:19:32 UTC",
+      "sha256": "33613448760d4186509c901000e0ff1af0ce0f61c9b3d7d688185306c9a77a86"
+    },
+    {
+      "file": "soil-025.json",
+      "bytes": 9965168,
+      "retrieved_utc": "2026-11-04 18:19:40 UTC",
+      "sha256": "e334fdfb00b08f8603e9363369196e9cff5384fb3669ed66383c39a124356626"
+    },
+    {
+      "file": "soil-025.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:19:40 UTC",
+      "sha256": "fa5c5ea12b89fdfec94a4a0176ffef99d7759e26a365dfc9267cd36d5178d57c"
+    },
+    {
+      "file": "soil-026.json",
+      "bytes": 8791337,
+      "retrieved_utc": "2026-11-04 18:19:48 UTC",
+      "sha256": "6748eaca23c877d664971fe2548e36751a76ba8d1f3766cba3ad054f5277051a"
+    },
+    {
+      "file": "soil-026.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:19:48 UTC",
+      "sha256": "0667ef443583716e184231786441532111bfc3d603bfeb15c8ed96cd315e3606"
+    },
+    {
+      "file": "soil-027.json",
+      "bytes": 4160394,
+      "retrieved_utc": "2026-11-04 18:19:51 UTC",
+      "sha256": "1593a7241ab1eb2fd471dd5fc7faf42f677409838c26e8071534657c47e88a02"
+    },
+    {
+      "file": "soil-027.sql",
+      "bytes": 303,
+      "retrieved_utc": "2026-11-04 18:19:51 UTC",
+      "sha256": "6a96a52680492731f4773f1961bac9ea68d9b7ee15192f201e952526f2d99b7a"
+    }
+  ],
+  "sda_endpoint": "https://sdmdataaccess.sc.egov.usda.gov/Tabular/post.rest",
+  "bedrock_query": "https://gis2.ohiodnr.gov/arcgis/rest/services/DNR_Services/SUBSURFACE/MapServer/5/query?f=geojson&where=1%3D1&geometry=-84.8%2C40.5%2C-82.5%2C41.8&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=OBJECTID%2CUNIT_CODE%2CUNIT_NAME%2CUNIT_LITH%2CUNIT_DESCRIPTION&outSR=4326",
+  "note": "Raw payload fingerprints. SDA and ODNR services are mutable; retain original cache for exact reproduction."
+}
