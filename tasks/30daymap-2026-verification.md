@@ -22,4 +22,27 @@ Sean authorized installation after the initial missing-dependency blocker. `pak`
 
 ## Remaining editorial gates
 
-Day02 remains `draft: true`, and no default-branch push or publication is authorized by verification. Day01 and Day03 need user scope decisions before implementation. Review the native-R map and prose before publication; the original visual approval applied to the prototype.
+Day02 remains `draft: true`, and no default-branch push or publication is authorized by verification. Day03 needs user scope decisions before implementation; Day01 implementation and review are recorded below. Review the native-R map and prose before publication; the original visual approval applied to the prototype.
+
+## Day 01 implementation, 2026-11-04
+
+Sean selected the Andes earthquake concept after reviewing three proposals.
+The planning-only status recorded above is superseded for Day01.
+
+- Native R USGS CSV acquisition: 3,478 M ≥4 earthquakes, 2021–2025,
+  76–62°W and 28–14°S, 0–700 km depth. Actual range: 2.139–619.384 km.
+- Matching section: 1,612 events in the explicitly marked 24–20°S band.
+  Shared horizontal projection and equal horizontal/vertical kilometer scales;
+  no fitted slab surface. Broad-band projection limitations documented.
+- Cached USGS and pinned Natural Earth coastline/land SHA-256 checks: PASS.
+- `Rscript tests/test-day01-map.R`: PASS; source snapshot, deep/shallow section
+  coverage, projection against great-circle distance, changed-source rejection,
+  PNG dimensions/signature, and executed freeze checked.
+- Quarto render with `--execute -M draft:false`: PASS; both R chunks executed.
+  Unrelated existing listing-preview warnings appeared for other posts.
+- Legacy `validate_post.R`: `NO_PLOTS`, because its figure-html path rule excludes
+  the artifact PNG displayed by `include_graphics()`. Actual PNG/freeze validation
+  is covered by the Day01 test. Reported article length: 679 words.
+- PNG inspected locally; label placement corrected after first render.
+- Day01 land/ocean shading was added and Sean approved the result for commit and push.
+  Day01 remains draft; Day03 still needs scope decisions.

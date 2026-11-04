@@ -43,3 +43,30 @@ The wrapper scopes `LD_LIBRARY_PATH`, `PROJ_DATA`, and `GDAL_DATA` to its subpro
 - Native render: projected elevation range approximately 138.727–294.149 m, complete 40 km terrain coverage, 10 m contours grouped into 15 elevation-level features over the final 24 km crop. This is not directly comparable to the Python prototype's segment count.
 
 Day02 remains `draft: true`. Successful execution is not authorization to publish.
+
+## Day 01: Andes earthquake points
+
+Day01 needs only base R graphics, `jsonlite`, and `digest`; it runs with ordinary
+`Rscript` and does not need the Day02 GIS runtime. Run from the repository root:
+
+```sh
+Rscript posts/2026-11-01-30daymap-01-points/render-map.R --download
+Rscript tests/test-day01-map.R
+quarto render posts/2026-11-01-30daymap-01-points/2026-11-01-30daymap-01-points.qmd --execute -M draft:false
+```
+
+The test includes a freeze check, so on a fresh checkout render before testing.
+Omit `--download` once the three source files are cached in
+`data/30daymap/2026/day01/`. Rendering never downloads data. The committed
+`source-snapshot.json` pins the catalog bytes with SHA-256 and the coastline and land polygons to a
+Natural Earth Git revision. USGS historical catalogs can change: if a new download
+fails the fingerprint check, review the source revisions and refresh the snapshot,
+article counts, artifacts, and tests together. The original catalog snapshot must
+be retained in the local cache for exact reproduction; Git contains the recipe and
+fingerprints, not the raw data. Package versions are recorded in `artifacts/provenance.R`.
+
+The PNG is 1800 × 3000 pixels; the PDF is a vector export. Both show the same
+projection and point set. Day01 remains `draft: true`; the render override is for
+local review. The legacy TidyTuesday validator looks specifically for
+`figure-html/*.png`, so it reports `NO_PLOTS` for this post's `include_graphics()`
+artifact. The Day01 test checks the actual PNG and executed freeze instead.
