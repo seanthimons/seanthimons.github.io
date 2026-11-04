@@ -1,0 +1,25 @@
+---
+title: "30 Day Map Challenge — Day 03: Polygons"
+author: "Sean Thimons"
+date: "2026-11-03"
+categories: [cartography, R, 30DayMapChallenge]
+draft: true
+---
+
+::: {.callout-note}
+## Scope pending
+
+This is a migrated planning record, not a completed map. No user-approved dataset, map implementation, or render was found in the original thread or local artifacts.
+:::
+
+## Original scoping question
+
+Do you want to map watersheds or administrative boundaries? The initial recommendation was watersheds around Cincinnati.
+
+[Original Discord prompt](https://discord.com/channels/1546605541311381558/1566836432000258058/1567176694635438151). Suggested geography and data are proposals, not decisions.
+
+## Implementation contract
+
+All acquisition, spatial processing, and rendering will be native R. The source recipe and provenance belong with this post. Large raw data stay in the ignored repository cache under `data/30daymap/2026/day03/`.
+
+Before implementation: agree on the geographic question, dataset, projection, package lane, and fallback. Before publication: render on real data, inspect the map, add source/license attribution and image alt text, and obtain review approval.

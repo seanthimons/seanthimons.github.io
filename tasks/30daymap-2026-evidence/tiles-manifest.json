@@ -1,0 +1,70 @@
+[
+  {
+    "tile": "n40w085",
+    "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/current/n40w085/USGS_13_n40w085.tif",
+    "path": "/home/sxthi/.hermes/workspace/research/cincinnati-dem/USGS_13_n40w085.tif",
+    "bytes": 451305486,
+    "sha256": "8468a43fd95ca05702dd0bcbcbf976bb427520a7f8778e876a595d7861f8e5bf",
+    "headers": {
+      "x-amz-request-id": "WNT27E2SNDF5R55G",
+      "x-amz-id-2": "oW/iAUYgVQuLtRNC6U9awWlUimn0qMPn4a/wxDyUKhOwoIJXW/UT/0XtArAFTFiWOeJ65uGBF+A=",
+      "Content-Length": "451305486",
+      "Accept-Ranges": "bytes",
+      "Date": "Mon, 02 Nov 2026 16:12:14 GMT",
+      "Server": "AmazonS3",
+      "Last-Modified": "Tue, 16 Sep 2025 21:40:24 GMT",
+      "ETag": "\"ea37407a97fb1386947104e5f3f9a186-87\"",
+      "x-amz-meta-mtime": "1758058259.489356",
+      "x-amz-meta-md5chksum": "2ShlN5rU/3xJrJpj6AI/nA==",
+      "Content-Type": "image/tiff",
+      "x-amz-server-side-encryption": "AES256"
+    },
+    "tiff_scalar_tags": {
+      "256": 10812,
+      "257": 10812,
+      "258": 32,
+      "259": 5,
+      "262": 1,
+      "277": 1,
+      "284": 1,
+      "317": 3,
+      "322": 512,
+      "323": 512,
+      "339": 3
+    }
+  },
+  {
+    "tile": "n39w085",
+    "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/current/n39w085/USGS_13_n39w085.tif",
+    "path": "/home/sxthi/.hermes/workspace/research/cincinnati-dem/USGS_13_n39w085.tif",
+    "bytes": 484770076,
+    "sha256": "5855732fab6068262fd51268e35193ee1df832532e7d3aa6c7a138c9ade26ba0",
+    "headers": {
+      "x-amz-id-2": "xuoUGawMjmDW2+vsETn6wx2z8esiVgMDqsqDnYDcBkI9gEu4s7Gm8Iup/SXs4VgLNlkPUg57vSU=",
+      "x-amz-request-id": "WNT0VJG2084XXN60",
+      "Date": "Mon, 02 Nov 2026 16:12:15 GMT",
+      "Last-Modified": "Fri, 27 Feb 2026 17:03:13 GMT",
+      "ETag": "\"77c2cb1f1a3c0ecb74aee1f13b564dd4-93\"",
+      "x-amz-server-side-encryption": "AES256",
+      "x-amz-meta-md5chksum": "WoZFRUOtk5oSqFVzJMgZ+g==",
+      "x-amz-meta-mtime": "1772211702.995112",
+      "Accept-Ranges": "bytes",
+      "Content-Type": "image/tiff",
+      "Content-Length": "484770076",
+      "Server": "AmazonS3"
+    },
+    "tiff_scalar_tags": {
+      "256": 10812,
+      "257": 10812,
+      "258": 32,
+      "259": 5,
+      "262": 1,
+      "277": 1,
+      "284": 1,
+      "317": 3,
+      "322": 512,
+      "323": 512,
+      "339": 3
+    }
+  }
+]
