@@ -20,6 +20,6 @@ concurrency:
 jobs:
   gitleaks:
     name: Gitleaks
-    uses: seanthimons/baseline/.github/workflows/gitleaks.yaml@0a2a80a6d045ffbdacedd59e35dce1497e2acfc1 # v1.0.0
+    uses: seanthimons/baseline/.github/workflows/gitleaks.yaml@e53831a23ef8f543c3fee58edd390089b0f13a27 # v1.4.0
     secrets:
       GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
