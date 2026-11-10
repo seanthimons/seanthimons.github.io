@@ -1,0 +1,500 @@
+---
+title: "Tidy Tuesday: The worst plumbing gaps are in counties the 1-year Census skips"
+author: "Sean Thimons"
+date: "2026-11-10"
+description: "Nine of the ten US counties with the highest share of households lacking complete plumbing are too small for the 1-year ACS that TidyTuesday's water insecurity data came from. Re-pulling the 5-year ACS with tidycensus puts them back, and counts renters too."
+categories:
+  - tidytuesday
+  - R
+  - census
+  - water
+  - geospatial
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "davos"
+palette_source <- "scico"
+palette_type <- "continuous"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- as.character(paletteer::paletteer_c(palette_id, n = 5))
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+
+# Preface
+
+This one comes from the archive: the [2025-01-28 TidyTuesday week](https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-01-28) on water insecurity. The data was built from the USGS Vizlab post [Mapping water insecurity in R with tidycensus](https://waterdata.usgs.gov/blog/acs-maps/) (December 2024), whose [code is on GitHub](https://github.com/DOI-USGS/vulnerability-indicators). That post is a good tidycensus walkthrough. It maps the share of households lacking complete plumbing across the Western US and compares 2022 with 2023.
+
+The TidyTuesday file scales the USGS code up to every county, and that's where it hits a wall. The USGS post used the **1-year** American Community Survey, which only publishes counties with 65,000 or more people. The places where plumbing is actually missing tend to be small, remote and rural, so they fall outside it.
+
+My twist was to use tidycensus to pull the **5-year** ACS for all 3,222 counties and county equivalents (including Puerto Rico's 78 municipios), count renters as well as owners, and carry the Census Bureau's margins of error through to the chart.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidycensus)
+library(sf)
+library(scales)
+library(paletteer)
+library(patchwork)
+
+options(tigris_use_cache = TRUE)
+
+`%ni%` <- Negate(`%in%`)
+
+# tidycensus reads the key from the CENSUS_API_KEY environment variable.
+# Get one free at https://api.census.gov/data/key_signup.html
+```
+
+# Load raw data
+
+First, the TidyTuesday file as published. The geometry column is stored as R code in text, and I don't need it, so I skip it on read.
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+tt_2023 <- readr::read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-01-28/water_insecurity_2023.csv",
+  col_select = -geometry
+)
+```
+
+Then the same table, `B25049` ("Tenure by plumbing facilities"), straight from the Census API. I pull it once from the 1-year survey, to match the TidyTuesday file, and once from the 5-year survey. With `geometry = TRUE`, tidycensus attaches the county shapes through tigris, and `shift_geometry()` moves Alaska, Hawaii and Puerto Rico under the lower 48.
+
+```{r}
+#| label: acs-pull
+#| echo: true
+#| output: false
+
+plumbing_vars <- c(
+  households = "B25049_001", # occupied housing units
+  owner_lack = "B25049_004", # owner occupied, lacking complete plumbing
+  renter_lack = "B25049_007", # renter occupied, lacking complete plumbing
+  pop = "B01003_001" # total population
+)
+
+acs1 <- get_acs(
+  geography = "county", variables = plumbing_vars,
+  year = 2023, survey = "acs1", output = "wide"
+)
+
+acs5 <- get_acs(
+  geography = "county", variables = plumbing_vars,
+  year = 2023, survey = "acs5", output = "wide",
+  geometry = TRUE, resolution = "20m"
+) %>%
+  tigris::shift_geometry()
+
+# Non-overlapping earlier window, for a change check
+acs5_2018 <- get_acs(
+  geography = "county", variables = plumbing_vars,
+  year = 2018, survey = "acs5", output = "wide"
+)
+
+# Tribal areas cut across county lines, so pull them as their own geography
+tribal <- get_acs(
+  geography = "american indian area/alaska native area/hawaiian home land",
+  variables = plumbing_vars, year = 2023, survey = "acs5", output = "wide"
+)
+
+states <- tigris::states(cb = TRUE, resolution = "20m", year = 2023) %>%
+  filter(GEOID %ni% c("60", "66", "69", "78")) %>%
+  tigris::shift_geometry()
+```
+
+# Exploratory data analysis
+
+## What the TidyTuesday number measures
+
+```{r}
+#| label: eda-tt
+#| echo: true
+#| output: true
+
+tt_2023 %>%
+  summarise(
+    counties = n(),
+    states_and_pr = n_distinct(str_sub(geoid, 1, 2)),
+    missing_pct = sum(is.na(percent_lacking_plumbing))
+  )
+
+# Rebuild the TidyTuesday percent from our own 1-year pull
+tt_check <- acs1 %>%
+  transmute(GEOID, rebuilt = owner_lackE / popE * 100) %>%
+  inner_join(tt_2023, by = c("GEOID" = "geoid"))
+
+tt_check %>%
+  summarise(
+    matched = n(),
+    max_abs_diff = max(abs(rebuilt - percent_lacking_plumbing), na.rm = TRUE)
+  )
+```
+
+Our 1-year pull reproduces the TidyTuesday column exactly, which confirms how it was built: **owner-occupied households lacking plumbing divided by total population**. That mixes two units. The numerator counts households and the denominator counts people, and renters are left out of the numerator completely. The column is labeled "percent of population", but it's neither a share of people nor a share of households.
+
+The better measure comes from the same table. Lacking plumbing is `owner_lack + renter_lack`, out of `households`. tidycensus has helpers for the error that comes with it: `moe_sum()` for the numerator and `moe_prop()` for the ratio.
+
+```{r}
+#| label: rates
+#| echo: true
+#| output: true
+
+add_rate <- function(df) {
+  df %>%
+    rowwise() %>%
+    mutate(
+      lacking = owner_lackE + renter_lackE,
+      lacking_moe = moe_sum(c(owner_lackM, renter_lackM), c(owner_lackE, renter_lackE))
+    ) %>%
+    ungroup() %>%
+    mutate(
+      rate = lacking / householdsE,
+      rate_moe = moe_prop(lacking, householdsE, lacking_moe, householdsM),
+      cv = (rate_moe / 1.645) / rate
+    )
+}
+
+counties <- acs5 %>%
+  add_rate() %>%
+  mutate(in_acs1 = GEOID %in% acs1$GEOID)
+
+counties_tbl <- st_drop_geometry(counties)
+
+cat(sprintf("counties: %d rows, %d in the 1-year ACS\n", nrow(counties_tbl), sum(counties_tbl$in_acs1)))
+stopifnot("County data has 0 rows" = nrow(counties_tbl) > 0)
+
+counties_tbl %>%
+  select(rate, rate_moe, householdsE) %>%
+  summary()
+
+# How far off is the TidyTuesday measure for the counties it does cover?
+acs1_rates <- acs1 %>%
+  add_rate() %>%
+  mutate(tt_style = owner_lackE / popE)
+
+acs1_rates %>%
+  filter(tt_style > 0) %>%
+  summarise(median_ratio = median(rate / tt_style))
+```
+
+```{r}
+#| label: headline-numbers
+#| echo: false
+#| output: false
+
+us_lacking <- sum(counties_tbl$lacking)
+us_households <- sum(counties_tbl$householdsE)
+us_rate <- us_lacking / us_households
+renter_share <- sum(counties_tbl$renter_lackE) / us_lacking
+
+ranked <- counties_tbl %>%
+  arrange(desc(rate)) %>%
+  mutate(rank = row_number())
+
+top10_missing <- sum(!ranked$in_acs1[1:10])
+top25_missing <- sum(!ranked$in_acs1[1:25])
+share_lacking_outside <- sum(counties_tbl$lacking[!counties_tbl$in_acs1]) / us_lacking
+share_households_outside <- sum(counties_tbl$householdsE[!counties_tbl$in_acs1]) / us_households
+n_outside <- sum(!counties_tbl$in_acs1)
+
+median_ratio <- acs1_rates %>%
+  filter(tt_style > 0) %>%
+  summarise(m = median(rate / tt_style)) %>%
+  pull(m)
+
+apache <- acs1_rates %>% filter(GEOID == "04001")
+alaska_top10 <- sum(str_detect(ranked$NAME[1:10], "Alaska"))
+unreliable <- with(counties_tbl, mean(cv[lacking > 0] > 0.3, na.rm = TRUE))
+
+tribal_rates <- tribal %>% add_rate()
+navajo <- tribal_rates %>% filter(str_detect(NAME, "^Navajo Nation Reservation"))
+hopi <- tribal_rates %>% filter(str_detect(NAME, "^Hopi Reservation"))
+
+rate_2018 <- acs5_2018 %>%
+  summarise(r = sum(owner_lackE + renter_lackE) / sum(householdsE)) %>%
+  pull(r)
+
+adams_in <- ranked %>% filter(GEOID == "18001")
+
+# Other large Amish settlements, for comparison
+amish_others <- counties_tbl %>%
+  filter(GEOID %in% c("39075", "18087", "42071")) %>% # Holmes OH, LaGrange IN, Lancaster PA
+  arrange(desc(rate))
+amish_max <- max(amish_others$rate)
+```
+
+Nationally, `r percent(us_rate, accuracy = 0.01)` of occupied households (`r comma(us_lacking)`) lack complete plumbing. Renters make up `r percent(renter_share, accuracy = 1)` of them, and the TidyTuesday measure drops all of them. In the counties both sources cover, the household rate is a median `r round(median_ratio, 1)` times the TidyTuesday number. Apache County, Arizona, top of the TidyTuesday list at `r number(apache$tt_style * 100, accuracy = 0.01)`%, is at `r percent(apache$rate, accuracy = 0.1)` of households.
+
+# Where the gaps are
+
+The 1-year survey covers `r comma(sum(counties_tbl$in_acs1))` counties, where `r percent(1 - share_households_outside, accuracy = 1)` of US households live. The other `r comma(n_outside)` counties hold only `r percent(share_households_outside, accuracy = 1)` of households, but `r percent(share_lacking_outside, accuracy = 1)` of the households without plumbing.
+
+```{r}
+#| label: fig-maps
+#| fig-cap: "Top: the TidyTuesday water insecurity data as published, from the 2023 ACS 1-year estimates (owner households lacking plumbing as a share of total population). Grey counties are under 65,000 people and have no 1-year estimate. Bottom: 2019–2023 ACS 5-year estimates for every county and Puerto Rico municipio, owner and renter households lacking complete plumbing as a share of all occupied households. Both maps use the same color bins. Alaska, Hawaii and Puerto Rico are moved and rescaled."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 12.5
+#| dpi: 300
+#| dev.args: !expr list(bg = "#F7F6F2")
+
+davos <- rev(as.character(paletteer::paletteer_c("scico::davos", n = 8)))[2:8]
+ink <- "#1C2B39"
+paper <- "#F7F6F2"
+no_data <- "#E3E0D8"
+
+rate_breaks <- c(0, 0.0025, 0.005, 0.01, 0.02, 0.05, 0.10, 1)
+rate_labels <- c("< 0.25%", "0.25–0.5%", "0.5–1%", "1–2%", "2–5%", "5–10%", "10%+")
+bin_rate <- function(x) {
+  cut(x, rate_breaks, labels = rate_labels, include.lowest = TRUE, right = FALSE) %>%
+    fct_na_value_to_level("No estimate")
+}
+bin_cols <- c(set_names(davos, rate_labels), "No estimate" = no_data)
+
+tt_map <- counties %>%
+  select(GEOID) %>%
+  left_join(tt_2023 %>% select(geoid, percent_lacking_plumbing), by = c("GEOID" = "geoid")) %>%
+  mutate(bin = bin_rate(percent_lacking_plumbing / 100))
+
+acs5_map <- counties %>%
+  mutate(bin = bin_rate(rate))
+
+stopifnot("Map data has 0 rows" = nrow(tt_map) > 0, nrow(acs5_map) > 0)
+
+callouts <- counties %>%
+  filter(GEOID %in% c("02050", "04001")) %>%
+  st_point_on_surface() %>%
+  mutate(
+    x = st_coordinates(.)[, 1],
+    y = st_coordinates(.)[, 2],
+    label = case_when(
+      GEOID == "02050" ~ paste0("Alaska: ", alaska_top10, " of the\n10 highest-rate counties"),
+      GEOID == "04001" ~ "Navajo Nation area:\nApache, Navajo and\nMcKinley counties"
+    ),
+    lx = x + if_else(GEOID == "02050", 400000, -1250000),
+    ly = y + if_else(GEOID == "02050", -450000, -650000),
+    hj = if_else(GEOID == "02050", 0, 1)
+  ) %>%
+  st_drop_geometry()
+
+map_panel <- function(data, title, subtitle, show_callouts = FALSE, show_legend = TRUE) {
+  p <- ggplot(data) +
+    geom_sf(aes(fill = bin), color = NA, show.legend = TRUE) +
+    geom_sf(data = states, fill = NA, color = "white", linewidth = 0.25) +
+    scale_fill_manual(
+      values = bin_cols, drop = FALSE,
+      name = "Share lacking complete plumbing"
+    ) +
+    guides(fill = guide_legend(nrow = 1, title.position = "top", label.position = "bottom", keywidth = unit(1.6, "cm"))) +
+    labs(title = title, subtitle = subtitle) +
+    theme_void(base_size = 12) +
+    theme(
+      plot.title = element_text(face = "bold", color = ink, size = 13),
+      plot.subtitle = element_text(color = "grey30", size = 10.5, margin = margin(b = 4)),
+      legend.position = if (show_legend) "bottom" else "none",
+      legend.title = element_text(color = ink, size = 10, face = "bold"),
+      legend.text = element_text(color = ink, size = 9)
+    )
+  if (show_callouts) {
+    p <- p +
+      geom_segment(data = callouts, aes(x = x, y = y, xend = lx, yend = ly), color = ink, linewidth = 0.35) +
+      geom_label(
+        data = callouts, aes(x = lx, y = ly, label = label, hjust = hj),
+        size = 3.1, color = ink, fill = alpha(paper, 0.9),
+        label.size = 0, lineheight = 0.95
+      ) +
+      geom_point(data = callouts, aes(x = x, y = y), shape = 21, size = 2.6, stroke = 0.9, color = ink, fill = NA)
+  }
+  p
+}
+
+p_top <- map_panel(
+  tt_map,
+  "As published: 1-year ACS, owners ÷ people",
+  paste0(comma(sum(!is.na(tt_map$percent_lacking_plumbing))), " counties with an estimate. Renters aren't counted and the denominator is people, so everything reads low"),
+  show_legend = FALSE
+)
+
+p_bottom <- map_panel(
+  acs5_map,
+  "Re-pulled: 5-year ACS, all households ÷ households",
+  paste0("All ", comma(nrow(acs5_map)), " counties and municipios. The deepest blues are in places the 1-year survey doesn't cover"),
+  show_callouts = TRUE
+)
+
+(p_top / p_bottom) +
+  plot_annotation(
+    title = "The worst plumbing gaps are in counties the 1-year Census skips",
+    caption = "Data: US Census Bureau, ACS table B25049 (2023 1-year; 2019–2023 5-year) via tidycensus. TidyTuesday 2025-01-28.\nMethod after USGS Vizlab, 'Mapping water insecurity in R with tidycensus' (2024).",
+    theme = theme(
+      plot.title = element_text(face = "bold", size = 17, color = ink),
+      plot.caption = element_text(color = "grey40", size = 8.5, hjust = 0),
+      plot.background = element_rect(fill = paper, color = NA)
+    )
+  ) &
+  theme(plot.background = element_rect(fill = paper, color = NA))
+```
+
+On the top map, the counties that matter most are grey. Rural Alaska, where most villages sit off the road network, is almost entirely missing, along with the reservation counties of South Dakota and most of the rural Southwest. On the bottom map they're the darkest places in the country.
+
+# The ten worst, and how sure the survey is
+
+`r top10_missing` of the 10 counties with the highest rates, and `r top25_missing` of the top 25, have no 1-year estimate. `r alaska_top10` of the top 10 are in Alaska. The 5-year survey reaches small places by pooling five years of responses, and the trade-off shows in the error bars.
+
+```{r}
+#| label: fig-top-counties
+#| fig-cap: "The 25 counties with the highest share of households lacking complete plumbing, 2019–2023 ACS 5-year estimates. Bars are 90% margins of error computed with tidycensus::moe_sum() and moe_prop(). Color shows whether the county also has a 2023 1-year estimate, which is what the TidyTuesday data uses."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 8.5
+#| dpi: 300
+#| dev.args: !expr list(bg = "#F7F6F2")
+
+coverage_cols <- c(
+  "Has a 1-year estimate" = davos[4],
+  "Only in the 5-year ACS" = davos[7]
+)
+
+top25 <- ranked %>%
+  slice_head(n = 25) %>%
+  mutate(
+    coverage = if_else(in_acs1, names(coverage_cols)[1], names(coverage_cols)[2]),
+    coverage = factor(coverage, levels = names(coverage_cols)),
+    label = str_replace(NAME, " (County|Census Area|Borough|City and Borough), ", ", "),
+    label = fct_reorder(label, rate),
+    lo = pmax(rate - rate_moe, 0),
+    hi = rate + rate_moe
+  )
+
+stopifnot("Plot data has 0 rows" = nrow(top25) > 0)
+
+ggplot(top25, aes(y = label)) +
+  geom_vline(xintercept = us_rate, linetype = "22", color = ink, linewidth = 0.4) +
+  geom_linerange(aes(xmin = lo, xmax = hi, color = coverage), linewidth = 1.1, alpha = 0.45) +
+  geom_point(aes(x = rate, color = coverage), size = 3.2) +
+  geom_text(
+    aes(x = hi, label = paste0(comma(lacking), " of ", comma(householdsE))),
+    hjust = -0.12, size = 2.9, color = "grey35"
+  ) +
+  annotate(
+    "text", x = us_rate + 0.004, y = 24, hjust = 0, size = 3.1, color = ink,
+    label = paste0("US: ", percent(us_rate, accuracy = 0.01))
+  ) +
+  scale_color_manual(values = coverage_cols, name = NULL) +
+  scale_x_continuous(
+    labels = label_percent(), limits = c(0, 0.45),
+    breaks = seq(0, 0.4, 0.1), expand = expansion(mult = c(0, 0.02))
+  ) +
+  labs(
+    title = paste0(top10_missing, " of the 10 worst-off counties have no 1-year estimate"),
+    subtitle = "Share of occupied households lacking complete plumbing, with 90% margins of error.\nLabels give households lacking plumbing out of all occupied households",
+    x = "Households lacking complete plumbing",
+    y = NULL,
+    caption = "Data: ACS 2019–2023 5-year estimates, table B25049, via tidycensus."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = paper, color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "grey85", linewidth = 0.3),
+    plot.title = element_text(face = "bold", size = 15, color = ink),
+    plot.title.position = "plot",
+    plot.subtitle = element_text(color = "grey30", margin = margin(b = 8)),
+    plot.caption = element_text(color = "grey45", size = 8.5, hjust = 0),
+    plot.caption.position = "plot",
+    axis.text.y = element_text(color = ink, size = 9.5),
+    legend.position = "top",
+    legend.justification = "left"
+  )
+```
+
+The margins are wide for the smallest places. Yukon-Koyukuk has about 2,300 households, so its rate is a rough figure. But even the low end of every bar in the top 10 is many times the national rate. The ranking at the very top isn't noise.
+
+At the other end of the distribution, the uncertainty does matter. Among counties with any households lacking plumbing, `r percent(unreliable, accuracy = 1)` of the estimates have a coefficient of variation above 30%, a common cutoff for "use with caution". That's because when only a handful of households lack plumbing, a handful of survey responses decides the number. For most of the bottom map, the honest reading is "low", not a precise percentage.
+
+## Tribal lands, counted directly
+
+County lines blur the Navajo Nation story, because the reservation spans parts of Arizona, New Mexico and Utah and several counties. tidycensus can pull tribal areas as a geography of their own. The Navajo Nation reservation and trust land has `r comma(navajo$lacking)` households lacking complete plumbing, `r percent(navajo$rate, accuracy = 0.1)` of its households and `r percent(navajo$lacking / us_lacking, accuracy = 0.1)` of all such households in the country. The Hopi Reservation, which the Navajo Nation surrounds, is at `r percent(hopi$rate, accuracy = 0.1)`.
+
+One county in the top 25 stands out: Adams County, Indiana, at `r percent(adams_in$rate, accuracy = 0.1)`. It has a large Amish community, where going without some modern plumbing can be a choice. But Holmes County, Ohio, LaGrange County, Indiana, and Lancaster County, Pennsylvania, also home to large Amish settlements, are all at or below `r percent(amish_max, accuracy = 0.1)`. So I'd treat it as a lead to check, not an explanation.
+
+## Has it changed?
+
+The README asks how 2022 compares with 2023. Two single years of survey data mix real change with sampling noise, and only cover the large counties. Two non-overlapping 5-year windows give a steadier, complete answer. Nationally the rate went from `r percent(rate_2018, accuracy = 0.01)` in 2014–2018 to `r percent(us_rate, accuracy = 0.01)` in 2019–2023. So at the national level, barely any change. One wrinkle: the ACS dropped the flush toilet from its plumbing definition in 2016, partway through the earlier window, so the two periods don't measure quite the same thing.
+
+# Final thoughts and takeaways
+
+The USGS post is a good template, and it's honest about its scope: Western states, 1-year data. The trouble starts when that template is pointed at every county. The 1-year survey's population cutoff hides exactly the places a plumbing map exists to find. Swapping `survey = "acs1"` for `survey = "acs5"`, adding renters, and dividing by households instead of people changes what the map shows. Instead of a handful of Arizona and New Mexico counties at 1–5%, the darkest places are mostly rural Alaska and the Navajo Nation, at 10–34%.
+
+::: {.callout-tip}
+## A tidycensus habit worth keeping
+
+If a county map has a lot of grey, check the survey before checking the data. `get_acs()` defaults to `survey = "acs5"` for a reason. Use 1-year data when you need the most recent year for large places, and 5-year data when you need everywhere. Then keep the `moe` columns: `moe_sum()`, `moe_prop()` and `moe_ratio()` make carrying them through a two-line job.
+:::
+
+Caveats: "Lacking complete plumbing" is the ACS definition (hot and cold running water and a bath or shower in the unit). It doesn't capture water quality, unreliable supply or unaffordable bills, which are also forms of water insecurity. The 5-year estimates describe 2019–2023 as a period, not 2023. The Alaska boundaries are census areas, not villages, and a borough-level rate can hide villages with full service next to villages hauling water. And none of this says why plumbing is missing. Cost, remoteness, permafrost and choice all show up in the same number.
