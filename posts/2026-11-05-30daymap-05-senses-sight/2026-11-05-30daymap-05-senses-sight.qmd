@@ -1,0 +1,57 @@
+---
+title: "30 Day Map Challenge — Day 05: Senses: Sight"
+author: "Sean Thimons"
+date: "2026-11-05"
+description: "Three Ohio River overlooks aim at the Roebling Bridge. On bare earth, only two of them can see the water under it."
+categories: [cartography, R, 30DayMapChallenge, terrain]
+image: artifacts/day05-three-overlooks.png
+draft: false
+---
+
+```{r}
+#| label: build-sightlines
+#| include: false
+#| message: false
+#| warning: false
+local({
+  old <- setwd("../..")
+  on.exit(setwd(old))
+  source("posts/2026-11-05-30daymap-05-senses-sight/render-map.R")
+  render_day05()
+})
+```
+
+```{r}
+#| label: map
+#| echo: false
+#| fig-alt: "A dark shaded-relief map of the Ohio River at Cincinnati and Covington, with the river and the Licking River in blue. Three colored sightlines start at Devou Memorial Overlook, Eden Park and Mount Echo Park and cross at the Roebling Bridge. Solid stretches mark ground in view and dotted stretches mark hidden ground. The Devou line is mostly solid, the Mount Echo line is solid near its start and patchy farther out, and the Eden Park line turns dotted after a few hundred meters. Below, three elevation profiles with 6x vertical exaggeration show the same split. Eden Park's view is cut off by a crest about 450 meters out."
+knitr::include_graphics("artifacts/day05-three-overlooks.png")
+```
+
+## Can the overlooks see the bridge?
+
+Cincinnati's hillside parks are built around a view. For Day 5's Sight theme, I asked a narrower question. Draw a straight line from three public overlooks through the middle of the John A. Roebling Suspension Bridge and keep going for 8 km. How much of the ground along that line can a standing person actually see?
+
+The answer is uneven. From **Devou Memorial Overlook** in Covington, 73% of the line is in view, including the water under the bridge 1.8 km away. Past the bridge, the line runs up the river channel for another 2.7 km, so much of what Devou sees is the Ohio itself. **Mount Echo Park**, 4.7 km west in Price Hill, sees about half of its line. Two low knobs along the way hide part of the river, but the water under the bridge is still in view. From the **Eden Park** overlook, the bridge is hidden. Ground toward the bridge rises to about 241 m within 450 m, roughly 8.6 m above the overlook point. Only 4.5% of that line is visible. The river at this overlook lies to the southeast, so its view runs upriver rather than toward downtown.
+
+The image has a plan view on top and one elevation profile per overlook below it. Solid line segments are ground in view from that overlook; dotted segments are hidden. The dashed vertical line on each profile marks the bridge.
+
+## Method
+
+The [complete R source](render-map.R) uses `terra` for everything spatial and base R graphics for the image. Each sightline is sampled every 10 m in NAD83 / UTM zone 16N (EPSG:26916). Elevations come from bilinear extraction on the original geographic DEM. A sample counts as visible when its elevation angle from the eye, 1.6 m above the overlook's ground, is at least as steep as every nearer sample. Distant ground is lowered by the Earth's curvature with a standard refraction coefficient of 0.13, about 4.4 m at 8 km. A small [test script](https://github.com/seanthimons/seanthimons.github.io/blob/master/tests/test-day05-map.R) checks the line-of-sight function on synthetic ridges.
+
+This is **bare earth**. The DEM removes buildings and trees, and so does this analysis. Downtown towers, Covington's rooftops, and the trees around each overlook all block real views that the map counts as open. Treat the result as what the land itself allows, not a promise about what you would see from the railing.
+
+Water comes from the DEM. 3DEP flattens rivers to level surfaces, here in steps between about 140.8 and 144.2 m. Cells at or below 144.5 m that connect to the water under the bridge are drawn as river. That picks up the Ohio and the mouth of the Licking. The profiles use a 6x vertical exaggeration so a 100 m bluff remains legible across 8 km. The plan view has none.
+
+## Data & provenance
+
+Terrain is the USGS 3DEP one-third arc-second DEM tile [USGS_13_n40w085.tif](https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/current/n40w085/USGS_13_n40w085.tif). This copy was downloaded November 10, 2026, and is byte-for-byte the file retrieved November 2 for [Day 2](../2026-11-02-30daymap-02-lines/2026-11-02-30daymap-02-lines.qmd). Horizontal coordinates are NAD83 and elevations are meters in NAVD88. USGS `current` URLs can change, so the [source snapshot](source-snapshot.json) records the tile's SHA-256 fingerprint, and the render stops if the cached file differs. USGS-produced data are in the [U.S. public domain](https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits).
+
+The three overlooks and the bridge come from OpenStreetMap: the named Devou Memorial Overlook viewpoint, unnamed viewpoints inside Eden Park and Mount Echo Park, and the midpoint of the Roebling Bridge's main span. The [point table](overlooks.csv) records each element's ID, version and timestamp, retrieved from the OSM API on November 10, 2026. OSM coordinates are WGS84. They are read as NAD83, a difference of about a meter here, so the render needs no datum grid and makes no network request. The November 5 post date identifies the challenge day. The [sightline summary](artifacts/sightline-summary.csv) has the percentages quoted above.
+
+Credit: U.S. Geological Survey. Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available under the Open Database License.
+
+## What I learned
+
+The overlook that feels most central is the one that sees the least toward downtown. Eden Park's viewpoint looks out over the river upstream, and a few hundred meters of its own hilltop block the bridge. A single straight line made that obvious in a way a full viewshed might have blurred.

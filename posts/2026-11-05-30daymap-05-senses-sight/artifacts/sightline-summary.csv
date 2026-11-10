@@ -1,0 +1,4 @@
+"key","label","ground_elev_m","eye_m","target_dist_m","target_visible","ground_visible_pct","river_samples","river_visible_pct"
+"devou","Devou Memorial Overlook",242.8,1.6,1838,TRUE,73.1,411,74.9
+"eden","Eden Park overlook",232.5,1.6,2434,FALSE,4.5,64,0
+"mount_echo","Mount Echo Park overlook",248.5,1.6,4731,TRUE,49.4,273,45.4

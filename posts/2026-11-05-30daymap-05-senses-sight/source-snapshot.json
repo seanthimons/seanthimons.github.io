@@ -1,0 +1,19 @@
+{
+  "terrain": {
+    "file": "USGS_13_n40w085.tif",
+    "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/current/n40w085/USGS_13_n40w085.tif",
+    "retrieved_utc": "2026-11-10 18:39 UTC",
+    "bytes": 451305486,
+    "sha256": "8468a43fd95ca05702dd0bcbcbf976bb427520a7f8778e876a595d7861f8e5bf",
+    "note": "Same bytes as the Day 02 input (MD5 d92865379ad4ff7c49ac9a63e8023f9c). USGS current URLs are mutable; a changed fingerprint requires review.",
+    "license": "U.S. public domain (USGS)"
+  },
+  "points": {
+    "file": "overlooks.csv",
+    "source": "OpenStreetMap API 0.6, element JSON for nodes 3759254619, 2912935128, 2805238423 and way 567780747 (full)",
+    "url_pattern": "https://api.openstreetmap.org/api/0.6/{node|way}/{id}[/full].json",
+    "retrieved_utc": "2026-11-10 18:39 UTC",
+    "versions": "Recorded per element in overlooks.csv (osm_version, osm_timestamp).",
+    "license": "Open Database License (ODbL) 1.0, © OpenStreetMap contributors, https://www.openstreetmap.org/copyright"
+  }
+}
