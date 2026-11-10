@@ -1,0 +1,312 @@
+---
+title: "Tidy Tuesday: Rulebooks make Dungeons & Dragons the most 'stated' franchise on Cited Feats"
+author: "Sean Thimons"
+date: "2026-11-10"
+description: "87% of the citations behind Dungeons & Dragons rankings are stated, not shown, and 41 of its 47 come from rulebooks. Pokémon and Solo Leveling lean on stated evidence with no rulebooks at all."
+categories:
+  - tidytuesday
+  - R
+  - fiction
+  - data-visualization
+execute:
+  freeze: auto
+---
+
+```{r}
+#| label: pseudo-hero-palette
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 1.35
+#| fig-dpi: 300
+#| dpi: 300
+#| out-width: 100%
+
+library(ggplot2)
+library(paletteer)
+library(tibble)
+
+palette_name <- "Moreau"
+palette_source <- "MetBrewer"
+palette_type <- "discrete"
+palette_id <- paste0(palette_source, "::", palette_name)
+
+hero_swatches <- rep_len(as.character(paletteer::paletteer_d(palette_id, n = 5)), 5)
+
+swatch_df <- tibble(
+  idx = seq_along(hero_swatches),
+  xmin = seq_along(hero_swatches) - 1,
+  xmax = seq_along(hero_swatches),
+  fill = hero_swatches
+)
+
+p_hero <- ggplot(swatch_df) +
+  geom_rect(
+    aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = fill),
+    color = NA,
+    show.legend = FALSE
+  ) +
+  scale_fill_identity() +
+  annotate(
+    "text",
+    x = 0,
+    y = -0.22,
+    hjust = 0,
+    label = paste0("Palette: ", palette_name),
+    fontface = "bold",
+    size = 4.1
+  ) +
+  annotate(
+    "text",
+    x = 5,
+    y = -0.22,
+    hjust = 1,
+    label = paste0("Source: ", palette_source),
+    color = "grey35",
+    size = 3.6
+  ) +
+  coord_cartesian(xlim = c(0, 5), ylim = c(-0.35, 1), clip = "off", expand = FALSE) +
+  theme_void() +
+  theme(plot.margin = margin(5.5, 0, 18, 0))
+
+p_hero
+```
+# Preface
+
+From the [TidyTuesday repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-11-10).
+
+This week's data is from [Cited Feats](https://citedfeats.com), a fan-run site that ranks characters by strength inside 21 franchises, from Marvel and Star Wars to Berserk, Westeros and Dungeons & Dragons. Every placement rests on citations to a chapter, episode, page or game location, and each citation is graded: **shown** on page or screen, **stated** by a character, narrator or guidebook, or **scaled** against someone else's feat.
+
+The README asks which franchises lean most on "stated" evidence and whether that depends on the medium. I took that one. The ranks and grades are the site's editorial calls, not measurements, so what follows is a description of how the site sources its claims.
+
+## Loading necessary packages
+
+```{r}
+#| label: booster-pack
+#| message: false
+#| warning: false
+#| code-fold: true
+
+library(tidyverse)
+library(tidytuesdayR)
+library(skimr)
+library(scales)
+library(paletteer)
+
+`%ni%` <- Negate(`%in%`)
+```
+
+# Load raw data from package
+
+```{r}
+#| label: raw-data-load
+#| echo: true
+#| output: false
+
+raw <- tidytuesdayR::tt_load("2026-11-10")
+fiction_citations <- raw$fiction_citations
+fiction_deaths <- raw$fiction_deaths
+fiction_rankings <- raw$fiction_rankings
+```
+
+# Exploratory data analysis
+
+```{r}
+#| label: eda-fiction
+#| echo: true
+#| output: true
+
+fiction_rankings %>%
+  summarise(
+    entries = n(),
+    franchises = n_distinct(franchise_slug),
+    unranked = sum(is.na(rank)),
+    citations = sum(citations)
+  )
+
+fiction_citations %>% count(subject_kind, confidence)
+fiction_citations %>% count(type, confidence)
+
+fiction_citations %>%
+  filter(subject_kind == "entry") %>%
+  count(franchise_slug, type) %>%
+  pivot_wider(names_from = type, values_from = n, values_fill = 0)
+```
+
+There are 1,746 citations behind ranked entries, and they add up to the `citations` column in the rankings file. The other citations back "armaments", a separate ladder of weapons and abilities, so I dropped them. Almost every entry citation is shown or stated. Only two are graded "scaled", so I fold them in with stated and call everything that isn't shown "stated".
+
+The `type` column is the useful one. Every `reference` citation (rulebooks, guidebooks, databooks) is graded stated, 163 of 163. A rulebook can tell you a thing is strong but it can't show it. That means the stated share of a franchise partly depends on whether its sources are rulebooks at all.
+
+# Stated evidence, split by where it comes from
+
+```{r}
+#| label: stated-data
+#| echo: true
+#| output: true
+
+stated_by_franchise <- fiction_citations %>%
+  filter(subject_kind == "entry") %>%
+  inner_join(
+    fiction_rankings %>% distinct(franchise_slug, franchise),
+    by = "franchise_slug"
+  ) %>%
+  mutate(
+    source = case_when(
+      confidence == "shown" ~ "Shown",
+      type == "reference" ~ "Stated in a rulebook or guidebook",
+      TRUE ~ "Stated in a story or game"
+    )
+  ) %>%
+  count(franchise, source) %>%
+  pivot_wider(names_from = source, values_from = n, values_fill = 0) %>%
+  mutate(
+    total = Shown + `Stated in a rulebook or guidebook` + `Stated in a story or game`,
+    stated = 1 - Shown / total
+  ) %>%
+  arrange(desc(stated))
+
+cat(sprintf("stated_by_franchise: %d rows, %d cols\n", nrow(stated_by_franchise), ncol(stated_by_franchise)))
+stopifnot("Plot data has 0 rows" = nrow(stated_by_franchise) > 0)
+
+stated_by_franchise
+
+overall <- fiction_citations %>%
+  filter(subject_kind == "entry") %>%
+  summarise(stated = mean(confidence != "shown"), n = n())
+
+by_type <- fiction_citations %>%
+  filter(subject_kind == "entry", type != "reference") %>%
+  summarise(n = n(), stated = mean(confidence != "shown"), .by = type) %>%
+  arrange(desc(stated))
+
+overall
+by_type
+```
+
+```{r}
+#| label: headline-numbers
+#| echo: false
+#| output: false
+
+dnd <- stated_by_franchise %>% filter(franchise == "Dungeons & Dragons")
+wh <- stated_by_franchise %>% filter(franchise == "Warhammer 40,000")
+pk <- stated_by_franchise %>% filter(franchise == "Pokémon")
+sl <- stated_by_franchise %>% filter(franchise == "Solo Leveling")
+bs <- stated_by_franchise %>% filter(franchise == "Berserk")
+ep <- by_type %>% filter(type == "episode")
+novel <- by_type %>% filter(type == "novel")
+game <- by_type %>% filter(type == "game")
+comic <- by_type %>% filter(type == "comic")
+```
+
+Across all franchises, `r percent(overall$stated, accuracy = 1)` of entry citations are stated. Dungeons & Dragons is at `r percent(dnd$stated, accuracy = 1)`, and `r dnd$"Stated in a rulebook or guidebook"` of its `r dnd$total` citations are rulebook or guidebook entries. Warhammer 40,000 is next at `r percent(wh$stated, accuracy = 1)`, with a similar split. Berserk is at the other end: `r percent(bs$stated, accuracy = 1)` stated, from `r bs$total` citations that are nearly all manga panels.
+
+```{r}
+#| label: fig-stated-by-franchise
+#| fig-cap: "Share of each franchise's citations by grade and source type. Stated evidence is split into rulebooks, guidebooks and databooks (always stated) and stories or games. Franchises are sorted by their total stated share; the dashed line is the share across all 1,746 entry citations."
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 9
+#| dpi: 300
+
+pal <- paletteer::paletteer_d("MetBrewer::Moreau")
+cols <- c(
+  "Shown" = as.character(pal)[6],
+  "Stated in a story or game" = as.character(pal)[5],
+  "Stated in a rulebook or guidebook" = as.character(pal)[3]
+)
+ink <- "#241B14"
+paper <- "#F6F0E6"
+
+plot_data <- stated_by_franchise %>%
+  pivot_longer(
+    c(Shown, `Stated in a story or game`, `Stated in a rulebook or guidebook`),
+    names_to = "source", values_to = "n"
+  ) %>%
+  mutate(
+    source = factor(source, levels = names(cols)),
+    franchise = fct_reorder(franchise, stated),
+    share = n / total
+  )
+
+stopifnot("Plot data has 0 rows" = nrow(plot_data) > 0)
+
+labels_right <- stated_by_franchise %>%
+  mutate(
+    franchise = factor(franchise, levels = levels(plot_data$franchise)),
+    label = paste0(percent(stated, accuracy = 1), "  (n = ", total, ")")
+  )
+
+p <- plot_data %>%
+  ggplot(aes(share, franchise)) +
+  geom_col(aes(fill = source), width = 0.78, color = paper, linewidth = 0.3) +
+  geom_vline(xintercept = 1 - overall$stated, linetype = "22", color = ink, linewidth = 0.5) +
+  geom_text(
+    data = labels_right,
+    aes(x = 1.02, y = franchise, label = label),
+    hjust = 0, size = 3.2, color = ink,
+    fontface = if_else(labels_right$franchise %in% c("Dungeons & Dragons", "Warhammer 40,000"), "bold", "plain")
+  ) +
+  annotate(
+    "label",
+    x = 0.585, y = 6.5, hjust = 0, size = 3.2, color = ink, fill = paper, linewidth = 0,
+    label = paste0("Dashed line: ", percent(1 - overall$stated, accuracy = 1), " of all citations\nare shown, ", percent(overall$stated, accuracy = 1), " are stated")
+  ) +
+  annotate(
+    "text",
+    x = 0.20, y = 20.6, hjust = 0, size = 3.3, color = ink, fontface = "bold",
+    label = "Only 6 of D&D's 47 citations are shown"
+  ) +
+  annotate(
+    "text",
+    x = 0.20, y = 15.5, hjust = 0, size = 3.1, color = "grey25",
+    label = "Pokémon, Solo Leveling and Jujutsu Kaisen are about\nhalf stated with no rulebooks involved"
+  ) +
+  scale_fill_manual(values = cols, name = NULL, breaks = rev(names(cols))) +
+  scale_x_continuous(
+    labels = label_percent(), breaks = seq(0, 1, 0.25),
+    limits = c(0, 1.2), expand = expansion(mult = c(0, 0))
+  ) +
+  coord_cartesian(clip = "off") +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE)) +
+  labs(
+    title = "Rulebooks make Dungeons & Dragons the most stated franchise",
+    subtitle = "Share of each franchise's citations by evidence grade. Rulebooks can only state, so they pile up on the right",
+    x = "Share of the franchise's citations",
+    y = NULL,
+    caption = "Data: Cited Feats (CC BY 4.0) via TidyTuesday 2026-11-10. Citations for ranked entries only.\nSome franchises have few citations, so read the n beside each bar. Grades are the site's editorial judgements."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = paper, color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "grey85", linewidth = 0.3),
+    plot.title = element_text(face = "bold", size = 16, color = ink),
+    plot.title.position = "plot",
+    plot.subtitle = element_text(color = "grey30", margin = margin(b = 10)),
+    plot.caption = element_text(color = "grey45", size = 9, hjust = 0),
+    plot.caption.position = "plot",
+    axis.title.x = element_text(color = "grey30", margin = margin(t = 8)),
+    axis.text.y = element_text(size = 10, color = ink),
+    legend.position = "top",
+    legend.justification = "left",
+    plot.margin = margin(12, 16, 10, 12)
+  )
+
+p
+```
+
+# What the plot shows
+
+The top of the chart comes down to sourcing. Dungeons & Dragons has `r dnd$"Stated in a rulebook or guidebook"` rulebook citations and only `r dnd$Shown` shown ones; Warhammer 40,000 has `r wh$"Stated in a rulebook or guidebook"` rulebook citations. Both are tabletop games whose canon lives in sourcebooks, so the site has little else to cite.
+
+Rulebooks are not the whole answer, though. Pokémon is `r percent(pk$stated, accuracy = 1)` stated and Solo Leveling is `r percent(sl$stated, accuracy = 1)`, and neither has a single rulebook citation. Among citations that aren't rulebooks, novels (`r percent(novel$stated, accuracy = 1)`) and games (`r percent(game$stated, accuracy = 1)`) are stated more often than comics (`r percent(comic$stated, accuracy = 1)`), and episodes are rare at `r percent(ep$stated, accuracy = 1)`. A character saying "he is the strongest" is easy to write into a novel or a game's item text, and harder to put on screen in a twenty-minute episode.
+
+# Final thoughts and takeaways
+
+If you want a franchise with the most on-screen proof behind its ranking, look at the anime and manga ones: Berserk, Dragon Ball, Bleach. If you want one that mostly runs on what a book says, it's the tabletop games. Dungeons & Dragons's top spot says more about where the site found its sources than about the fiction.
+
+Caveats: franchise sizes are very uneven. Godzilla has 21 citations and Westeros 314, so a few percentage points on a small franchise is a handful of citations. The grades are the site's own judgement, and I treated the 128 rulebook citations as a source type, not a measure of how much a rulebook can be trusted. I didn't touch the deaths table, so the question of whether franchises that show more also undo more deaths is still open.
