@@ -141,3 +141,47 @@ within 20 km of the generalized Ohio River, before applying the display crop.
 The source frame and corridor are analytic choices, not physical impact zones.
 Outputs are a 3000 × 3300 PNG, compact vector PDF, reporting-site CSV, neighborhood
 comparison CSV, and provenance. Day04 is marked for publication.
+
+## Day 05: who can see what (lidar intervisibility)
+
+The post render needs only `terra`, `jsonlite`, and `digest`, the shared Day02 DEM
+tile in ignored `data/30daymap/2026/day02/`, and the committed lidar reductions
+(`ept-nodes.csv`, `landmark-tops.csv`, `sightline-profiles.csv`,
+`landmarks.geojson`). It makes no network requests and never reads point clouds.
+
+Rebuilding the reductions is a separate, networked step that also needs `rlas` and
+`curl`:
+
+```sh
+sh scripts/map-r.sh posts/2026-11-05-30daymap-05-senses-sight/acquire-lidar.R [--refresh-landmarks]
+sh scripts/map-r.sh posts/2026-11-05-30daymap-05-senses-sight/render-map.R
+sh scripts/map-r.sh tests/test-day05-map.R
+sh scripts/map-r.sh --quarto render posts/2026-11-05-30daymap-05-senses-sight/2026-11-05-30daymap-05-senses-sight.qmd --execute
+```
+
+Lidar comes from the USGS 3DEP Entwine (EPT) copies in the public
+`usgs-lidar-public` bucket on AWS, not rockyweb LAZ tiles; rockyweb returned HTTP
+429 to every client during development. Nodes cache in ignored
+`data/30daymap/2026/day05/ept/` (~100 MB for the 2,518 nodes). The script records a SHA-256 manifest of
+the node files in `source-snapshot.json`; a changed manifest means USGS rebuilt the
+index and the matrix needs review.
+
+`rlas` 1.9.5 builds from CRAN source and needs GDAL, PROJ, and GEOS development
+files. On the Fedora 44 host, without sudo, the matching `-devel` RPMs were
+extracted into ignored `.sysdeps/gdal-devel/` (`dnf download --arch=x86_64
+gdal-devel-3.12.4-1.fc44 proj-devel-9.8.1-1.fc44 geos-devel-3.14.1-2.fc44`, then
+`rpm2cpio | cpio -idm`). Point the `gdal-config-64` `CONFIG_LIBS`/`CONFIG_CFLAGS`
+and the `geos-config` `prefix` at that directory (add `-I<dir>/usr/include` to the
+GDAL cflags), and symlink `libgdal.so`, `libproj.so`, `libsqlite3.so`, `libgeos.so`,
+and `libgeos_c.so` there to the system `/usr/lib64` runtimes. Then, with
+`PATH=$PWD/.sysdeps/gdal-devel/usr/bin:$PATH`:
+
+```r
+install.packages("rlas", lib = ".R-library", repos = "https://cloud.r-project.org",
+  configure.args = c(rlas = "--with-proj-include=<dir>/usr/include --with-proj-lib=<dir>/usr/lib64"))
+```
+
+The command sandbox used during development truncated R downloads written under
+`/tmp`, so package installs and acquisition ran with
+`TMPDIR=$PWD/data/30daymap/.rtmp` (ignored). On a normal shell this is unnecessary.
+`lidR` is not required; it also pulls in `rgl`.
