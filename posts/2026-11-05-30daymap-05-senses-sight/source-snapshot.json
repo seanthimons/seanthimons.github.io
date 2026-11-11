@@ -10,10 +10,37 @@
   },
   "points": {
     "file": "overlooks.csv",
-    "source": "OpenStreetMap API 0.6, element JSON for nodes 3759254619, 2912935128, 2805238423 and way 567780747 (full)",
-    "url_pattern": "https://api.openstreetmap.org/api/0.6/{node|way}/{id}[/full].json",
+    "source": "OpenStreetMap API 0.6 node JSON for viewpoints 3759254619, 2912935128 and 2805238423",
+    "url_pattern": "https://api.openstreetmap.org/api/0.6/node/{id}.json",
     "retrieved_utc": "2026-11-10 18:39 UTC",
     "versions": "Recorded per element in overlooks.csv (osm_version, osm_timestamp).",
     "license": "Open Database License (ODbL) 1.0, © OpenStreetMap contributors, https://www.openstreetmap.org/copyright"
+  },
+  "landmarks": {
+    "file": "landmarks.geojson",
+    "source": "OpenStreetMap API 0.6 way JSON (full) for ways 91292276, 91493361, 27669543 and 123059448; Roebling north tower located as the highest 3DEP lidar return on the north half of OSM way 567780747 (main span), boxed at +/-12 m",
+    "versions": "Recorded per feature in landmarks.geojson (source).",
+    "license": "Open Database License (ODbL) 1.0, © OpenStreetMap contributors, https://www.openstreetmap.org/copyright",
+    "tower_peak_spacing_m": 323.2
+  },
+  "lidar": {
+    "source": "USGS 3D Elevation Program lidar point clouds, Entwine Point Tile (EPT) copies on AWS Open Data",
+    "base_url": "https://s3-us-west-2.amazonaws.com/usgs-lidar-public",
+    "workunits": [
+      "OH_StatewideP3_6_B21",
+      "KY_Western_1_A22"
+    ],
+    "crs": "EPSG:3857 horizontal; heights in metres in the same vertical datum as the 3DEP DEM (see ground_minus_dem_median_m)",
+    "nodes_file": "ept-nodes.csv",
+    "reductions": [
+      "landmark-tops.csv",
+      "sightline-profiles.csv"
+    ],
+    "manifest": "SHA-256 of newline-joined \"workunit key sha256\" lines for every node in ept-nodes.csv, in file order",
+    "license": "U.S. public domain (USGS)",
+    "retrieved_utc": "2026-11-11 17:16 UTC",
+    "nodes": 2518,
+    "manifest_sha256": "5d7dfad8e6ee70a2eea62a25b40790cf7b051a2d6cd175b3df11418d465be2de",
+    "ground_minus_dem_median_m": 0.05
   }
 }
