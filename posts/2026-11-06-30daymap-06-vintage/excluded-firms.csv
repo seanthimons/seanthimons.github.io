@@ -1,0 +1,11 @@
+name,city,address_text,reason
+Herancourt,Cincinnati,1400 Harrison,No matching OSM address or named historical feature; nearby current addresses do not establish the old parcel
+Schaller,Cincinnati,652 Main,Legacy number could not be linked to a historical building in the OSM extracts
+Foss-Schneider,Cincinnati,Freeman and Court,Historical intersection not recoverable as a shared current OSM street node
+Lackman,Cincinnati,Sixth and Stone,Historical intersection not recoverable; the OSM Lackman bar on Vine is not this brewery
+Bruckmann,Cincinnati,Cumminsville,Neighborhood alone is insufficient; no matching historical brewery feature in the OSM extract
+Wetterer,Cincinnati,2121/2133 Central,Historical address not matched; do not confuse with Frank Wetterer on Rohs Hill
+Mohawk,Cincinnati,McMicken and Stonewall,Stonewall intersection not recoverable in current OSM geometry
+Fairmont,Cincinnati,Thinnes off Quebec and Western,Street and historical site not recovered; 1903 source spells the firm Fairmount
+Jung Western,Cincinnati,Freeman and Bank,Historical intersection not recovered; distinct from Phillip Jung in Covington
+Adam,Cincinnati,West of canal between Straight and Marshall,Canal frontage cannot be resolved to a brewery parcel from the present OSM streets

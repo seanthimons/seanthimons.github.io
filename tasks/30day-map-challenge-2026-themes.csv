@@ -4,7 +4,7 @@ day,theme,package_lane,data_idea,fallback
 3,Polygons,vector-cartography,SSURGO soil suborders x Ohio bedrock - Great Black Swamp region,Reduce extent while retaining source intersections and classification rules
 4,Clusters,point-clustering,EPA TRI 2024 reporting-site clusters - Cincinnati to Louisville,Keep sites visible and compare multiple neighborhood distances
 5,Senses: Sight,lidar-intervisibility,Who sees what: Devou - Eden Park - Mount Echo overlooks to five landmarks over the USGS 3DEP lidar surface (rlas + terra; OSM),Bare-earth line of sight to the same landmarks
-6,Vintage,to-scope,TBD in morning scope,TBD after scope
+6,Vintage,historical-raster,Pre-Prohibition breweries across Cincinnati Covington and Newport over two 1914 USGS sheets (terra),Map only supported site proxies; list unresolved historical addresses explicitly
 7,10 minute map,to-scope,TBD in morning scope,TBD after scope
 8,Utopia,to-scope,TBD in morning scope,TBD after scope
 9,Urban-rural,to-scope,TBD in morning scope,TBD after scope

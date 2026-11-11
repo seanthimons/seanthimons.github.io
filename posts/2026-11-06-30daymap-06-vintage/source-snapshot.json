@@ -1,0 +1,117 @@
+{
+  "retrieved_date": "2026-11-11",
+  "sources": [
+    {
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/GeoTIFF/OH/OH_West%20Cincinnati_709982_1914_62500_geo.tif",
+      "path": "data/30daymap/2026/day06/west.tif",
+      "sha256": "8a4f0cd4a6143738f4d328667be22ed99d812bfcd2c70393b57849ae61f9b208",
+      "_row": "data/30daymap/2026/day06/west.tif"
+    },
+    {
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/GeoTIFF/OH/OH_East%20Cincinnati_708568_1914_62500_geo.tif",
+      "path": "data/30daymap/2026/day06/east.tif",
+      "sha256": "a904547265e47e7e60e7fc625a45a88c3505ea90c4e4b675d7581911b40907fc",
+      "_row": "data/30daymap/2026/day06/east.tif"
+    },
+    {
+      "url": "https://queencitychapter.com/brewinghistory/preprohibition.htm",
+      "path": "data/30daymap/2026/day06/queen-city.html",
+      "sha256": "cb9234f0d4a252b17fbfa053edb9340eca267f0475efcdd90a116ca00b181da7",
+      "_row": "data/30daymap/2026/day06/queen-city.html"
+    },
+    {
+      "url": "https://archive.org/download/onehundredyearso0000vari_c0n2/onehundredyearso0000vari_c0n2_djvu.txt",
+      "path": "data/30daymap/2026/day06/brewing-1903.txt",
+      "sha256": "fc4492196de9cc7f092258497a9a4962d371883abbbe7a24bbf829bd9c8d52f5",
+      "_row": "data/30daymap/2026/day06/brewing-1903.txt"
+    },
+    {
+      "url": "https://www.pinemeer.org/copy-of-special-museums",
+      "path": "data/30daymap/2026/day06/bavarian-exhibit.html",
+      "sha256": "d589c91088b9fd6bc966206d6ea93a6239fe23ab61ed881bad7498b261f3d7a0",
+      "_row": "data/30daymap/2026/day06/bavarian-exhibit.html"
+    },
+    {
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-84.535,39.108,-84.508,39.125",
+      "path": "data/30daymap/2026/day06/osm-central.osm",
+      "sha256": "64f743b6674a76016ae70d988478770cc13f76dc092683f6e32d8573bb7f94b9",
+      "_row": "data/30daymap/2026/day06/osm-central.osm"
+    },
+    {
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-84.548,39.12,-84.528,39.137",
+      "path": "data/30daymap/2026/day06/osm-west.osm",
+      "sha256": "0c2d06a108bc993d014fdfefde1bdf24167e61c88510b1b54728c7e89f507565",
+      "_row": "data/30daymap/2026/day06/osm-west.osm"
+    },
+    {
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-84.548,39.155,-84.53,39.175",
+      "path": "data/30daymap/2026/day06/osm-north.osm",
+      "sha256": "bd733adc8e1ad6b5635f74153d705cab052573947a1f2656bae1871bd0c466a0",
+      "_row": "data/30daymap/2026/day06/osm-north.osm"
+    },
+    {
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-84.523,39.077,-84.505,39.09",
+      "path": "data/30daymap/2026/day06/osm-covington.osm",
+      "sha256": "a194167b6f71934d2da10c9d1c6547b32106c42c8930bef9ff27a9c3831ffb25",
+      "_row": "data/30daymap/2026/day06/osm-covington.osm"
+    },
+    {
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-84.502,39.085,-84.485,39.1",
+      "path": "data/30daymap/2026/day06/osm-newport.osm",
+      "sha256": "620a5be383384d372b22c9893737fa5534e4b90eb8b8739c84818045df02220a",
+      "_row": "data/30daymap/2026/day06/osm-newport.osm"
+    },
+    {
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-84.532,39.122,-84.515,39.136",
+      "path": "data/30daymap/2026/day06/osm-mohawk.osm",
+      "sha256": "0d4c5871fa4a2e2bc2503065735d79e0b67811ecc878970ae7c5574ec3a40ba8",
+      "_row": "data/30daymap/2026/day06/osm-mohawk.osm"
+    },
+    {
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-84.56,39.124,-84.545,39.136",
+      "path": "data/30daymap/2026/day06/osm-harrison.osm",
+      "sha256": "f58721ffe577e4d46e0b6c4457da04f2b2b7e77322ff89cc475c8a74595857bc",
+      "_row": "data/30daymap/2026/day06/osm-harrison.osm"
+    },
+    {
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-84.523,39.067,-84.513,39.078",
+      "path": "data/30daymap/2026/day06/osm-bavarian.osm",
+      "sha256": "e428de082cf686d4665ff4d44cea965eba5958267a39fc7224d606b4cdcf548a",
+      "_row": "data/30daymap/2026/day06/osm-bavarian.osm"
+    },
+    {
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-84.54,39.099,-84.523,39.114",
+      "path": "data/30daymap/2026/day06/osm-westend.osm",
+      "sha256": "fbef0f2367f1f22b1657e18002c47aeb3d766d4146641a955a9a88bc2951e2f1",
+      "_row": "data/30daymap/2026/day06/osm-westend.osm"
+    }
+  ],
+  "render_inputs": [
+    {
+      "path": "data/30daymap/2026/day06/mosaic.tif",
+      "sha256": "a7271bde9d420122fd427d4d5ae1296cc0bcefae3e611dff8543a1d8a5383f43",
+      "_row": "data/30daymap/2026/day06/mosaic.tif"
+    },
+    {
+      "path": "posts/2026-11-06-30daymap-06-vintage/breweries.csv",
+      "sha256": "6a8244f40c9e8d017b20d1d7f179ea89670889e3826d482202a4f12fd536c3b9",
+      "_row": "posts/2026-11-06-30daymap-06-vintage/breweries.csv"
+    },
+    {
+      "path": "posts/2026-11-06-30daymap-06-vintage/location-decisions.csv",
+      "sha256": "0d78aa937c695dad4ee588f66583334842dd0c0c310ddef5f1b18d038b0a2e11",
+      "_row": "posts/2026-11-06-30daymap-06-vintage/location-decisions.csv"
+    },
+    {
+      "path": "posts/2026-11-06-30daymap-06-vintage/excluded-firms.csv",
+      "sha256": "f43aca23bf2b15f51729b65d15052c9d9691a5af9c1e603f41162ec162ab83c7",
+      "_row": "posts/2026-11-06-30daymap-06-vintage/excluded-firms.csv"
+    }
+  ],
+  "crs": {
+    "west": "PROJCRS[\"unnamed\",\n    BASEGEOGCRS[\"NAD27\",\n        DATUM[\"North American Datum 1927\",\n            ELLIPSOID[\"Clarke 1866\",6378206.4,294.978698213898,\n                LENGTHUNIT[\"metre\",1]]],\n        PRIMEM[\"Greenwich\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        ID[\"EPSG\",4267]],\n    CONVERSION[\"American Polyconic\",\n        METHOD[\"American Polyconic\",\n            ID[\"EPSG\",9818]],\n        PARAMETER[\"Latitude of natural origin\",39,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8801]],\n        PARAMETER[\"Longitude of natural origin\",-84.625,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8802]],\n        PARAMETER[\"False easting\",0,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8806]],\n        PARAMETER[\"False northing\",0,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8807]]],\n    CS[Cartesian,2],\n        AXIS[\"easting\",east,\n            ORDER[1],\n            LENGTHUNIT[\"metre\",1,\n                ID[\"EPSG\",9001]]],\n        AXIS[\"northing\",north,\n            ORDER[2],\n            LENGTHUNIT[\"metre\",1,\n                ID[\"EPSG\",9001]]]]",
+    "east": "PROJCRS[\"unnamed\",\n    BASEGEOGCRS[\"NAD27\",\n        DATUM[\"North American Datum 1927\",\n            ELLIPSOID[\"Clarke 1866\",6378206.4,294.978698213898,\n                LENGTHUNIT[\"metre\",1]]],\n        PRIMEM[\"Greenwich\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        ID[\"EPSG\",4267]],\n    CONVERSION[\"American Polyconic\",\n        METHOD[\"American Polyconic\",\n            ID[\"EPSG\",9818]],\n        PARAMETER[\"Latitude of natural origin\",39,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8801]],\n        PARAMETER[\"Longitude of natural origin\",-84.375,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8802]],\n        PARAMETER[\"False easting\",0,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8806]],\n        PARAMETER[\"False northing\",0,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8807]]],\n    CS[Cartesian,2],\n        AXIS[\"easting\",east,\n            ORDER[1],\n            LENGTHUNIT[\"metre\",1,\n                ID[\"EPSG\",9001]]],\n        AXIS[\"northing\",north,\n            ORDER[2],\n            LENGTHUNIT[\"metre\",1,\n                ID[\"EPSG\",9001]]]]",
+    "display": "EPSG:26916"
+  },
+  "note": "1914-labelled editions; scan edition dates are not a census of brewery operation. OSM coordinates are site or block proxies; 1903 flags identify firms, not addresses."
+}
