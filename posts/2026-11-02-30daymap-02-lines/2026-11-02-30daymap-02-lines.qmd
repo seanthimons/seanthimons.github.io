@@ -3,7 +3,8 @@ title: "30 Day Map Challenge — Day 02: Lines"
 author: "Sean Thimons"
 date: "2026-11-02"
 description: "An unlabeled contour portrait in the Night survey palette. Can you place it?"
-categories: [30DayMapChallenge, R, maps, terrain]
+categories: [cartography, R, 30DayMapChallenge, terrain]
+image: artifacts/day02-night-survey.png
 draft: false
 ---
 
@@ -31,9 +32,9 @@ if (!file.exists("artifacts/day02-night-survey.png")) local({
 knitr::include_graphics("artifacts/day02-night-survey.png")
 ```
 
-**Can you place it from the terrain alone?**
+## Can you place it from the terrain alone?
 
-For the Lines theme, I wanted the contours to carry the whole image. No roads to orient the eye, no neighborhood names, and no locator inset giving away the answer. The broad, quiet corridor is the strongest clue. Follow its bends, then look at how the smaller valleys meet it. Each line joins locations at the same elevation. Closely spaced contours indicate steeper ground; wider gaps indicate gentler slopes.
+For Day 2's Lines theme, I wanted the contours to carry the whole image. No roads to orient the eye, no neighborhood names, and no locator inset giving away the answer. The broad, quiet corridor is the strongest clue. Follow its bends, then look at how the smaller valleys meet it. Each line joins locations at the same elevation. Closely spaced contours indicate steeper ground; wider gaps indicate gentler slopes.
 
 The final crop is a 24 km square. A wider view gave the surrounding hills more space but weakened the central shape. A tighter crop made the river too obvious. This middle framing leaves enough structure to recognize the place without immediately naming it.
 
@@ -51,9 +52,13 @@ The terrain is processed over a 40 km square, leaving an 8 km margin on each sid
 
 The [complete R source](render-map.R) includes acquisition, input checks, terrain processing, exports, and provenance. The post reuses the verified map export. If that image is absent, the chunk above builds it from cached raw inputs. Run the source script explicitly to force a terrain rebuild. Downloads are a separate preparation step, so rendering does not depend on a live data request.
 
-## Reveal and data provenance
+## The reveal
 
-The location is **Cincinnati and Northern Kentucky**, around the Ohio River valley. Elevation comes from the public-domain [USGS 3DEP one-third arc-second DEM collection](https://data.usgs.gov/datacatalog/data/USGS%3A3a81321b-c153-416f-98b7-cc8e5f0e17c3). The original tiles were retrieved on November 2, 2026:
+The location is **Cincinnati and Northern Kentucky**, around the Ohio River valley.
+
+## Data & provenance
+
+Elevation comes from the public-domain [USGS 3DEP one-third arc-second DEM collection](https://data.usgs.gov/datacatalog/data/USGS%3A3a81321b-c153-416f-98b7-cc8e5f0e17c3). The original tiles were retrieved on November 2, 2026:
 
 - [USGS_13_n40w085.tif](https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/current/n40w085/USGS_13_n40w085.tif)
 - [USGS_13_n39w085.tif](https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/current/n39w085/USGS_13_n39w085.tif)
