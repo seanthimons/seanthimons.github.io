@@ -261,13 +261,14 @@ draw_day05 <- function(data, cfg = day05_config()) {
   overlook_label <- c(devou = "Devou", eden = "Eden Park", mount_echo = "Mount Echo")
 
   # --- plan view
-  graphics::par(fig = c(0, 1, 0.56, 1), mar = c(0.5, 1.2, 3.6, 1.2))
+  graphics::par(fig = c(0, 1, 0.575, 0.93), mar = c(0.5, 1.2, 0.3, 1.2))
   slope <- terra::terrain(data$terrain, "slope", unit = "radians")
   aspect <- terra::terrain(data$terrain, "aspect", unit = "radians")
   shade <- terra::shade(slope, aspect, angle = 40, direction = 315)
   e <- as.vector(data$frame)
   graphics::plot.new()
   graphics::plot.window(e[1:2], e[3:4], asp = 1, xaxs = "i", yaxs = "i")
+  left <- graphics::grconvertX(e[1], "user", "ndc") # header and footer align with the map edge
   terra::plot(shade, col = grDevices::colorRampPalette(cfg$relief)(64), legend = FALSE, axes = FALSE,
               add = TRUE, maxcell = 5e6)
   terra::plot(terra::classify(data$river, cbind(0, NA)), col = cfg$river, legend = FALSE, axes = FALSE,
@@ -289,16 +290,13 @@ draw_day05 <- function(data, cfg = day05_config()) {
                    bg = cfg$colors[over], col = cfg$background)
   graphics::text(data$oxy[, 1], data$oxy[, 2], overlook_label[over], pos = c(1, 3, 1), offset = 0.8,
                  col = cfg$colors[over], cex = 0.85, font = 2)
-  graphics::mtext("Who can see what", side = 3, line = 2, adj = 0, cex = 1.35, font = 2, col = cfg$ink)
-  graphics::mtext(sprintf("Sightlines from a %.1f m eye to the top of each landmark, over buildings and trees. Solid: top in view. Dotted: hidden; x marks the main obstruction.", cfg$eye_m),
-                  side = 3, line = 0.6, adj = 0, cex = 0.62, col = cfg$muted)
   sx <- e[1] + 400
   sy <- e[3] + 350
   graphics::segments(sx, sy, sx + 1000, sy, col = cfg$ink, lwd = 2)
   graphics::text(sx + 500, sy, "1 km", pos = 3, cex = 0.65, col = cfg$ink)
 
   # --- matrix: metres of each landmark's top in view
-  graphics::par(fig = c(0, 1, 0.43, 0.555), new = TRUE, mar = c(0.3, 7.5, 1.6, 1.2))
+  graphics::par(fig = c(0, 1, 0.435, 0.56), new = TRUE, mar = c(0.3, 7.5, 1.6, 1.2))
   graphics::plot.new()
   graphics::plot.window(c(0.5, length(marks) + 0.5), c(length(over) + 0.5, 0.5), xaxs = "i", yaxs = "i")
   for (i in seq_along(over)) {
@@ -351,14 +349,26 @@ draw_day05 <- function(data, cfg = day05_config()) {
     graphics::mtext(sprintf("%s to %s: %s", overlook_label[[k[1]]], short[[k[2]]], status),
                     side = 3, line = 0.1, adj = 0, cex = 0.66, col = col, font = 2)
   }
-  graphics::par(fig = c(0, 1, 0, 0.04), new = TRUE, mar = rep(0, 4))
+  # --- header, section labels and footer in the house style of the earlier days (page coordinates)
+  graphics::par(fig = c(0, 1, 0, 1), new = TRUE, mar = rep(0, 4))
   graphics::plot.new()
-  graphics::text(0.012, 0.72, adj = 0, cex = 0.55, col = cfg$muted, labels = sprintf(
-    "Profiles: distance from overlook (km), elevation (m), vertical exaggeration %dx. Pale: lidar surface; dark: bare earth.",
+  graphics::plot.window(c(0, 1), c(0, 1), xaxs = "i", yaxs = "i")
+  graphics::text(left, 0.989, "05 / SENSES: SIGHT     \u2022     CINCINNATI AND COVINGTON", adj = 0, cex = 0.8, col = cfg$muted)
+  graphics::text(left, 0.9705, "Who can see what?", adj = 0, cex = 1.6, font = 2, col = cfg$ink)
+  graphics::text(left, 0.952, "3 overlooks \u00d7 5 landmarks  /  USGS lidar surface: buildings and trees", adj = 0, cex = 0.82,
+                 col = cfg$ink)
+  graphics::text(left, 0.9375, adj = 0, cex = 0.62, col = cfg$muted, labels = sprintf(
+    "Sightlines from a %.1f m eye to the top of each landmark. Solid: top in view. Dotted: hidden; x marks the main obstruction.",
+    cfg$eye_m
+  ))
+  graphics::text(left, 0.568, "METRES OF EACH LANDMARK'S TOP IN VIEW", adj = 0, cex = 0.68, col = cfg$muted)
+  graphics::text(left, 0.424, "THREE SIGHTLINES IN PROFILE", adj = 0, cex = 0.68, col = cfg$muted)
+  graphics::text(left, 0.024, adj = 0, cex = 0.6, col = cfg$muted, labels = sprintf(
+    "Profiles: distance from overlook (km), elevation (m), vertical exaggeration %dx  /  Pale: lidar surface; dark: bare earth",
     cfg$exaggeration
   ))
-  graphics::text(0.012, 0.25, adj = 0, cex = 0.55, col = cfg$muted, labels =
-    "Lidar and terrain: USGS 3DEP (public domain). Overlooks and outlines: © OpenStreetMap contributors, ODbL. NAD83 / UTM 16N.")
+  graphics::text(left, 0.009, adj = 0, cex = 0.6, col = cfg$muted, labels =
+    "USGS 3DEP lidar + DEM  /  \u00a9 OpenStreetMap contributors (ODbL)  /  NAD83 UTM 16N  /  Sean Thimons  /  #30DayMapChallenge")
 }
 
 render_day05 <- function(cache_dir = day05_config()$cache_dir,
@@ -370,10 +380,11 @@ render_day05 <- function(cache_dir = day05_config()$cache_dir,
     on.exit(grDevices::dev.off())
     draw_day05(data)
   }
-  save_plot(function() grDevices::png(file.path(output_dir, "day05-who-sees-what.png"),
-                                      width = 2400, height = 3900, res = 300, bg = day05_config()$background))
-  save_plot(function() grDevices::pdf(file.path(output_dir, "day05-who-sees-what.pdf"),
-                                      width = 8, height = 13, bg = day05_config()$background, timestamp = FALSE))
+  # Cairo devices, as on Days 01, 03 and 04, keep the bullet and multiplication glyphs.
+  save_plot(function() grDevices::png(file.path(output_dir, "day05-who-sees-what.png"), width = 2400, height = 3900,
+                                      res = 300, bg = day05_config()$background, type = "cairo"))
+  save_plot(function() grDevices::cairo_pdf(file.path(output_dir, "day05-who-sees-what.pdf"), width = 8, height = 13,
+                                            bg = day05_config()$background))
   utils::write.csv(data$matrix, file.path(output_dir, "sightline-matrix.csv"), row.names = FALSE, na = "")
   message("Day 05 rendered: ", normalizePath(output_dir))
   invisible(data)
