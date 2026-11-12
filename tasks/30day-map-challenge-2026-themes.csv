@@ -6,7 +6,7 @@ day,theme,package_lane,data_idea,fallback
 5,Senses: Sight,lidar-intervisibility,Who sees what: Devou - Eden Park - Mount Echo overlooks to five landmarks over the USGS 3DEP lidar surface (rlas + terra; OSM),Bare-earth line of sight to the same landmarks
 6,Vintage,historical-raster,Pre-Prohibition breweries across Cincinnati Covington and Newport over two 1914 USGS sheets (terra),Map only supported site proxies; list unresolved historical addresses explicitly
 7,10 minute map,to-scope,TBD in morning scope,TBD after scope
-8,Utopia,to-scope,TBD in morning scope,TBD after scope
+8,Utopia,watershed-assessment,Ohio 2024 ATTAINS aquatic-life watershed status with a full-support goal; Freshwater Explorer named-stream context,Preserve reporting-unit geography and distinguish unresolved assessments; never classify reaches from modelled conductivity
 9,Urban-rural,to-scope,TBD in morning scope,TBD after scope
 10,Prompting only,to-scope,TBD in morning scope,TBD after scope
 11,Senses: Sound,to-scope,TBD in morning scope,TBD after scope
