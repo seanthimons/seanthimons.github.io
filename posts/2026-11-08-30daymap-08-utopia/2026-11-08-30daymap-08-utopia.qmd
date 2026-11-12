@@ -1,0 +1,69 @@
+---
+title: "30 Day Map Challenge — Day 08: Utopia"
+author: "Sean Thimons"
+date: "2026-11-08"
+description: "Ohio's reported aquatic-life attainment and the distance to a full-support goal, with the assessment geography kept visible."
+categories: [cartography, R, 30DayMapChallenge, water-quality]
+image: artifacts/day08-room-for-life.png
+draft: false
+execute:
+  freeze: true
+---
+
+```{r}
+#| label: prepare-utopia
+#| include: false
+#| message: false
+#| warning: false
+local({
+  old <- setwd("../..")
+  on.exit(setwd(old))
+  source("posts/2026-11-08-30daymap-08-utopia/render-map.R")
+  if (!file.exists(file.path(day08_root, "artifacts/day08-room-for-life.png"))) render_day08()
+})
+```
+
+```{r}
+#| label: utopia-map
+#| echo: false
+#| fig-width: 10
+#| fig-height: 13
+#| dpi: 300
+#| dev: png
+#| dev.args: !expr list(type = "cairo")
+#| fig-alt: "One large map of Ohio shows 2024 watershed-level aquatic-life support. Green marks 513 units where every reported aquatic-life use is fully supporting, muted red marks 923 with at least one use not supporting, and grey marks 102 with unassessed uses or insufficient information. Pale named-stream lines provide context. The headline is 33.4 percent fully supporting out of 1,538 included watershed units. The subtitle states the Utopian goal of every watershed supporting its aquatic-life uses. Colours describe reporting units rather than individual river reaches."
+graphics::par(mar = rep(0, 4))
+graphics::plot.new()
+graphics::plot.window(c(0, 1), c(0, 1), xaxs = "i", yaxs = "i")
+graphics::rasterImage(png::readPNG("artifacts/day08-room-for-life.png"), 0, 0, 1, 1, interpolate = FALSE)
+```
+
+## What would full support look like?
+
+For Day 8's Utopia theme, I wanted an environmental target with a measurable gap. Across Ohio's 1,538 watershed assessment units in this comparison, 513 fully support every reported aquatic-life use. Another 923 have at least one aquatic-life use marked “Not Supporting.” The remaining 102 have unassessed uses or insufficient information to establish full support. That puts 33.4% of the included units in the fully supporting group.
+
+The map shows those reported results. The Utopian goal sits above it in one line: every watershed supports its aquatic-life uses. Robert Berry's Day 8 map of Welsh rivers, shared with me as a reference, prompted this approach. Ohio's reporting geography requires a different treatment: the colours belong to watershed units, with streams drawn over them for context.
+
+## Method
+
+EPA ATTAINS supplies the assessment decisions. I selected Ohio's organization `21OHIO` and the **2024 reporting cycle with EPA Final Action**. The 2026 report was available at the state-submittal stage when I retrieved the data; I used the completed 2024 cycle for this comparison.
+
+Each unit can have several designated aquatic-life uses, including warmwater, coldwater, exceptional warmwater and modified habitats. A unit is green only when every reported aquatic-life use has code `F`, fully supporting. Any `N`, not supporting, puts the unit in the unmet group, even if another use supports its target or remains unassessed. Units without a known failure but with `I`, insufficient information, or `X`, not assessed, remain unresolved. The [use-level reduction](aquatic-uses.csv) preserves those distinctions.
+
+The denominator is all 1,538 included watershed units, including the unresolved group. It is a count of units, not a percentage of river length, Ohio's land area, monitoring sites, or all water bodies. I excluded 55 river and seven Great Lakes open-water assessment units from the report because combining those with watershed polygons would mix reporting scales.
+
+Every watershed record has an authoritative HUC12 identifier in ATTAINS. I joined that identifier to USGS watershed geometry, clipped the polygons to Ohio, and mapped the reported status in NAD83 / Conus Albers. Boundaries are simplified for display; the assessment counts come from identifiers, not polygon area.
+
+## Data & provenance
+
+Sources were retrieved November 11–12, 2026. [ATTAINS](https://www.epa.gov/waterdata/get-data-access-public-attains-data) records a reporting cycle, not simultaneous measurements of every stream in that year. The saved use records retain monitoring dates where reported. Some underlying observations are substantially older than 2024.
+
+[Freshwater Explorer](https://www.epa.gov/water-research/freshwater-explorer) contributes named-stream geometry through its predicted-background-conductivity layer. The conductivity predictions are not used as measurements, impairment criteria, or evidence of aquatic-life attainment. The [watershed geometry](https://hydro.nationalmap.gov/arcgis/rest/services/wbd/MapServer) comes from USGS WBD; the state outline comes from [Census TIGERweb](https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer). These federal datasets are publicly available; source metadata and limitations still govern their interpretation.
+
+The [acquisition script](acquire-data.R) is the explicit network step. ATTAINS credentials stay in an environment variable and HTTP header. A full named-reach ID inventory checks download completeness. The [source snapshot](source-snapshot.json) records query URLs and SHA-256 values. The [renderer](render-map.R) reads the committed [GeoPackage](ohio-map.gpkg) and [assessment table](assessments.csv) offline.
+
+## What I learned
+
+“Fully supporting” is use-specific. It does not mean pristine, safe to drink, safe to swim in, or free of every contaminant. Equally, a watershed result cannot classify each stream reach inside it. Keeping the reporting boundaries visible makes the aspiration more precise: every included unit supports all its reported aquatic-life uses, with the unresolved evidence gap acknowledged alongside the reported results.
+
+**Alt text:** A single Ohio map of watershed assessment units coloured by reported aquatic-life support, with named streams shown as neutral geographic context and a short full-support goal above.
