@@ -1,0 +1,2731 @@
+{
+  "sources": [
+    {
+      "file": "tri-1987-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1987_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:21 UTC",
+      "bytes": 1036262,
+      "sha256": "647fb05251bad5051472650313bd17db49db474392ca0313d9078c7df17a5209"
+    },
+    {
+      "file": "tri-1988-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1988_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:23 UTC",
+      "bytes": 1187477,
+      "sha256": "da2c435ac14781aa59c0407b08d9e98bc21af5746ba18a9768a7954f94a4671c"
+    },
+    {
+      "file": "tri-1989-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1989_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:26 UTC",
+      "bytes": 1225577,
+      "sha256": "ab69668e13ade14b29d07f2950788a1cfd8dc0e3d0b82b91be280a8bc17f8d3e"
+    },
+    {
+      "file": "tri-1990-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1990_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:28 UTC",
+      "bytes": 1278212,
+      "sha256": "91cc7ac5aedd77ea10f294ab714e2abd18e240334e75ca8684e55a448921d1cf"
+    },
+    {
+      "file": "tri-1991-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1991_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:31 UTC",
+      "bytes": 1315946,
+      "sha256": "8ffebf6faf98003cc8fa8dd4a331489c1ee0472638f93510b01d03eb94ba25ad"
+    },
+    {
+      "file": "tri-1992-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1992_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:34 UTC",
+      "bytes": 1260240,
+      "sha256": "e72442b185ec10c67c44814e11e5ea97de7b4d688663d79d6a5872fb643182fe"
+    },
+    {
+      "file": "tri-1993-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1993_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:37 UTC",
+      "bytes": 1226017,
+      "sha256": "e2965994ebae9b34b4df6a98c7aa8d76e171fff23b618049442c5a4a336faf06"
+    },
+    {
+      "file": "tri-1994-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1994_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:40 UTC",
+      "bytes": 1124081,
+      "sha256": "0f5eae05ca95717e38b06daf82c98df9696263ee551ba4985240a1815782b82d"
+    },
+    {
+      "file": "tri-1995-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1995_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:42 UTC",
+      "bytes": 1103917,
+      "sha256": "f9530ab1c510669138606f5e25531243b2a7ceb5d08e9f70e5f30baba490d138"
+    },
+    {
+      "file": "tri-1996-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1996_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:46 UTC",
+      "bytes": 1031141,
+      "sha256": "0451a223fdebd19fb74506a2a8ebf65932e8da3977adb1373930ba718a380766"
+    },
+    {
+      "file": "tri-1997-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1997_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:50 UTC",
+      "bytes": 1039819,
+      "sha256": "729bff505b5f9833f099298a2fbc505dd6fcdfd216c91321d47d23627e48df01"
+    },
+    {
+      "file": "tri-1998-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1998_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:53 UTC",
+      "bytes": 1178947,
+      "sha256": "8652a454110d85f546b79b142f7e877ffcdd8fde1be2b02a878e29d5b5cde449"
+    },
+    {
+      "file": "tri-1999-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1999_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:55 UTC",
+      "bytes": 1112464,
+      "sha256": "c9b2ffc8eff8ac92108952ffac1ec4df0f2f541f1c3fe596f70a66892a24931b"
+    },
+    {
+      "file": "tri-2000-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2000_MN/csv",
+      "retrieved_utc": "2026-11-17 21:41:58 UTC",
+      "bytes": 1181492,
+      "sha256": "6d83ae781380b2f99bbed859141d1f9efd384c82d2bbfa892f947ca274c6251b"
+    },
+    {
+      "file": "tri-2001-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2001_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:01 UTC",
+      "bytes": 1288051,
+      "sha256": "b144fbcb635b069a58e389cfc622685ce31dc6104a55e9119fe99aed53e9025d"
+    },
+    {
+      "file": "tri-2002-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2002_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:06 UTC",
+      "bytes": 1244772,
+      "sha256": "1038992e151210601015a7ee3f213c14f2d0bac3644dd7511bbc92a80f12224d"
+    },
+    {
+      "file": "tri-2003-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2003_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:09 UTC",
+      "bytes": 1215660,
+      "sha256": "b085831f44cc54c3b072204aedc0f0e601f8ea53a879b0002b1800d9560b8938"
+    },
+    {
+      "file": "tri-2004-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2004_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:13 UTC",
+      "bytes": 1177724,
+      "sha256": "97902f56710b8b4fb5d689ca918f94cb029b53fa5b8fd48f687565412e3ff907"
+    },
+    {
+      "file": "tri-2005-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2005_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:16 UTC",
+      "bytes": 1212177,
+      "sha256": "30f40f137d814aafda095de283855daba7f0ede6dd69b11987c56aaa6a489eb1"
+    },
+    {
+      "file": "tri-2006-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2006_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:19 UTC",
+      "bytes": 1216357,
+      "sha256": "8a289aa417f677b719ee6ee005e6893ea2ae17da10774ba540d88ea521747e8e"
+    },
+    {
+      "file": "tri-2007-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2007_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:24 UTC",
+      "bytes": 1258074,
+      "sha256": "e758b8ef84cd475e57e53e0ef1dd105ec31451056fce29911d47b1c8ca52b37c"
+    },
+    {
+      "file": "tri-2008-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2008_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:28 UTC",
+      "bytes": 1236342,
+      "sha256": "4c49a5c1002bb6c3ac101b01a2294d2bccfaa90f3fa25c51de85410c9647d0eb"
+    },
+    {
+      "file": "tri-2009-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2009_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:30 UTC",
+      "bytes": 1152345,
+      "sha256": "f40455885553dbae2cdde2a5d78b85f74e24bac1765cac20aee2394bfa6e8cdc"
+    },
+    {
+      "file": "tri-2010-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2010_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:34 UTC",
+      "bytes": 1200756,
+      "sha256": "e1679db792ad83398dfd82e20dd2ae98cb2ff3c5deec44607385cae29e1a3119"
+    },
+    {
+      "file": "tri-2011-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2011_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:39 UTC",
+      "bytes": 1218060,
+      "sha256": "8515893fa6e5241ebe196f99231d6aef35ecef78483421ab95487e6fcefaa0ab"
+    },
+    {
+      "file": "tri-2012-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2012_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:42 UTC",
+      "bytes": 1197762,
+      "sha256": "f861d68cd77e4073dfd1a1d5826626c5d4e70c47fdc520aad2691f7510c7c783"
+    },
+    {
+      "file": "tri-2013-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2013_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:46 UTC",
+      "bytes": 1190328,
+      "sha256": "5477c87fb69ceece8ba918d7c932f6beaffb3a224e166c4666661302031df99a"
+    },
+    {
+      "file": "tri-2014-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2014_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:50 UTC",
+      "bytes": 1243957,
+      "sha256": "e4b5af31ea85905c9c8e92f25b1164deb7a627a9de7232f5582fa36c4b83412d"
+    },
+    {
+      "file": "tri-2015-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2015_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:53 UTC",
+      "bytes": 1209442,
+      "sha256": "f32364dbc95a5035a714dc16ca521b760d35418be6b2bc7956e82f65f8fb9712"
+    },
+    {
+      "file": "tri-2016-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2016_MN/csv",
+      "retrieved_utc": "2026-11-17 21:42:57 UTC",
+      "bytes": 1216288,
+      "sha256": "35bc969e57849fecee49be3b761793486b2972c412990198a5c35b58286b180e"
+    },
+    {
+      "file": "tri-2017-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2017_MN/csv",
+      "retrieved_utc": "2026-11-17 21:43:00 UTC",
+      "bytes": 1202323,
+      "sha256": "5939087b0a3ff4b68b88855841ba9f8bcf64c510da80c15147d5acbad2d3b8fa"
+    },
+    {
+      "file": "tri-2018-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2018_MN/csv",
+      "retrieved_utc": "2026-11-17 21:43:03 UTC",
+      "bytes": 1202243,
+      "sha256": "fb03961f0d0521abbcf4e466cd51365dacc2fc0582403226c50667d9424da7c6"
+    },
+    {
+      "file": "tri-2019-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2019_MN/csv",
+      "retrieved_utc": "2026-11-17 21:43:06 UTC",
+      "bytes": 1169529,
+      "sha256": "f88fc5b8b15a8cac225f8a0c0bdd908e9cecc6295e2abafbfc0426b9cac20735"
+    },
+    {
+      "file": "tri-2020-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2020_MN/csv",
+      "retrieved_utc": "2026-11-17 21:43:09 UTC",
+      "bytes": 1158459,
+      "sha256": "9210f2bc20c1463407d6f89b3d08384ca99ade4bc2adbdb387d292dda4252347"
+    },
+    {
+      "file": "tri-2021-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2021_MN/csv",
+      "retrieved_utc": "2026-11-17 21:43:14 UTC",
+      "bytes": 1161279,
+      "sha256": "11a9f005642d6148401bf50605228f3a9c8de355ec55d7f7ce3ef2bc35296558"
+    },
+    {
+      "file": "tri-2022-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2022_MN/csv",
+      "retrieved_utc": "2026-11-17 21:43:16 UTC",
+      "bytes": 1154023,
+      "sha256": "af68768245a767d490178434ae579b755a4e363dd98ee9e3bf984cd940db6abb"
+    },
+    {
+      "file": "tri-2023-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2023_MN/csv",
+      "retrieved_utc": "2026-11-17 21:43:20 UTC",
+      "bytes": 1150881,
+      "sha256": "1f64c974462090d6ec171c2e737cbf6155d23ad0314c1679468ace15e4272df9"
+    },
+    {
+      "file": "tri-2024-MN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_MN/csv",
+      "retrieved_utc": "2026-11-17 21:43:22 UTC",
+      "bytes": 1098819,
+      "sha256": "63bf39a2125fea4ab0ed6208adf7135bc97d916134719e664421bde74332de6c"
+    },
+    {
+      "file": "tri-1987-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1987_WI/csv",
+      "retrieved_utc": "2026-11-17 21:43:25 UTC",
+      "bytes": 1971156,
+      "sha256": "3c2a0e47581a423d3f164756a556d066750e6683612bfc8ae0cb117ebfc19422"
+    },
+    {
+      "file": "tri-1988-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1988_WI/csv",
+      "retrieved_utc": "2026-11-17 21:43:30 UTC",
+      "bytes": 2204069,
+      "sha256": "cd30c868b6416fd1a040d244158297bcc4416d961d4235eaea6fafbf250915f9"
+    },
+    {
+      "file": "tri-1989-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1989_WI/csv",
+      "retrieved_utc": "2026-11-17 21:43:34 UTC",
+      "bytes": 2160403,
+      "sha256": "b0d28aed332b9a0cb1ed1206f850364a3d3deb8bc5effb12263a863146f2ae29"
+    },
+    {
+      "file": "tri-1990-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1990_WI/csv",
+      "retrieved_utc": "2026-11-17 21:43:38 UTC",
+      "bytes": 2237594,
+      "sha256": "39884dc611f784ad03425dffe5e398603faef00b71603771c884b68911e90345"
+    },
+    {
+      "file": "tri-1991-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1991_WI/csv",
+      "retrieved_utc": "2026-11-17 21:43:40 UTC",
+      "bytes": 2300347,
+      "sha256": "9782a25aa331741bbc776f3349e61434c7248034ef1081481bdc6c9343058d6b"
+    },
+    {
+      "file": "tri-1992-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1992_WI/csv",
+      "retrieved_utc": "2026-11-17 21:43:44 UTC",
+      "bytes": 2268854,
+      "sha256": "90fd9ce9d4dc4f37ff39e311eee2802d7e63afd508784412f2bafcc11d6a9327"
+    },
+    {
+      "file": "tri-1993-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1993_WI/csv",
+      "retrieved_utc": "2026-11-17 21:43:48 UTC",
+      "bytes": 2256539,
+      "sha256": "4ff52f7e8255efc3cb777103ab51117c4687706eed0d3b322ac47daf3bed7ebd"
+    },
+    {
+      "file": "tri-1994-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1994_WI/csv",
+      "retrieved_utc": "2026-11-17 21:43:52 UTC",
+      "bytes": 2135185,
+      "sha256": "fe883c11b084c390bfe18341ec97447dff054e73bdebdcfe780fe32e2d853025"
+    },
+    {
+      "file": "tri-1995-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1995_WI/csv",
+      "retrieved_utc": "2026-11-17 21:43:55 UTC",
+      "bytes": 2147287,
+      "sha256": "af4b6e14c450c13b8556260528b43a2d9deb0ed0cf6c26860c729813ec8671a5"
+    },
+    {
+      "file": "tri-1996-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1996_WI/csv",
+      "retrieved_utc": "2026-11-17 21:43:59 UTC",
+      "bytes": 2097464,
+      "sha256": "0f253f4ea977ddc2120243dead16cc9bbfd98f38478c66d564854ac8acc93b3b"
+    },
+    {
+      "file": "tri-1997-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1997_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:03 UTC",
+      "bytes": 2135525,
+      "sha256": "f8bef550062b0b4728ad2197a3135f767d907f4d8d6e8d9a4c172b8daf662912"
+    },
+    {
+      "file": "tri-1998-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1998_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:08 UTC",
+      "bytes": 2290028,
+      "sha256": "99ae77c59c1fbeee2d08c115a5048c07a3a073295c0c81420859c6b216862f32"
+    },
+    {
+      "file": "tri-1999-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1999_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:12 UTC",
+      "bytes": 2131401,
+      "sha256": "601e083caea0256af8bf4e858ce4ebda77d57d73454fd9514d1fdeca59d54578"
+    },
+    {
+      "file": "tri-2000-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2000_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:16 UTC",
+      "bytes": 2268038,
+      "sha256": "06f5870bc86ae2cf37d1877316185638513d8175f6f0aa2f00ab1441032858e4"
+    },
+    {
+      "file": "tri-2001-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2001_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:19 UTC",
+      "bytes": 2427717,
+      "sha256": "7465f138c8274fa1c60dd3d394c4f645f7b655712eb5884b022ef45185d64fa3"
+    },
+    {
+      "file": "tri-2002-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2002_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:23 UTC",
+      "bytes": 2396328,
+      "sha256": "dbb37927f4f8ad9512d1de2f681e80d518f790f69b8aec7f58f1d15fdd1e1ec1"
+    },
+    {
+      "file": "tri-2003-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2003_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:28 UTC",
+      "bytes": 2348807,
+      "sha256": "1afdec396df8ee9a4c479ca48b87357e3e0e28cd677fa204351798c18a4c8f30"
+    },
+    {
+      "file": "tri-2004-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2004_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:32 UTC",
+      "bytes": 2306394,
+      "sha256": "87f636e28b7910916ca8d2fda1920bb1128dc9abd792ff90874f6f80b49747ba"
+    },
+    {
+      "file": "tri-2005-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2005_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:37 UTC",
+      "bytes": 2387812,
+      "sha256": "c16a8c103d351e0159ec3b893149684283efa2d2e0ea20aab340470bbe7215d6"
+    },
+    {
+      "file": "tri-2006-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2006_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:42 UTC",
+      "bytes": 2419486,
+      "sha256": "7741fc1c6ef1319d9e217aa4e1875934439728e7054490b2dba48d9a7a754a0d"
+    },
+    {
+      "file": "tri-2007-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2007_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:46 UTC",
+      "bytes": 2371175,
+      "sha256": "6568084a53f542941dae575b1f8471ab7a25296718a332dc1e47c0fb515c8176"
+    },
+    {
+      "file": "tri-2008-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2008_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:48 UTC",
+      "bytes": 2329805,
+      "sha256": "604fb8f8d9cf5865098a577d86515941a4b2999065e015ef8b2fe82567a26c43"
+    },
+    {
+      "file": "tri-2009-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2009_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:53 UTC",
+      "bytes": 2154679,
+      "sha256": "47e5af243d5af47d54e91e10ba2c1fc01a04593c44fc102e6c9fa01463aa649e"
+    },
+    {
+      "file": "tri-2010-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2010_WI/csv",
+      "retrieved_utc": "2026-11-17 21:44:56 UTC",
+      "bytes": 2235674,
+      "sha256": "cc3e23cf4508cf664ebad691b5cfbe04647a7276c1b99d95ba137138803931d9"
+    },
+    {
+      "file": "tri-2011-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2011_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:01 UTC",
+      "bytes": 2259586,
+      "sha256": "fb288de5f7edd3600733986d7e485e15a56fbab8b6752f0e9be30969ad99edfe"
+    },
+    {
+      "file": "tri-2012-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2012_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:04 UTC",
+      "bytes": 2226914,
+      "sha256": "eb9a4556b29e65438c16cbac2b636d99342b04073e83382f71018e0a0a37e69f"
+    },
+    {
+      "file": "tri-2013-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2013_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:08 UTC",
+      "bytes": 2236957,
+      "sha256": "6472ae316fae312961226d0d31a9d58b3199113564afbe3970416555181aefe6"
+    },
+    {
+      "file": "tri-2014-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2014_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:20 UTC",
+      "bytes": 2282252,
+      "sha256": "461a2e28bc82f1ecd6c959fb5c17bc90cf210c272e5049f673c422a68117c2e4"
+    },
+    {
+      "file": "tri-2015-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2015_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:24 UTC",
+      "bytes": 2226062,
+      "sha256": "67a61acb7ceb9d3de97ebe033de053f154044c82af31b959b5062df027df69b5"
+    },
+    {
+      "file": "tri-2016-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2016_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:28 UTC",
+      "bytes": 2201100,
+      "sha256": "5e49bf3ea54dbf32238151155093989951bddb5a1b911f7b293b29ddca12175b"
+    },
+    {
+      "file": "tri-2017-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2017_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:32 UTC",
+      "bytes": 2232872,
+      "sha256": "2aaaf66c760a5be5d08848c0f00d5b3b6e733bc57a679b96e2ade876e684704c"
+    },
+    {
+      "file": "tri-2018-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2018_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:36 UTC",
+      "bytes": 2225050,
+      "sha256": "6541f80684732d017fb70ff9a17c0ab1488e73c2bbffc5750c1775316b36588e"
+    },
+    {
+      "file": "tri-2019-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2019_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:40 UTC",
+      "bytes": 2199513,
+      "sha256": "0805ee37d4687e5ed00801fc360ac9cbbf7156f7b605bab34a2035c4fdb7fcce"
+    },
+    {
+      "file": "tri-2020-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2020_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:44 UTC",
+      "bytes": 2140672,
+      "sha256": "295e0631b37ad17bec470b9518ec6b7e0de8325869a42466f74ec02031f66f5c"
+    },
+    {
+      "file": "tri-2021-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2021_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:49 UTC",
+      "bytes": 2130034,
+      "sha256": "6a3f7ba84339d9dd7351b2fb7c332bc46a819ddeb0c05bb6552d979b4664037d"
+    },
+    {
+      "file": "tri-2022-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2022_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:52 UTC",
+      "bytes": 2091473,
+      "sha256": "2883b9672ee8c4b1641075cc89bf6630fc94a72c29ccefcf8b4afd6d0291a542"
+    },
+    {
+      "file": "tri-2023-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2023_WI/csv",
+      "retrieved_utc": "2026-11-17 21:45:56 UTC",
+      "bytes": 2088987,
+      "sha256": "2d96852345d98195d0dd90f8b7add8483ff9cbf3d47ac4a6193527717f9eca53"
+    },
+    {
+      "file": "tri-2024-WI.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_WI/csv",
+      "retrieved_utc": "2026-11-17 21:46:00 UTC",
+      "bytes": 2010691,
+      "sha256": "3226417846ebebf35b92e66cdfe6f1fda7cfbe8270b657ff3e96a26b5aef2dc1"
+    },
+    {
+      "file": "tri-1987-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1987_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:03 UTC",
+      "bytes": 904171,
+      "sha256": "fbc6ee5e85214be43bcc6f1061e691302aedd743561d8b2e7cd4a59b98793082"
+    },
+    {
+      "file": "tri-1988-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1988_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:06 UTC",
+      "bytes": 1006756,
+      "sha256": "71a57435d536730012ea9eb8150552ad8356b9586721f1b123dc4644c2f5e24c"
+    },
+    {
+      "file": "tri-1989-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1989_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:09 UTC",
+      "bytes": 1004158,
+      "sha256": "27251a80812372db9c53317d5896cd02be2f3caeb21c91c847d8f8dfeed30705"
+    },
+    {
+      "file": "tri-1990-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1990_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:13 UTC",
+      "bytes": 1018455,
+      "sha256": "8bea797845870796b1e439f1bcc5290ef536fdf99f89df3e722176ff06187ba4"
+    },
+    {
+      "file": "tri-1991-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1991_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:16 UTC",
+      "bytes": 1082724,
+      "sha256": "3bf7cdd8448e93e94b44627356b722080d014625e2165474fe5592bc77c841eb"
+    },
+    {
+      "file": "tri-1992-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1992_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:19 UTC",
+      "bytes": 1056574,
+      "sha256": "c550cc8f2885ac8dff41906954a8161eba1f79a5c17acff58cd1d7c2faf12a11"
+    },
+    {
+      "file": "tri-1993-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1993_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:23 UTC",
+      "bytes": 1028368,
+      "sha256": "71c4d2a461b4902aa9f7a51ee0a32fdf027474d55db884336f3d12361c6b960b"
+    },
+    {
+      "file": "tri-1994-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1994_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:25 UTC",
+      "bytes": 981402,
+      "sha256": "d7f35b013ad6c1a324d7799655bbd6ac35ac098aba304751a494ea9a0b34bfc3"
+    },
+    {
+      "file": "tri-1995-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1995_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:28 UTC",
+      "bytes": 981599,
+      "sha256": "5286999c1f62fbe4cfeb2823aa14dd4bb93f63505e15bdf2cce688455ee03b45"
+    },
+    {
+      "file": "tri-1996-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1996_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:31 UTC",
+      "bytes": 967964,
+      "sha256": "cb36342da0548e5f4b28b75961de104fa9b5f2c2c216fb2d2d9c0d385f6877b8"
+    },
+    {
+      "file": "tri-1997-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1997_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:34 UTC",
+      "bytes": 946183,
+      "sha256": "c32823c8d9787f00784f07fa7fdea833dfa69dbe8185a3c2ae1b2406cc438553"
+    },
+    {
+      "file": "tri-1998-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1998_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:36 UTC",
+      "bytes": 1157102,
+      "sha256": "6ed5eb14a2c0197a25e6163bad5d7af2f04467e65f416a28693420650d274029"
+    },
+    {
+      "file": "tri-1999-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1999_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:40 UTC",
+      "bytes": 1074848,
+      "sha256": "aa96785dcb90b95466560524e80d2a5053822ea40b1dcbcfce5d743a47ce5d17"
+    },
+    {
+      "file": "tri-2000-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2000_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:42 UTC",
+      "bytes": 1185188,
+      "sha256": "96aa9cfd9fabb5bde12a462f56917dfd997da84c925c35dc7e1d091761338b9d"
+    },
+    {
+      "file": "tri-2001-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2001_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:47 UTC",
+      "bytes": 1244084,
+      "sha256": "a8339ea283a59f527a09b742d76b92c9b88b343bca5aa29b80e89b9aa1053922"
+    },
+    {
+      "file": "tri-2002-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2002_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:50 UTC",
+      "bytes": 1277158,
+      "sha256": "2188a98f125a054fe2b654f7de9bbde515af62e6221515e455bce15d6e26fbf7"
+    },
+    {
+      "file": "tri-2003-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2003_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:53 UTC",
+      "bytes": 1237323,
+      "sha256": "13c3442d39af7d4a9b488e864d4f1854e908afae2e4999323970eee0e2c08f33"
+    },
+    {
+      "file": "tri-2004-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2004_IA/csv",
+      "retrieved_utc": "2026-11-17 21:46:57 UTC",
+      "bytes": 1255734,
+      "sha256": "812346fb7b8c85b7579e4e716c89f3b84ebd2b912dafbfef714a175608f0f343"
+    },
+    {
+      "file": "tri-2005-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2005_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:00 UTC",
+      "bytes": 1275360,
+      "sha256": "07bc9d64c46741e1a11e710127ddc9eb92d5f6deee56c0a0fd15cd16d2b5b4cd"
+    },
+    {
+      "file": "tri-2006-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2006_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:03 UTC",
+      "bytes": 1315552,
+      "sha256": "4b01e8452a2da81af51949825e0af6017ec266c5cc41b0525ca84419762486a5"
+    },
+    {
+      "file": "tri-2007-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2007_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:10 UTC",
+      "bytes": 1306383,
+      "sha256": "904febb5664bfeff4988c0f5c98d405704bc24f03b9eacf737f2d23cbd32c5ad"
+    },
+    {
+      "file": "tri-2008-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2008_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:13 UTC",
+      "bytes": 1299392,
+      "sha256": "aa9d7a92990ac488bfbf7bdc49ff9de68c2ec557d5bf7b585c76a9a014dd5407"
+    },
+    {
+      "file": "tri-2009-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2009_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:17 UTC",
+      "bytes": 1262459,
+      "sha256": "cb08f1c66cb00ccc6b9744c8893da0353322a35a3e3f39d6cf1de427b85e3687"
+    },
+    {
+      "file": "tri-2010-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2010_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:19 UTC",
+      "bytes": 1291445,
+      "sha256": "8d234c8888dd6f0461badaccc0f77e129cb9ca4752254ac39ce02acf7e7203c4"
+    },
+    {
+      "file": "tri-2011-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2011_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:23 UTC",
+      "bytes": 1282784,
+      "sha256": "f0e6adddc71759fcad05819e2577241773a642fc84a1700c87395bdb0a873efe"
+    },
+    {
+      "file": "tri-2012-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2012_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:26 UTC",
+      "bytes": 1271993,
+      "sha256": "53ce7d3d726d41fbdfe25c63212f108dcb4ce09124f0b409262dc3406e06bf31"
+    },
+    {
+      "file": "tri-2013-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2013_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:30 UTC",
+      "bytes": 1289622,
+      "sha256": "9ea9a116c1ca77a7b0ba6ac91325de249615855a30efcdf40bb3fc5cc95c2f70"
+    },
+    {
+      "file": "tri-2014-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2014_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:34 UTC",
+      "bytes": 1384630,
+      "sha256": "5dc93e0019ae7d5ed78b06f5e68302936c3167e3342988c7de45822cca954f12"
+    },
+    {
+      "file": "tri-2015-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2015_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:37 UTC",
+      "bytes": 1370811,
+      "sha256": "df7784b07d328ca73090cd56a57baa0b6bc8468dbaa82f9349e0dc39d59c9096"
+    },
+    {
+      "file": "tri-2016-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2016_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:40 UTC",
+      "bytes": 1369974,
+      "sha256": "aeb0b75bba96c290e2ad79a68bff74869add7f1ce279ab4b852b5cb4642db7fa"
+    },
+    {
+      "file": "tri-2017-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2017_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:42 UTC",
+      "bytes": 1420270,
+      "sha256": "541752c3650c286cd86316450394a9ae7808d67c1ead1f7eb40168c7a2f99f20"
+    },
+    {
+      "file": "tri-2018-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2018_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:43 UTC",
+      "bytes": 1446374,
+      "sha256": "f1c09cf5fc7d3032daa662b15b42d80610b1b953faf65b1fc53a8ebdcf0120f5"
+    },
+    {
+      "file": "tri-2019-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2019_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:45 UTC",
+      "bytes": 1397271,
+      "sha256": "f5c67bf76d9c2e3b5eea89823e3f58a556c534b80572f4a482adb89a3735890d"
+    },
+    {
+      "file": "tri-2020-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2020_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:49 UTC",
+      "bytes": 1405911,
+      "sha256": "b2396d0f3299c3f90be0d65519cdc5d5ee0c186a6cdfa850a4d7a121662b6ee9"
+    },
+    {
+      "file": "tri-2021-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2021_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:52 UTC",
+      "bytes": 1395187,
+      "sha256": "0b3a5d25adfb67515ea9aeca0faa9318e559b83c2fc92fa1cb02654e558da158"
+    },
+    {
+      "file": "tri-2022-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2022_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:55 UTC",
+      "bytes": 1356186,
+      "sha256": "e49acb88620bceabf552c3023d7d7f9a119d140dc56c80ed55e1a20990423de0"
+    },
+    {
+      "file": "tri-2023-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2023_IA/csv",
+      "retrieved_utc": "2026-11-17 21:47:58 UTC",
+      "bytes": 1331448,
+      "sha256": "843281a49414a56578166a94c1ed22b8cc3aa364d4f7d9fc6f4bc1c00cc2968c"
+    },
+    {
+      "file": "tri-2024-IA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_IA/csv",
+      "retrieved_utc": "2026-11-17 21:48:01 UTC",
+      "bytes": 1309131,
+      "sha256": "120f4401bffbf822eb599dd8f9c6b7ec1b0a57eda971fd2c1a7da5499a6553fe"
+    },
+    {
+      "file": "tri-1987-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1987_IL/csv",
+      "retrieved_utc": "2026-11-17 19:39:39 UTC",
+      "bytes": 3528833,
+      "sha256": "b1cdbe4f6c126572712dd44f80dc1fd1f321cbce2460091570fb1dfdb7cf6a5d"
+    },
+    {
+      "file": "tri-1988-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1988_IL/csv",
+      "retrieved_utc": "2026-11-17 19:39:45 UTC",
+      "bytes": 3993945,
+      "sha256": "44d3529e9886cf657fa603231fe6c3c30a416c68fd4db950d5a1f4027157e3d0"
+    },
+    {
+      "file": "tri-1989-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1989_IL/csv",
+      "retrieved_utc": "2026-11-17 19:39:52 UTC",
+      "bytes": 4072829,
+      "sha256": "ffd7a14b3667c304ad7fe6d40347efd2019fde2ec02f38c3e8168feef69bc8d0"
+    },
+    {
+      "file": "tri-1990-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1990_IL/csv",
+      "retrieved_utc": "2026-11-17 19:40:00 UTC",
+      "bytes": 4025911,
+      "sha256": "0bbecaa050a991d93f6261a1bdf65b6c0045a14ca7ef7e5289a5aa8cf913d8f3"
+    },
+    {
+      "file": "tri-1991-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1991_IL/csv",
+      "retrieved_utc": "2026-11-17 19:40:08 UTC",
+      "bytes": 4150744,
+      "sha256": "c8d3f4ce052fbe7d5857d6fa49bb5b95dd6f70e7c16791f936f3d4e833204767"
+    },
+    {
+      "file": "tri-1992-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1992_IL/csv",
+      "retrieved_utc": "2026-11-17 19:40:17 UTC",
+      "bytes": 3995851,
+      "sha256": "28950aec87c3dd34e96f7ec1f07140a3ebac4982a77d25985f76a423aaa4c8ce"
+    },
+    {
+      "file": "tri-1993-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1993_IL/csv",
+      "retrieved_utc": "2026-11-17 19:40:23 UTC",
+      "bytes": 3938142,
+      "sha256": "2c9e5debacb8e597369965415e7d5acbbfad8d932cf26f4d82ce7290e8178216"
+    },
+    {
+      "file": "tri-1994-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1994_IL/csv",
+      "retrieved_utc": "2026-11-17 19:40:30 UTC",
+      "bytes": 3764476,
+      "sha256": "6801b6f849f56be93b253a2ff77278c835cf44378cc1e8656326158f147f2896"
+    },
+    {
+      "file": "tri-1995-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1995_IL/csv",
+      "retrieved_utc": "2026-11-17 19:40:35 UTC",
+      "bytes": 3656260,
+      "sha256": "f6d13dd9282ecb2b03da50601f1eda828a3f6eb0729ded01d71cfcb571dad496"
+    },
+    {
+      "file": "tri-1996-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1996_IL/csv",
+      "retrieved_utc": "2026-11-17 19:40:42 UTC",
+      "bytes": 3480298,
+      "sha256": "4518d46b4d0cc7f89d5ef2ead4e6864ecbbedc844c82119f2cc937637dc32154"
+    },
+    {
+      "file": "tri-1997-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1997_IL/csv",
+      "retrieved_utc": "2026-11-17 19:40:49 UTC",
+      "bytes": 3417443,
+      "sha256": "70577ae32f543b1fd630fd77a6b8da8e0b962c88a7f8f2b241fb350cbc9063a3"
+    },
+    {
+      "file": "tri-1998-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1998_IL/csv",
+      "retrieved_utc": "2026-11-17 19:40:56 UTC",
+      "bytes": 3873029,
+      "sha256": "f0808f9f39ee823c07f8049ebfc65113a05c81e33558aa51eb3c2b27223e48db"
+    },
+    {
+      "file": "tri-1999-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1999_IL/csv",
+      "retrieved_utc": "2026-11-17 19:41:01 UTC",
+      "bytes": 3862585,
+      "sha256": "10fd4a9b36c8b177922daf594e5e4167727a333dbdddb3d67474e31b81884bf6"
+    },
+    {
+      "file": "tri-2000-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2000_IL/csv",
+      "retrieved_utc": "2026-11-17 19:41:06 UTC",
+      "bytes": 3917046,
+      "sha256": "5d34bd743ad0f11d201bd8a6fd0ce947cb431e0c2867f7181cd8182209b9684c"
+    },
+    {
+      "file": "tri-2001-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2001_IL/csv",
+      "retrieved_utc": "2026-11-17 19:41:13 UTC",
+      "bytes": 4029638,
+      "sha256": "4d7cccbc89eda740a17824845ff3cd4305aa1a3b33f390f7fda4175886c75694"
+    },
+    {
+      "file": "tri-2002-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2002_IL/csv",
+      "retrieved_utc": "2026-11-17 19:41:21 UTC",
+      "bytes": 3801777,
+      "sha256": "f0a2fad59ebbe4d3396b74e130c98fcc8e90dbb9bdb3830d1b9259132f1a00c6"
+    },
+    {
+      "file": "tri-2003-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2003_IL/csv",
+      "retrieved_utc": "2026-11-17 19:41:28 UTC",
+      "bytes": 3664573,
+      "sha256": "80d30e59f3c044ec9da4532d715b7b144e35897edd5739abaf5d66dc96079a31"
+    },
+    {
+      "file": "tri-2004-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2004_IL/csv",
+      "retrieved_utc": "2026-11-17 19:41:32 UTC",
+      "bytes": 3547913,
+      "sha256": "c1dd08f303349066109cff983cfaf6bbbf76ba6c0508fc7a5e3e3e00df027398"
+    },
+    {
+      "file": "tri-2005-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2005_IL/csv",
+      "retrieved_utc": "2026-11-17 19:41:38 UTC",
+      "bytes": 3485186,
+      "sha256": "775e0e722a90750ccd8bfb234e35554cab24d0226775c48ba47c7277b1f75c60"
+    },
+    {
+      "file": "tri-2006-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2006_IL/csv",
+      "retrieved_utc": "2026-11-17 19:41:44 UTC",
+      "bytes": 3359373,
+      "sha256": "52c9bf619ae7b2dc72676d090f44f8ca630bea01f23b83f6867804e44a2a900e"
+    },
+    {
+      "file": "tri-2007-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2007_IL/csv",
+      "retrieved_utc": "2026-11-17 19:41:51 UTC",
+      "bytes": 3321538,
+      "sha256": "15a6cb4c3aa11d6436f8e788654096d76f00c431ec43f229cde75989b8c055a5"
+    },
+    {
+      "file": "tri-2008-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2008_IL/csv",
+      "retrieved_utc": "2026-11-17 19:41:55 UTC",
+      "bytes": 3245291,
+      "sha256": "671d86ebe20d622891f5cdf3f832d29f6f4375b4763189cd79645b81695bdf71"
+    },
+    {
+      "file": "tri-2009-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2009_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:00 UTC",
+      "bytes": 3029409,
+      "sha256": "4d29883cdc3e2d2443ec45c5a4940d8ee73a8cac22b8b05dd934baa1ead34d80"
+    },
+    {
+      "file": "tri-2010-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2010_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:06 UTC",
+      "bytes": 3082422,
+      "sha256": "6d528ede7fcd2d1fc0a37683839972d6ae09d4cd01da8668653b4c81df519047"
+    },
+    {
+      "file": "tri-2011-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2011_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:11 UTC",
+      "bytes": 3105886,
+      "sha256": "ec7194ada5bdd86cd94ba40968e2b9ac275b97c18a5a315ecd66d3d092354ade"
+    },
+    {
+      "file": "tri-2012-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2012_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:15 UTC",
+      "bytes": 3140289,
+      "sha256": "fa4a013a9c6326f44133511c5743fd819ba5d341a7c35402f06285dcebbf54d8"
+    },
+    {
+      "file": "tri-2013-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2013_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:20 UTC",
+      "bytes": 3157502,
+      "sha256": "4d1d60d444a5c1db47b61e5e27c5a71fc37083811d5ca9807bc35bae1cb46c76"
+    },
+    {
+      "file": "tri-2014-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2014_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:24 UTC",
+      "bytes": 3198460,
+      "sha256": "2895ecc2693691d003c12405b70649101c84b3e8d128d4c1a0bfe0fffff46a0d"
+    },
+    {
+      "file": "tri-2015-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2015_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:29 UTC",
+      "bytes": 3150767,
+      "sha256": "d20ac5e2f74422ae653112dee042032abc287878064035283f285db5d9789f0d"
+    },
+    {
+      "file": "tri-2016-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2016_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:34 UTC",
+      "bytes": 3002423,
+      "sha256": "5835e30c4b1290489ad2274213b5def905dac2649b0dc66bcd574109f2e2380e"
+    },
+    {
+      "file": "tri-2017-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2017_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:38 UTC",
+      "bytes": 3117064,
+      "sha256": "7262dda39b8cbc03935146ba65d9be8317d0edb2f5cbff689cf5a4aadfd28adb"
+    },
+    {
+      "file": "tri-2018-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2018_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:43 UTC",
+      "bytes": 3103085,
+      "sha256": "26ee16c5b2e78019cdc76d170c4643bb28c605c1a02f6f76b7a6139f56b979e3"
+    },
+    {
+      "file": "tri-2019-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2019_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:48 UTC",
+      "bytes": 3034894,
+      "sha256": "f1e1782d2daddcb6cda21435154f461d7df4bcf4581b01604c651d08012b38f9"
+    },
+    {
+      "file": "tri-2020-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2020_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:52 UTC",
+      "bytes": 2861409,
+      "sha256": "e404eeea9b650dfc4def536ebcaf3177c8e57e17f0ca7d9aafba659ad00d9924"
+    },
+    {
+      "file": "tri-2021-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2021_IL/csv",
+      "retrieved_utc": "2026-11-17 19:42:57 UTC",
+      "bytes": 2888551,
+      "sha256": "87aafc1f2a29589cf9ceac82854e87e31dfb88a88fd86df4b101ba3457e88df3"
+    },
+    {
+      "file": "tri-2022-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2022_IL/csv",
+      "retrieved_utc": "2026-11-17 19:43:01 UTC",
+      "bytes": 2846607,
+      "sha256": "ed513c1fa16bacd02df787ee19a89dfa9477f282c91260525c1b3d8d58b37c70"
+    },
+    {
+      "file": "tri-2023-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2023_IL/csv",
+      "retrieved_utc": "2026-11-17 19:43:06 UTC",
+      "bytes": 2726452,
+      "sha256": "bf8837082b31e7ca30a25b6d77b063f72740db25b8346c9aec82249c23f7a383"
+    },
+    {
+      "file": "tri-2024-IL.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_IL/csv",
+      "retrieved_utc": "2026-11-17 19:43:11 UTC",
+      "bytes": 2665480,
+      "sha256": "ea108dee92acfb4cf3bf4f74d7cf5d896d1952108b59197dd9ed1241b7ea84e0"
+    },
+    {
+      "file": "tri-1987-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1987_MO/csv",
+      "retrieved_utc": "2026-11-17 19:35:01 UTC",
+      "bytes": 1559196,
+      "sha256": "e16b5b938b0b5a45e3f361c8a25a7a5ff41d4b69a5a6a0eb97513c4e4b0a5204"
+    },
+    {
+      "file": "tri-1988-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1988_MO/csv",
+      "retrieved_utc": "2026-11-17 19:37:16 UTC",
+      "bytes": 1697954,
+      "sha256": "5b470d056b5fbdf089239f3fd26028ba76b01c4c74e115a445064fda14687524"
+    },
+    {
+      "file": "tri-1989-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1989_MO/csv",
+      "retrieved_utc": "2026-11-17 19:37:19 UTC",
+      "bytes": 1830327,
+      "sha256": "8fab1487090be62484aa59b7f7cf240715e9fc3c5e76eceaf0b3c8dbc1d784e9"
+    },
+    {
+      "file": "tri-1990-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1990_MO/csv",
+      "retrieved_utc": "2026-11-17 19:37:22 UTC",
+      "bytes": 1792617,
+      "sha256": "282f08abcafa2f64953eff2144bee75924a3298a745268cc37f6b9be3ab464ac"
+    },
+    {
+      "file": "tri-1991-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1991_MO/csv",
+      "retrieved_utc": "2026-11-17 19:37:26 UTC",
+      "bytes": 1750892,
+      "sha256": "c9f684cff7f0637d48bd6c2aecea76648f7f9fc3401c2a4fbd92cf3318e535c3"
+    },
+    {
+      "file": "tri-1992-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1992_MO/csv",
+      "retrieved_utc": "2026-11-17 19:37:29 UTC",
+      "bytes": 1629917,
+      "sha256": "2055a41103c63780f429c209f058234427a60f54a403cb9e5fcb284f3a328718"
+    },
+    {
+      "file": "tri-1993-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1993_MO/csv",
+      "retrieved_utc": "2026-11-17 19:37:34 UTC",
+      "bytes": 1587981,
+      "sha256": "8f76adad28f970425f9ec25844acbc8a8070e0b24e7b7c12355a576e9aa2e6a2"
+    },
+    {
+      "file": "tri-1994-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1994_MO/csv",
+      "retrieved_utc": "2026-11-17 19:37:38 UTC",
+      "bytes": 1504856,
+      "sha256": "163139d2627a98238971e6d9d2ce67d0af28a2d245c0c98684c0dc193d19f922"
+    },
+    {
+      "file": "tri-1995-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1995_MO/csv",
+      "retrieved_utc": "2026-11-17 19:37:41 UTC",
+      "bytes": 1522569,
+      "sha256": "12733269a7e41b832e6cf58c35856b7ffa03efee9f0e68bc341d3cd0bc89d1e4"
+    },
+    {
+      "file": "tri-1996-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1996_MO/csv",
+      "retrieved_utc": "2026-11-17 19:37:45 UTC",
+      "bytes": 1468446,
+      "sha256": "f2d37fbe506ce00c01da80dce31459430e2cff036d705e83f82f73571fd07760"
+    },
+    {
+      "file": "tri-1997-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1997_MO/csv",
+      "retrieved_utc": "2026-11-17 19:37:50 UTC",
+      "bytes": 1484585,
+      "sha256": "1a244245560e7c1e0b434b1352e0c6669ff8a2ab69b7ea3dae3ff9e09ca0b278"
+    },
+    {
+      "file": "tri-1998-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1998_MO/csv",
+      "retrieved_utc": "2026-11-17 19:37:52 UTC",
+      "bytes": 1772677,
+      "sha256": "5af30b60b9976b38177101d5392f37859ea9384ea4271a78a7c809d696ed0c8b"
+    },
+    {
+      "file": "tri-1999-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1999_MO/csv",
+      "retrieved_utc": "2026-11-17 19:37:56 UTC",
+      "bytes": 1672352,
+      "sha256": "c94508c007d5563b68bfaac6614fbd1586404f49e4e0c5772b2401c3478ee33d"
+    },
+    {
+      "file": "tri-2000-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2000_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:00 UTC",
+      "bytes": 1808987,
+      "sha256": "a00d43456ea0bdf39aa0fd7a3f8bfd35d94acdf3c6d3b7c28f34c74ff1922de6"
+    },
+    {
+      "file": "tri-2001-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2001_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:04 UTC",
+      "bytes": 1858967,
+      "sha256": "6d7890e4fc12ef243d067377280c00a51c03ab6b3aa4042a582c9bedea8e368f"
+    },
+    {
+      "file": "tri-2002-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2002_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:08 UTC",
+      "bytes": 1841793,
+      "sha256": "60f66cd922b25762c81252bcf826f018f4aa5028413f3c06b6ff3db0e689cb23"
+    },
+    {
+      "file": "tri-2003-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2003_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:13 UTC",
+      "bytes": 1827438,
+      "sha256": "4afa34b369fc43d3bd020d715cbdc8f1b2729ba60d8d55b11849402b1c5ac323"
+    },
+    {
+      "file": "tri-2004-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2004_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:17 UTC",
+      "bytes": 1737359,
+      "sha256": "98b59ea25cc262f4b65f697eede4ec6be677fe9aea99b275e93c4d5333714418"
+    },
+    {
+      "file": "tri-2005-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2005_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:21 UTC",
+      "bytes": 1715682,
+      "sha256": "cc1faeb0970d52ee0cc28435144f23ca41a94c3ec5636cee2d0d8c3ff2fc6ebe"
+    },
+    {
+      "file": "tri-2006-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2006_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:25 UTC",
+      "bytes": 1710858,
+      "sha256": "4daed9f49b58777825b79f076cde791e159f38f2ee18963c7bc1ec61b3396324"
+    },
+    {
+      "file": "tri-2007-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2007_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:29 UTC",
+      "bytes": 1660334,
+      "sha256": "6aff94022db94cf82ec350e66891af15c00517cecd1245c7d323b33e83c9bc70"
+    },
+    {
+      "file": "tri-2008-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2008_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:32 UTC",
+      "bytes": 1576990,
+      "sha256": "5c82c98a74573ee3c3321447f22ec17a524475b1e8d7d02f70f892534f2711b0"
+    },
+    {
+      "file": "tri-2009-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2009_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:36 UTC",
+      "bytes": 1491491,
+      "sha256": "c43396dff7d5d2bb0a9f397c69de383c7542c353b697b44e8bba8452b0791600"
+    },
+    {
+      "file": "tri-2010-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2010_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:40 UTC",
+      "bytes": 1470784,
+      "sha256": "5a7476ece4124d51547a79b3a78af0c0b667465b87c4989e12c15d51a98accfc"
+    },
+    {
+      "file": "tri-2011-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2011_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:44 UTC",
+      "bytes": 1505664,
+      "sha256": "ab1dc473e5e1b5edf250359a831f0dadf6691a5e34ad535118be5a70678ad9d5"
+    },
+    {
+      "file": "tri-2012-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2012_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:48 UTC",
+      "bytes": 1549134,
+      "sha256": "449a359d41c3e191a7da26386e9d80d0e0f592ee82aa2851885815646b20c351"
+    },
+    {
+      "file": "tri-2013-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2013_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:53 UTC",
+      "bytes": 1565313,
+      "sha256": "dc36b507e9e69ecf67afce04d5fcd601532e633437fe3073560fb0556ab1a68c"
+    },
+    {
+      "file": "tri-2014-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2014_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:56 UTC",
+      "bytes": 1557434,
+      "sha256": "f451a3a539e81b37d794d60d152f657c0101dc5e6ba317348c4600f473f8b6de"
+    },
+    {
+      "file": "tri-2015-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2015_MO/csv",
+      "retrieved_utc": "2026-11-17 19:38:58 UTC",
+      "bytes": 1531597,
+      "sha256": "1e3578b64dc25c597996819979aec0266f9d053ed89abcb0df4cd08f9e5e5567"
+    },
+    {
+      "file": "tri-2016-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2016_MO/csv",
+      "retrieved_utc": "2026-11-17 19:39:01 UTC",
+      "bytes": 1515379,
+      "sha256": "957485ea3659148bb876eb511404c4dd40c2167215cace9eb2d37af682d188ab"
+    },
+    {
+      "file": "tri-2017-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2017_MO/csv",
+      "retrieved_utc": "2026-11-17 19:39:07 UTC",
+      "bytes": 1510250,
+      "sha256": "1e9fe61703c17c41ae191a40255c9081cedc60fc7d8080ee4c24b82934144ef2"
+    },
+    {
+      "file": "tri-2018-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2018_MO/csv",
+      "retrieved_utc": "2026-11-17 19:39:11 UTC",
+      "bytes": 1497368,
+      "sha256": "8cbb1160ade5b7d57cc50db991ea6b5a26c176f924b4c59a6f267dedfa6d443d"
+    },
+    {
+      "file": "tri-2019-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2019_MO/csv",
+      "retrieved_utc": "2026-11-17 19:39:15 UTC",
+      "bytes": 1480147,
+      "sha256": "e68845c546a62b1b52c5b8dd17c080a96396af353aa5b3f45421de325cb8c687"
+    },
+    {
+      "file": "tri-2020-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2020_MO/csv",
+      "retrieved_utc": "2026-11-17 19:39:19 UTC",
+      "bytes": 1458135,
+      "sha256": "d3e602e072324b353cf90116903754c33f44daef550a92e7afa96b31cf595664"
+    },
+    {
+      "file": "tri-2021-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2021_MO/csv",
+      "retrieved_utc": "2026-11-17 19:39:22 UTC",
+      "bytes": 1469771,
+      "sha256": "f0879c9629580d00ec7e5230e3c3c151857b61e2760800c6d38006d0aa4096c9"
+    },
+    {
+      "file": "tri-2022-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2022_MO/csv",
+      "retrieved_utc": "2026-11-17 19:39:26 UTC",
+      "bytes": 1465276,
+      "sha256": "3770737bd44efa819059b8daff869c78e8af06d994b2585339552c78f8568af0"
+    },
+    {
+      "file": "tri-2023-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2023_MO/csv",
+      "retrieved_utc": "2026-11-17 19:39:30 UTC",
+      "bytes": 1431192,
+      "sha256": "8c33e044091d21d526223297455419954ae61343439bb802f907df463b9b4a00"
+    },
+    {
+      "file": "tri-2024-MO.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_MO/csv",
+      "retrieved_utc": "2026-11-17 19:39:33 UTC",
+      "bytes": 1395052,
+      "sha256": "ed6b3d0556f77eecdc0b3eec9b2665bc8a64aac7966f978f26adc048a4053e90"
+    },
+    {
+      "file": "tri-1987-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1987_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:04 UTC",
+      "bytes": 1134877,
+      "sha256": "e39409f210daae8abbea9bed0162f7292445397e4bfd6c4e30c7c9903215cfb2"
+    },
+    {
+      "file": "tri-1988-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1988_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:07 UTC",
+      "bytes": 1237297,
+      "sha256": "b8eb1ed74c33c13dc47ae99a94a19051311f5d82c19fc708659fc6447d2b02ba"
+    },
+    {
+      "file": "tri-1989-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1989_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:10 UTC",
+      "bytes": 1257498,
+      "sha256": "0be74a4460759ac48261613cd8fe229e94c22a11e26f6270b30fcbf15b1ed663"
+    },
+    {
+      "file": "tri-1990-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1990_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:13 UTC",
+      "bytes": 1295679,
+      "sha256": "3beed70ee7bdae706c01467c86af525a736b28c0d3efa2adfc62fa282b876367"
+    },
+    {
+      "file": "tri-1991-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1991_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:16 UTC",
+      "bytes": 1327333,
+      "sha256": "5ab33568c91bfddb79e171937bf1f8f7562a86670bfe8703da4f109c4e3ede28"
+    },
+    {
+      "file": "tri-1992-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1992_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:20 UTC",
+      "bytes": 1329502,
+      "sha256": "5080e376959673bdc10d51893928b33caad9cbdff2c6a76b2ed2c71eb8a65469"
+    },
+    {
+      "file": "tri-1993-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1993_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:22 UTC",
+      "bytes": 1361614,
+      "sha256": "33f29be9d061459d0f79a9b7fd3d41aa3133184a565cb71883cb9fe6b232b781"
+    },
+    {
+      "file": "tri-1994-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1994_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:24 UTC",
+      "bytes": 1290345,
+      "sha256": "c3f8633ecf53620d333db3be1df60e4ec409d0af933b20bb79247cbd4148a8a7"
+    },
+    {
+      "file": "tri-1995-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1995_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:29 UTC",
+      "bytes": 1256581,
+      "sha256": "fd3c9479bffe7da0e0fe166f62d512bf3963ac67eb4068c6095e69f2b969d9e5"
+    },
+    {
+      "file": "tri-1996-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1996_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:32 UTC",
+      "bytes": 1253013,
+      "sha256": "1498bf428c0381781bc7171f0004ed5c115eec7b29ba9a1c115523886b76a1ef"
+    },
+    {
+      "file": "tri-1997-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1997_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:34 UTC",
+      "bytes": 1323038,
+      "sha256": "6fb95cf1df311ae24c88a39925b5afbfe64a4d9c62105f55f923bd4710521435"
+    },
+    {
+      "file": "tri-1998-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1998_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:37 UTC",
+      "bytes": 1663023,
+      "sha256": "9e72782adeb09a2854fec2e315823d7cbb0f0bca633ee91b60fddd5512a3dd3a"
+    },
+    {
+      "file": "tri-1999-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1999_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:41 UTC",
+      "bytes": 1658629,
+      "sha256": "1473dfa93cf25ddfbbaddae062c40dd190633e11a0a59b1b85f0af1425ae0c99"
+    },
+    {
+      "file": "tri-2000-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2000_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:44 UTC",
+      "bytes": 1776109,
+      "sha256": "551c60f1888e1e62bb96a57847ae7e751de18df7282b93f0718750cfc0c155a8"
+    },
+    {
+      "file": "tri-2001-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2001_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:48 UTC",
+      "bytes": 1826063,
+      "sha256": "55decb8cf0f85ef1c43500c33c3dc5895b8779ae681340de3f9209727c484452"
+    },
+    {
+      "file": "tri-2002-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2002_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:52 UTC",
+      "bytes": 1844623,
+      "sha256": "52df8552bbfb9deed36fadf0b4a5ca1e1bc96371b4ccd21cccd5692db1790d08"
+    },
+    {
+      "file": "tri-2003-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2003_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:56 UTC",
+      "bytes": 1793389,
+      "sha256": "486b1a8cc04408ea497a31fb13f98aa0760c432cfa98f9fa60fc35f060749d37"
+    },
+    {
+      "file": "tri-2004-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2004_KY/csv",
+      "retrieved_utc": "2026-11-17 21:48:59 UTC",
+      "bytes": 1725591,
+      "sha256": "afbb79766ed204c8c924049b810b32a92c018ae45ffd66c013b8758a55d8a2a1"
+    },
+    {
+      "file": "tri-2005-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2005_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:03 UTC",
+      "bytes": 1719054,
+      "sha256": "06de920e45c51a7879b7616ebb04205f91e49dbb57bf93956f0bd1cfd804aae4"
+    },
+    {
+      "file": "tri-2006-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2006_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:07 UTC",
+      "bytes": 1693140,
+      "sha256": "6bbc76c5cc9faa24de7729f7c1b87b64ce9f9032c17232ec41ee9b3c477868c3"
+    },
+    {
+      "file": "tri-2007-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2007_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:10 UTC",
+      "bytes": 1666546,
+      "sha256": "86624fd1974e1310f1d09d4166c3d993f7bfb3cd9f0b16bd79793c9a6f850674"
+    },
+    {
+      "file": "tri-2008-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2008_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:13 UTC",
+      "bytes": 1626634,
+      "sha256": "bea859765b835fd4d5a55c6db077ef8b9f6c807128f42bae5efbdaa4adad3959"
+    },
+    {
+      "file": "tri-2009-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2009_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:16 UTC",
+      "bytes": 1564963,
+      "sha256": "7f7f34b004a68b253eb147e9ddfd059a565a98409ec67f5a8fca78470a19cf90"
+    },
+    {
+      "file": "tri-2010-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2010_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:20 UTC",
+      "bytes": 1580511,
+      "sha256": "746a1e3b0d28e70b4789f8939b85e704f3d2d96de29951ba7cd76c38bf0d1b12"
+    },
+    {
+      "file": "tri-2011-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2011_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:23 UTC",
+      "bytes": 1539770,
+      "sha256": "4056ff0e10d5fd7db6859b5b98a6c1fc254a6cf83da6547c3c64b649dbef0022"
+    },
+    {
+      "file": "tri-2012-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2012_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:27 UTC",
+      "bytes": 1576693,
+      "sha256": "9f9806e41842680acd7e71c2f592db8427e081c70fa1d5212349312a73197ff7"
+    },
+    {
+      "file": "tri-2013-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2013_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:32 UTC",
+      "bytes": 1563689,
+      "sha256": "7b757cd1973cce25034a75b9f84c157a372b38b1867d2744750eaebdcf5b365c"
+    },
+    {
+      "file": "tri-2014-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2014_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:36 UTC",
+      "bytes": 1593506,
+      "sha256": "92b203bf21ecd3d08668f383a6fa0e945b548fdd96ef97a8dda71f32dd332d37"
+    },
+    {
+      "file": "tri-2015-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2015_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:39 UTC",
+      "bytes": 1564733,
+      "sha256": "a07b9865f7d4c1a885ed8eb7329d554fd2184cf267808f78a9d6eca3787aba34"
+    },
+    {
+      "file": "tri-2016-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2016_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:43 UTC",
+      "bytes": 1540961,
+      "sha256": "a6ffcce20dc1461f1f17e30b41501e14ea9759be65c758a9eaebe81f1bebd34a"
+    },
+    {
+      "file": "tri-2017-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2017_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:45 UTC",
+      "bytes": 1535117,
+      "sha256": "8e04a62ac4f64504197ccef9fb4fd2a4e0f84e1cadc144afb27555b35d201471"
+    },
+    {
+      "file": "tri-2018-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2018_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:49 UTC",
+      "bytes": 1528098,
+      "sha256": "a788a36045df35f367daddef5d92f3940bdb7823b06c649a64267108d147fbee"
+    },
+    {
+      "file": "tri-2019-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2019_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:52 UTC",
+      "bytes": 1511112,
+      "sha256": "7df8fea2c65da5c615f273d399200b2d57a6f84380631b14c92cca8ec5fc48a5"
+    },
+    {
+      "file": "tri-2020-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2020_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:56 UTC",
+      "bytes": 1445132,
+      "sha256": "dd1eb2f6efe8294bc624e017e4a1f41326819611ef921c97b6f63896ee1c39c9"
+    },
+    {
+      "file": "tri-2021-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2021_KY/csv",
+      "retrieved_utc": "2026-11-17 21:49:59 UTC",
+      "bytes": 1402174,
+      "sha256": "1c6a1ff1483ee572aa735160e95ebfc895e454fb833654ae101ead68b2a0858e"
+    },
+    {
+      "file": "tri-2022-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2022_KY/csv",
+      "retrieved_utc": "2026-11-17 21:50:02 UTC",
+      "bytes": 1434239,
+      "sha256": "cb7471fb0436acc851d660701373335f482d91bd9ec2868210e01889a80ad19a"
+    },
+    {
+      "file": "tri-2023-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2023_KY/csv",
+      "retrieved_utc": "2026-11-17 21:50:05 UTC",
+      "bytes": 1395194,
+      "sha256": "95371ab59d0836ea62fd1fed942377ed0f499c7d1011ad2d4827502c87c0b177"
+    },
+    {
+      "file": "tri-2024-KY.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_KY/csv",
+      "retrieved_utc": "2026-11-17 21:50:08 UTC",
+      "bytes": 1397405,
+      "sha256": "1d47c00a8aac76f063f7c925d7b7e5b4f1856393ef126d9e8fd030a1bc8be409"
+    },
+    {
+      "file": "tri-1987-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1987_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:12 UTC",
+      "bytes": 1501563,
+      "sha256": "403441bdab9201eddc434a373da73f7626b0d9bf19df42346bafd82912a760c1"
+    },
+    {
+      "file": "tri-1988-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1988_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:15 UTC",
+      "bytes": 1638159,
+      "sha256": "214680c196e5422144d21fdf69efa6802927541668cb57bf5a06e39894fbb062"
+    },
+    {
+      "file": "tri-1989-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1989_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:18 UTC",
+      "bytes": 1694004,
+      "sha256": "5779ccfaabe6fe9e875af7a3f21c01ae06c653aa3d1cfa711616314deea90d9d"
+    },
+    {
+      "file": "tri-1990-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1990_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:22 UTC",
+      "bytes": 1742125,
+      "sha256": "422cf463c015c754aa3b7239a1f42af5d89012ebd32176da50f9d3f5c6311163"
+    },
+    {
+      "file": "tri-1991-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1991_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:26 UTC",
+      "bytes": 1888705,
+      "sha256": "7b191a1ece9c10f50ccebdf720b0f997ed3442752785cd4d2944b99ed0705715"
+    },
+    {
+      "file": "tri-1992-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1992_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:30 UTC",
+      "bytes": 1813838,
+      "sha256": "1105a1f58ddf575b583982346f6cfa193a331d364d62f99c90aa54b173164dc6"
+    },
+    {
+      "file": "tri-1993-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1993_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:34 UTC",
+      "bytes": 1849073,
+      "sha256": "896fe6eefab6238144191a22faed38cec87e18b04d7b83972d86a1b09a6c17bf"
+    },
+    {
+      "file": "tri-1994-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1994_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:38 UTC",
+      "bytes": 1735644,
+      "sha256": "9798e2827b27f2e437bb86b3aef38e202f2b5730b37f23643a75eed82434af6c"
+    },
+    {
+      "file": "tri-1995-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1995_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:40 UTC",
+      "bytes": 1748199,
+      "sha256": "fb051ab02a3714539a0f21b95ead573445e9d7e35aedc1e8ec403f8ac43216b8"
+    },
+    {
+      "file": "tri-1996-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1996_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:44 UTC",
+      "bytes": 1714500,
+      "sha256": "3e3ef198a6fe6766d9d97b4a1ea1461802c2fa968ce3a1b054882da201003ad6"
+    },
+    {
+      "file": "tri-1997-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1997_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:47 UTC",
+      "bytes": 1686396,
+      "sha256": "7a65e157a64173022b119ffe1520d099d4b5daa668b4c32344c8418271f8fd9c"
+    },
+    {
+      "file": "tri-1998-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1998_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:50 UTC",
+      "bytes": 1971272,
+      "sha256": "3084af42e8bf83eae096f1d10cb6367a1cce184a6792285381f5885672fe8ed3"
+    },
+    {
+      "file": "tri-1999-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1999_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:54 UTC",
+      "bytes": 1868044,
+      "sha256": "b6819c2c37766639d437ea2eec05779b3a2f6829ff24dc4c4f6c81bbc26e4f2a"
+    },
+    {
+      "file": "tri-2000-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2000_TN/csv",
+      "retrieved_utc": "2026-11-17 21:50:58 UTC",
+      "bytes": 2042644,
+      "sha256": "1c752d8a5dd505dfddc191711c091ef5ce2e037a798c4d8a50e9a1fe2e89d265"
+    },
+    {
+      "file": "tri-2001-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2001_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:01 UTC",
+      "bytes": 2057134,
+      "sha256": "143a9ae636d4cd55b79e192f526b14e2788014b788db2f1327d033782d2123c8"
+    },
+    {
+      "file": "tri-2002-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2002_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:05 UTC",
+      "bytes": 2006502,
+      "sha256": "34fc5ed2df7cf1362b6b21fb3bd72bd6c0bdb43c40c590711538044911ee4598"
+    },
+    {
+      "file": "tri-2003-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2003_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:08 UTC",
+      "bytes": 1958624,
+      "sha256": "e6b817b2e34db8b8ea11fd00e6a166115e732bd3802d800d81acb691734a9e9f"
+    },
+    {
+      "file": "tri-2004-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2004_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:12 UTC",
+      "bytes": 1927843,
+      "sha256": "162c7a100fa3f62799dd0ffc0744a9190d4c4e3b4ed71673c59e0e2416865b5b"
+    },
+    {
+      "file": "tri-2005-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2005_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:16 UTC",
+      "bytes": 1866259,
+      "sha256": "6bfef12b336d02c9a5443d757d5ea428f1a7437bed1deac1d4609a21afca4716"
+    },
+    {
+      "file": "tri-2006-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2006_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:20 UTC",
+      "bytes": 1807014,
+      "sha256": "b5a02eaa616e85c2a3cc824f209fc130d8ba7322c3125b3642c20f120471e44f"
+    },
+    {
+      "file": "tri-2007-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2007_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:24 UTC",
+      "bytes": 1787525,
+      "sha256": "23d4dbbb5fa93b28f3c7ac6b5f110cfe82ef43aa6fe76eb3243f369c842d0b9b"
+    },
+    {
+      "file": "tri-2008-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2008_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:28 UTC",
+      "bytes": 1747051,
+      "sha256": "29987705ff34e797bff5730d748fdf08d9e81554a39112b303aebb91853c8fb7"
+    },
+    {
+      "file": "tri-2009-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2009_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:31 UTC",
+      "bytes": 1597324,
+      "sha256": "63db5bc84be20d31bd9c4b7fe7f04e3abce41990f6566ae6d1dd4a7c56bd8c50"
+    },
+    {
+      "file": "tri-2010-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2010_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:36 UTC",
+      "bytes": 1594390,
+      "sha256": "1da3b4b391622b02918f89e0d0f67769f96eeb5cf747a348e6e983b12a7b9637"
+    },
+    {
+      "file": "tri-2011-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2011_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:40 UTC",
+      "bytes": 1624014,
+      "sha256": "dae5d9e90b09b5ddd27633c3b50d0710324a1406d784341d393b9c170237457f"
+    },
+    {
+      "file": "tri-2012-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2012_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:42 UTC",
+      "bytes": 1607303,
+      "sha256": "4d245d195c3346a8fe63640d16e70a510a1c35c26d36b0494b866890a8717eb2"
+    },
+    {
+      "file": "tri-2013-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2013_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:46 UTC",
+      "bytes": 1634490,
+      "sha256": "0a1e144a312c25d35cacd966f4338d95134acf742efd11bbce2dca66631cfeb4"
+    },
+    {
+      "file": "tri-2014-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2014_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:48 UTC",
+      "bytes": 1701913,
+      "sha256": "de02b2d4323a88fdb4e560a7717e3398cefb03bceea79aa1000c04101d9c9c46"
+    },
+    {
+      "file": "tri-2015-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2015_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:51 UTC",
+      "bytes": 1718228,
+      "sha256": "ca9cf0e56b1539ad944b5aa0a4321b86caa76681785bd8ca239770c93a6599b9"
+    },
+    {
+      "file": "tri-2016-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2016_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:54 UTC",
+      "bytes": 1781334,
+      "sha256": "2e46d915ecd88de487cfe8f922eec7d5a4878053cca3f696602259403759a5b0"
+    },
+    {
+      "file": "tri-2017-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2017_TN/csv",
+      "retrieved_utc": "2026-11-17 21:51:58 UTC",
+      "bytes": 1774357,
+      "sha256": "9dd4726ec897d43201766414e1253ed106821341568916e7718f6d27f8c06cb4"
+    },
+    {
+      "file": "tri-2018-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2018_TN/csv",
+      "retrieved_utc": "2026-11-17 21:52:01 UTC",
+      "bytes": 1759283,
+      "sha256": "cd36a26701496f968fb9236b5c27855241b982d26550821821c2387b99a3b8dd"
+    },
+    {
+      "file": "tri-2019-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2019_TN/csv",
+      "retrieved_utc": "2026-11-17 21:52:04 UTC",
+      "bytes": 1778675,
+      "sha256": "7a1a2d4c46a467b475baae0d4c970e85feda9e32d409c161f81141a462ce98d1"
+    },
+    {
+      "file": "tri-2020-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2020_TN/csv",
+      "retrieved_utc": "2026-11-17 21:52:07 UTC",
+      "bytes": 1815824,
+      "sha256": "02b84c25f20324eef066e4006b8471ef219780731386de454a71e5611da55fe1"
+    },
+    {
+      "file": "tri-2021-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2021_TN/csv",
+      "retrieved_utc": "2026-11-17 21:52:10 UTC",
+      "bytes": 1721656,
+      "sha256": "35bfbeab8953b09a21fde72d8d17db70d02de54ee71d8d43d9ff57341c6e7ad5"
+    },
+    {
+      "file": "tri-2022-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2022_TN/csv",
+      "retrieved_utc": "2026-11-17 21:52:14 UTC",
+      "bytes": 1692522,
+      "sha256": "5283fe14ff16c3c89d23877df96cfcdb33b331505c9d9c50f48eda987e1249bc"
+    },
+    {
+      "file": "tri-2023-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2023_TN/csv",
+      "retrieved_utc": "2026-11-17 21:52:18 UTC",
+      "bytes": 1666742,
+      "sha256": "184badb2e61f60979ec92d0d1b563c533212f96de273db0bae3cdc1ac3746472"
+    },
+    {
+      "file": "tri-2024-TN.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_TN/csv",
+      "retrieved_utc": "2026-11-17 21:52:22 UTC",
+      "bytes": 1652066,
+      "sha256": "4117f753cb0580783360c5a39873f025cc195c27f14435321053c9fe02d2dde3"
+    },
+    {
+      "file": "tri-1987-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1987_AR/csv",
+      "retrieved_utc": "2026-11-17 21:52:24 UTC",
+      "bytes": 817758,
+      "sha256": "4a8fb16fc6be9f540b66cb16c960cee80c2f255d1d7c1d3270bc963010d03958"
+    },
+    {
+      "file": "tri-1988-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1988_AR/csv",
+      "retrieved_utc": "2026-11-17 21:52:26 UTC",
+      "bytes": 931955,
+      "sha256": "2d0e84334683cbcbac264cdc367141f591b03b2eac154172cfafb83b8e604888"
+    },
+    {
+      "file": "tri-1989-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1989_AR/csv",
+      "retrieved_utc": "2026-11-17 21:52:28 UTC",
+      "bytes": 950182,
+      "sha256": "666a2704bb460725362fbb79c538c4572b19e1a0e9bde6176540d3478e85bbf5"
+    },
+    {
+      "file": "tri-1990-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1990_AR/csv",
+      "retrieved_utc": "2026-11-17 21:52:31 UTC",
+      "bytes": 991447,
+      "sha256": "7b55726b1339d65d9a935e69cf539c04b159da34f2ffd2f1efe88bd510e0c01d"
+    },
+    {
+      "file": "tri-1991-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1991_AR/csv",
+      "retrieved_utc": "2026-11-17 21:52:34 UTC",
+      "bytes": 1031622,
+      "sha256": "3b26c037f1d8d04576838532fa386db1e15cd92947f114c047e494cff43dcd01"
+    },
+    {
+      "file": "tri-1992-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1992_AR/csv",
+      "retrieved_utc": "2026-11-17 21:52:37 UTC",
+      "bytes": 993152,
+      "sha256": "f28b86e403e6695b8cd9590a9815dcd7702e4c1b8c3ac83412212f62856c7622"
+    },
+    {
+      "file": "tri-1993-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1993_AR/csv",
+      "retrieved_utc": "2026-11-17 21:52:39 UTC",
+      "bytes": 1035397,
+      "sha256": "8768ea915ba0dc9c914d229d4694683c97c25a21c50038d594b15091ef5b93e4"
+    },
+    {
+      "file": "tri-1994-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1994_AR/csv",
+      "retrieved_utc": "2026-11-17 21:52:42 UTC",
+      "bytes": 1024128,
+      "sha256": "542e87c146b8b88a22f28aa62f52a181902aaf11989af8ca3429afab9d7d753b"
+    },
+    {
+      "file": "tri-1995-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1995_AR/csv",
+      "retrieved_utc": "2026-11-17 21:52:44 UTC",
+      "bytes": 1056978,
+      "sha256": "21f21e61a53a9b1825429afe880318feefb7fc8174f88d052404fec7a0b94b1d"
+    },
+    {
+      "file": "tri-1996-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1996_AR/csv",
+      "retrieved_utc": "2026-11-17 21:52:48 UTC",
+      "bytes": 1039099,
+      "sha256": "3b029823d486292977783ef2f3b1271e170df49790834f5da5a900153027709f"
+    },
+    {
+      "file": "tri-1997-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1997_AR/csv",
+      "retrieved_utc": "2026-11-17 21:53:23 UTC",
+      "bytes": 1036660,
+      "sha256": "8808c7b1209631c31d4cad43a340a76c12f8273699ee5702b3fe1065bbcc3487"
+    },
+    {
+      "file": "tri-1998-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1998_AR/csv",
+      "retrieved_utc": "2026-11-17 21:53:28 UTC",
+      "bytes": 1195977,
+      "sha256": "208047f2f21a4d5161df6e756bd87dc61cd4c1aefacda36ef8fa7e390e364996"
+    },
+    {
+      "file": "tri-1999-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1999_AR/csv",
+      "retrieved_utc": "2026-11-17 21:53:31 UTC",
+      "bytes": 1185873,
+      "sha256": "e1793d682819ce87b09e63ac0d5d39f576c27157ab51535834067d5ccca80b81"
+    },
+    {
+      "file": "tri-2000-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2000_AR/csv",
+      "retrieved_utc": "2026-11-17 21:53:33 UTC",
+      "bytes": 1330293,
+      "sha256": "1f89105dc5336e22b7ba8bfa9cb3b545c473b085fc5a84b1519c758b24c51114"
+    },
+    {
+      "file": "tri-2001-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2001_AR/csv",
+      "retrieved_utc": "2026-11-17 21:53:36 UTC",
+      "bytes": 1336022,
+      "sha256": "865cf40efade0f191e867586ea29cc90b6da46e713f050334f9a90fb0de22d9e"
+    },
+    {
+      "file": "tri-2002-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2002_AR/csv",
+      "retrieved_utc": "2026-11-17 21:53:40 UTC",
+      "bytes": 1271870,
+      "sha256": "eb70ce3fcfdefd6ecd488d12ad9216c40fa79c547f29f9d80b33ee8722d62685"
+    },
+    {
+      "file": "tri-2003-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2003_AR/csv",
+      "retrieved_utc": "2026-11-17 21:53:45 UTC",
+      "bytes": 1275930,
+      "sha256": "e57ea86a961877d2d54596c5d5222c9a937da4be3adad728bfab11c8ad9f1fb8"
+    },
+    {
+      "file": "tri-2004-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2004_AR/csv",
+      "retrieved_utc": "2026-11-17 21:53:48 UTC",
+      "bytes": 1225242,
+      "sha256": "e8daee4fdae0d61f2796c633658fa30304f44857a4ae125f1a5a9ef2d7b27037"
+    },
+    {
+      "file": "tri-2005-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2005_AR/csv",
+      "retrieved_utc": "2026-11-17 21:53:52 UTC",
+      "bytes": 1232771,
+      "sha256": "f4ec48fdaa5691d4015fa4005ab9689066d2ed52142fefec44404e9aabb0fb9b"
+    },
+    {
+      "file": "tri-2006-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2006_AR/csv",
+      "retrieved_utc": "2026-11-17 21:53:55 UTC",
+      "bytes": 1238386,
+      "sha256": "d2d377bb95d3d53256ed323b89c6fc4ae4610bd3ccbe5cef4a7562252eff508a"
+    },
+    {
+      "file": "tri-2007-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2007_AR/csv",
+      "retrieved_utc": "2026-11-17 21:53:58 UTC",
+      "bytes": 1167490,
+      "sha256": "7914714bd986a28f158ef7facab065896a419dddccff52010b360150a31c041a"
+    },
+    {
+      "file": "tri-2008-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2008_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:00 UTC",
+      "bytes": 1126818,
+      "sha256": "5fbeb073969f6f4e87581d7b4609b3d62917f25f04d48e3d0a5a7a3371c5f3c0"
+    },
+    {
+      "file": "tri-2009-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2009_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:03 UTC",
+      "bytes": 1066603,
+      "sha256": "bb62e614368613271aa2a0591e15f24aae1512abe9e09adcf19b5f172c7af427"
+    },
+    {
+      "file": "tri-2010-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2010_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:06 UTC",
+      "bytes": 1065135,
+      "sha256": "061e9d4d1ba7fa0120eff8923d9399103b02eb5c186e65e22c6039ead98e3046"
+    },
+    {
+      "file": "tri-2011-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2011_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:08 UTC",
+      "bytes": 1055833,
+      "sha256": "2d666972c17b2f53548336a06d3e7935298160453222f61a6d591f51d39b96a4"
+    },
+    {
+      "file": "tri-2012-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2012_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:11 UTC",
+      "bytes": 1009375,
+      "sha256": "0cdca4ea3e5224859502b12756645a13c8b4f1115b2fdac541e9112bb5f5ff4b"
+    },
+    {
+      "file": "tri-2013-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2013_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:14 UTC",
+      "bytes": 1096070,
+      "sha256": "0442df09f3a66627d1f999e21af80fb1ff44919e4dbe31ac780ef9ed5c9ad001"
+    },
+    {
+      "file": "tri-2014-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2014_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:16 UTC",
+      "bytes": 1126521,
+      "sha256": "cc4c2f550e7379c98cd15159915752c274ddb2cd7ff5154107c7a77da660ed69"
+    },
+    {
+      "file": "tri-2015-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2015_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:19 UTC",
+      "bytes": 1121155,
+      "sha256": "284159926672638e488f2ebc632831ea6c5e14657b30422facb206124b80e483"
+    },
+    {
+      "file": "tri-2016-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2016_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:22 UTC",
+      "bytes": 1107921,
+      "sha256": "e1b101dde58bb9196ee3089a6bde9e31eb63e01c63d5707d7f8e53a85e0b6949"
+    },
+    {
+      "file": "tri-2017-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2017_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:24 UTC",
+      "bytes": 1170418,
+      "sha256": "a1bd215e3fc86e211e941bc775d605faa291ec9c65572551d32a72259fc6c398"
+    },
+    {
+      "file": "tri-2018-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2018_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:26 UTC",
+      "bytes": 1161085,
+      "sha256": "605729a40955a6586331e01dc161c57f50039b73ef257a812f25b0194fbecd29"
+    },
+    {
+      "file": "tri-2019-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2019_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:30 UTC",
+      "bytes": 1146972,
+      "sha256": "0cc69fcb8156fe9b138be4f425e253cba6b9fbf4d34352efd81dfb9917883fa0"
+    },
+    {
+      "file": "tri-2020-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2020_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:32 UTC",
+      "bytes": 1115368,
+      "sha256": "c587e4b2cf0553a67268ed1df010a09d26b10a720ab9ad2eda19b05205a2bcdb"
+    },
+    {
+      "file": "tri-2021-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2021_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:35 UTC",
+      "bytes": 1113801,
+      "sha256": "c6cf9c47851fdd0eaf6e1819cfd0ca4cb77fa932733cf5c9d947bf743095901f"
+    },
+    {
+      "file": "tri-2022-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2022_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:37 UTC",
+      "bytes": 1151484,
+      "sha256": "4b1015466d4cbf19777b12e8ea3ac0705695912ebb5abb4a13639e97d4cefe58"
+    },
+    {
+      "file": "tri-2023-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2023_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:40 UTC",
+      "bytes": 1150874,
+      "sha256": "c3efcc8fa02602f51b00a14d95cdb5ace7b85c1769be8b985177a0db676b0347"
+    },
+    {
+      "file": "tri-2024-AR.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_AR/csv",
+      "retrieved_utc": "2026-11-17 21:54:42 UTC",
+      "bytes": 1255133,
+      "sha256": "c6ee31a0c33fb90f60b66966597a84cf234ca603e5a03d958c59569e9a9355b2"
+    },
+    {
+      "file": "tri-1987-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1987_MS/csv",
+      "retrieved_utc": "2026-11-17 21:54:45 UTC",
+      "bytes": 713541,
+      "sha256": "0de6c9732bf64b5acbed28213179563a97f5921f685434d3e6badbf65f4113fc"
+    },
+    {
+      "file": "tri-1988-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1988_MS/csv",
+      "retrieved_utc": "2026-11-17 21:54:47 UTC",
+      "bytes": 778356,
+      "sha256": "6f64a78ccfe33c3f1e435811c83b4b0e1b0984d25f30cc3682e4f0066ab415f9"
+    },
+    {
+      "file": "tri-1989-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1989_MS/csv",
+      "retrieved_utc": "2026-11-17 21:54:49 UTC",
+      "bytes": 856818,
+      "sha256": "4a22f57a4fa730331b9227a499e0af699f367eca9a3a7d0266f745bfd2e4d045"
+    },
+    {
+      "file": "tri-1990-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1990_MS/csv",
+      "retrieved_utc": "2026-11-17 21:54:53 UTC",
+      "bytes": 873091,
+      "sha256": "dc5c5fc54047bb568f6cfe557173a0829140085a9a89022443acc7baade8a85e"
+    },
+    {
+      "file": "tri-1991-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1991_MS/csv",
+      "retrieved_utc": "2026-11-17 21:54:55 UTC",
+      "bytes": 906615,
+      "sha256": "d3134ec6a303e0a34a3bb34ea92dfac1d3c96b3290af34f31f2e63c9634b2bed"
+    },
+    {
+      "file": "tri-1992-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1992_MS/csv",
+      "retrieved_utc": "2026-11-17 21:54:58 UTC",
+      "bytes": 868337,
+      "sha256": "f6fcb16b20297708d2c6ea1642d0b49fa038d5409a0159d2b3024aa14e2f491c"
+    },
+    {
+      "file": "tri-1993-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1993_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:01 UTC",
+      "bytes": 902328,
+      "sha256": "bf2f5d87653d7cbabc457b646952058643007523fbc972837287d62791be17f0"
+    },
+    {
+      "file": "tri-1994-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1994_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:05 UTC",
+      "bytes": 891279,
+      "sha256": "a3aae9640cf9af9d996a3016bde15574ad3de1b8368999680dc770a19fbb0e59"
+    },
+    {
+      "file": "tri-1995-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1995_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:08 UTC",
+      "bytes": 901509,
+      "sha256": "f19f740d7627e0d0a423b3c2e766e36fa61921f6ac79820400238cb061811f2e"
+    },
+    {
+      "file": "tri-1996-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1996_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:11 UTC",
+      "bytes": 883061,
+      "sha256": "ca7d02c1f80c0de408b95171ef2a51bce6c9eaaf8501571a6a974d2d969a8ee7"
+    },
+    {
+      "file": "tri-1997-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1997_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:13 UTC",
+      "bytes": 892513,
+      "sha256": "6357cd340a5b2f93f0314ed7e78b0b6f3ab6e35f214cc063e7b144c838f141b2"
+    },
+    {
+      "file": "tri-1998-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1998_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:16 UTC",
+      "bytes": 991528,
+      "sha256": "06141ae26c8e5f7bdfdb57d471b2629fec22ef3703fa72442662d6b2b913c4c3"
+    },
+    {
+      "file": "tri-1999-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1999_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:19 UTC",
+      "bytes": 943370,
+      "sha256": "9820410ad504c4bae6dd7282ef087c4e7114e9aca843cb8995d36715439ae67b"
+    },
+    {
+      "file": "tri-2000-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2000_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:23 UTC",
+      "bytes": 1017232,
+      "sha256": "c522e8d564a5825a3313a673d1528adbe9f31cfadde245a3669bd16524764e60"
+    },
+    {
+      "file": "tri-2001-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2001_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:26 UTC",
+      "bytes": 1073230,
+      "sha256": "28814a9bea8c2ab2285473b4442ab5de04ecd668d1a43acbc9aba60ac42eece4"
+    },
+    {
+      "file": "tri-2002-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2002_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:30 UTC",
+      "bytes": 1008524,
+      "sha256": "38f78c1847b35bcaca541f00e166283ea6f25762fc4bc3e829b141d5ee728932"
+    },
+    {
+      "file": "tri-2003-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2003_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:32 UTC",
+      "bytes": 994077,
+      "sha256": "09103a67c3bf163fa770c32b4ccea33e7d0a6496436994855f9e1ead113afcec"
+    },
+    {
+      "file": "tri-2004-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2004_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:37 UTC",
+      "bytes": 975878,
+      "sha256": "80714903222e513f70c21094a6c8108455acea9472f202ecb5f6d1f3fdd9f893"
+    },
+    {
+      "file": "tri-2005-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2005_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:39 UTC",
+      "bytes": 964217,
+      "sha256": "cb898fb934707badd16a9546386bb48b3e20c8b6a31c7345353b751f8869397d"
+    },
+    {
+      "file": "tri-2006-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2006_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:40 UTC",
+      "bytes": 915653,
+      "sha256": "1fa23c202de71d715efcba20437db1846dd3a55345e60d6d8dda481de9e6011a"
+    },
+    {
+      "file": "tri-2007-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2007_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:43 UTC",
+      "bytes": 907487,
+      "sha256": "c77cd316d7fc08a82ec90ebc68970b57d3cad07b5cef0b9d40525a6d6d882aa1"
+    },
+    {
+      "file": "tri-2008-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2008_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:45 UTC",
+      "bytes": 928235,
+      "sha256": "cabc21d44eb68be3215f4258c79f1f9f527850f0dad7bfc23d605aba6716a73d"
+    },
+    {
+      "file": "tri-2009-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2009_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:48 UTC",
+      "bytes": 888595,
+      "sha256": "7677c7a39dd8784f15d0e87746ab368cf1c675e96e3dd7bd936752b559e7c546"
+    },
+    {
+      "file": "tri-2010-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2010_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:52 UTC",
+      "bytes": 872490,
+      "sha256": "0715ab8e25571cb64715ab19236bcbab50ff0453acf149de4d8dcc7260b52396"
+    },
+    {
+      "file": "tri-2011-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2011_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:54 UTC",
+      "bytes": 867942,
+      "sha256": "575ee7131a182ae921549fc6572362376abcedb5a14a1719168d0052b53989eb"
+    },
+    {
+      "file": "tri-2012-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2012_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:56 UTC",
+      "bytes": 889993,
+      "sha256": "60b8ed52cae7a2c4ba4ff6e0fc2908092673f5ff123acc2c2b2c3605ed06c1a4"
+    },
+    {
+      "file": "tri-2013-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2013_MS/csv",
+      "retrieved_utc": "2026-11-17 21:55:59 UTC",
+      "bytes": 901329,
+      "sha256": "601338024b8d0968d5f9e6a75d3db94fdf11ad08f9384e7a4e3d965f005c4d68"
+    },
+    {
+      "file": "tri-2014-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2014_MS/csv",
+      "retrieved_utc": "2026-11-17 21:56:01 UTC",
+      "bytes": 910826,
+      "sha256": "88f323f4d57e3f2a6440d981fa7785d03a5a922a1918f9fd0c93d2271d7b6259"
+    },
+    {
+      "file": "tri-2015-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2015_MS/csv",
+      "retrieved_utc": "2026-11-17 21:56:04 UTC",
+      "bytes": 892987,
+      "sha256": "5aae967edb50b877258e0d48640a36e0a861d5aa0f249b8d7a3dea89344ede4b"
+    },
+    {
+      "file": "tri-2016-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2016_MS/csv",
+      "retrieved_utc": "2026-11-17 21:56:07 UTC",
+      "bytes": 877784,
+      "sha256": "7cf09e311adb8e506e7110096e5878d7c8a464e6532d83f1b56d3bae506b3e45"
+    },
+    {
+      "file": "tri-2017-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2017_MS/csv",
+      "retrieved_utc": "2026-11-17 21:56:10 UTC",
+      "bytes": 867376,
+      "sha256": "6447748eb39f631b347a7c9a3c09004cd4d920bebdf8de8e27f7f3022a2adf60"
+    },
+    {
+      "file": "tri-2018-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2018_MS/csv",
+      "retrieved_utc": "2026-11-17 21:56:13 UTC",
+      "bytes": 870754,
+      "sha256": "84086f385d760ac77ced6abccfc0aecc621c043661c9b6ed5aa70242409186a3"
+    },
+    {
+      "file": "tri-2019-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2019_MS/csv",
+      "retrieved_utc": "2026-11-17 21:56:15 UTC",
+      "bytes": 877870,
+      "sha256": "560fe363a8616adc0e83ca3ecbd59d2fec720c617258a793ed7e086e63107e64"
+    },
+    {
+      "file": "tri-2020-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2020_MS/csv",
+      "retrieved_utc": "2026-11-17 21:56:18 UTC",
+      "bytes": 852958,
+      "sha256": "a97d6ceca4fb2fc7055b46ecab5d38516c840f079df8132455102f1206142cbe"
+    },
+    {
+      "file": "tri-2021-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2021_MS/csv",
+      "retrieved_utc": "2026-11-17 21:56:21 UTC",
+      "bytes": 854728,
+      "sha256": "320f13e59821d3e9be88b39ecddb79e5d7384de72246e477993e6f9090561ebb"
+    },
+    {
+      "file": "tri-2022-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2022_MS/csv",
+      "retrieved_utc": "2026-11-17 21:56:24 UTC",
+      "bytes": 877087,
+      "sha256": "52aa6592e20a3ce957c6c8fce52d149d6468d0936da68d745e4684ab6f490c40"
+    },
+    {
+      "file": "tri-2023-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2023_MS/csv",
+      "retrieved_utc": "2026-11-17 21:56:26 UTC",
+      "bytes": 875094,
+      "sha256": "2f00ae116f83e1f7a6c384b87be679d080df8ac8196378daa97aa60ac5ef0e38"
+    },
+    {
+      "file": "tri-2024-MS.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_MS/csv",
+      "retrieved_utc": "2026-11-17 21:56:28 UTC",
+      "bytes": 860844,
+      "sha256": "ddf2b8bbbe8677672458d7c86fcf8730463b5933cb1c14793130cd540ce6bac7"
+    },
+    {
+      "file": "tri-1987-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1987_LA/csv",
+      "retrieved_utc": "2026-11-17 21:56:31 UTC",
+      "bytes": 1473550,
+      "sha256": "b7166502e8da8f0360656cbdf4c27b079923288e6ea4e2d5cb2e585490a78e54"
+    },
+    {
+      "file": "tri-1988-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1988_LA/csv",
+      "retrieved_utc": "2026-11-17 21:56:35 UTC",
+      "bytes": 1597730,
+      "sha256": "3a659f8f2cc5187449b1d838f71c67ad3dfadf43912c95039dbb0763a2f2a6a7"
+    },
+    {
+      "file": "tri-1989-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1989_LA/csv",
+      "retrieved_utc": "2026-11-17 21:56:39 UTC",
+      "bytes": 1522407,
+      "sha256": "ae05bd403bd8aa1adaf00a60caeeb4d1970b42a67f618108de697c1979926aee"
+    },
+    {
+      "file": "tri-1990-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1990_LA/csv",
+      "retrieved_utc": "2026-11-17 21:56:41 UTC",
+      "bytes": 1496463,
+      "sha256": "bd834151d5586ab6d38a611cf0c79e53e0d3695dd9fe5bc2d690fa757d443e9d"
+    },
+    {
+      "file": "tri-1991-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1991_LA/csv",
+      "retrieved_utc": "2026-11-17 21:56:46 UTC",
+      "bytes": 1680101,
+      "sha256": "cc86e6dfffbd7e1a6931739758470054be988181859d70a87ca54bf4e7c2742d"
+    },
+    {
+      "file": "tri-1992-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1992_LA/csv",
+      "retrieved_utc": "2026-11-17 21:56:49 UTC",
+      "bytes": 1679523,
+      "sha256": "5fe86a4c99382419dc00bc39ed670933da475ebf1e9e2f29f0bf345cd1ce5920"
+    },
+    {
+      "file": "tri-1993-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1993_LA/csv",
+      "retrieved_utc": "2026-11-17 21:56:53 UTC",
+      "bytes": 1650160,
+      "sha256": "566b2cf7c5c4d5699dabbfa357586738ec41569ac534c0d4bf4d0eaa4fc2c984"
+    },
+    {
+      "file": "tri-1994-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1994_LA/csv",
+      "retrieved_utc": "2026-11-17 21:56:57 UTC",
+      "bytes": 1629703,
+      "sha256": "21f4086481a534adffc1f04314848df3e5c2a202622e0dcddbdca432f87f9d1c"
+    },
+    {
+      "file": "tri-1995-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1995_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:01 UTC",
+      "bytes": 1725233,
+      "sha256": "c56fb73e180d05056eed43136d8ddd1af3d7c1ac01a11910ec682d0f0a6aa997"
+    },
+    {
+      "file": "tri-1996-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1996_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:05 UTC",
+      "bytes": 1721684,
+      "sha256": "8155f026896eb0975a3d5f4ff509c4630a143a347d0cebc41c3a8e3f64a1a8bd"
+    },
+    {
+      "file": "tri-1997-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1997_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:08 UTC",
+      "bytes": 1726233,
+      "sha256": "52c44fc124cc674da3519cc0a3fcf207e190bb5999a668d5bb294e9133770f66"
+    },
+    {
+      "file": "tri-1998-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1998_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:12 UTC",
+      "bytes": 1978919,
+      "sha256": "60f5e4b15ace630fbf0a7dd5562e8c1da97b0a58df622448489759ad93afd956"
+    },
+    {
+      "file": "tri-1999-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/1999_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:14 UTC",
+      "bytes": 2007045,
+      "sha256": "706a9a3c198f4fc0bdfee1538cacc6190a6712b1ab90c69789a3bfcf2b366ab8"
+    },
+    {
+      "file": "tri-2000-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2000_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:18 UTC",
+      "bytes": 2195218,
+      "sha256": "4b7e12ab9fcea4ff0f8c4eb66245b71e28530db59b8b4197e4d590174ab5f3eb"
+    },
+    {
+      "file": "tri-2001-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2001_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:22 UTC",
+      "bytes": 2300161,
+      "sha256": "93f9c94403a607e8c6874af77b1756cc6d8e9b7cd5724af84d3cfd6472c27a69"
+    },
+    {
+      "file": "tri-2002-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2002_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:25 UTC",
+      "bytes": 2288426,
+      "sha256": "4cabba16b5843059ffab9a0ccaad8fa5a8fe212d1cb8b3683d5530fa6f4521ee"
+    },
+    {
+      "file": "tri-2003-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2003_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:29 UTC",
+      "bytes": 2323060,
+      "sha256": "341fb41871c7be87b1103bd8e88ea17039b213c931516d6e74312f7caffdf182"
+    },
+    {
+      "file": "tri-2004-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2004_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:33 UTC",
+      "bytes": 2301198,
+      "sha256": "14fda78e0503aa4cf5f56efed985d8cffed55e4de5fb058b59c19a46174f0ae4"
+    },
+    {
+      "file": "tri-2005-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2005_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:37 UTC",
+      "bytes": 2289717,
+      "sha256": "475985acfdf79ea9a99f95da78fa71abfbc7f372d5092555b1ac017ebcc32b4a"
+    },
+    {
+      "file": "tri-2006-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2006_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:42 UTC",
+      "bytes": 2350015,
+      "sha256": "d267da7572cd7178a244123404fe981a4e7232254e71aadd11a208ea2f671d26"
+    },
+    {
+      "file": "tri-2007-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2007_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:47 UTC",
+      "bytes": 2303988,
+      "sha256": "a9c75fe803ebc53510e6c4eb95621094fbcee7b3fa256e3bdb1b6218229ac8d6"
+    },
+    {
+      "file": "tri-2008-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2008_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:51 UTC",
+      "bytes": 2319319,
+      "sha256": "c1540591bb6ef417725a1eafe80bbdc1ec997258d84b705947c7951cb7bf7172"
+    },
+    {
+      "file": "tri-2009-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2009_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:53 UTC",
+      "bytes": 2247165,
+      "sha256": "6b80515c5f3316b7828161eb4fc359205c82f2d60ef3ad51db21c35d8311b6fb"
+    },
+    {
+      "file": "tri-2010-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2010_LA/csv",
+      "retrieved_utc": "2026-11-17 21:57:57 UTC",
+      "bytes": 2267262,
+      "sha256": "c5008ae578fcbc060f113d0110b46d4a4dfbbcb8320dc0c93765ff095e3e1194"
+    },
+    {
+      "file": "tri-2011-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2011_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:02 UTC",
+      "bytes": 2322970,
+      "sha256": "9b371fbed1545ded1e95fabe354a3a684875e4b4f5bc13d531fa0ce4d7175532"
+    },
+    {
+      "file": "tri-2012-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2012_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:06 UTC",
+      "bytes": 2354349,
+      "sha256": "26c47c767216cbbf6748aee52f78f1ebd64134a35d92795ce75a04f6b2c7f220"
+    },
+    {
+      "file": "tri-2013-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2013_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:09 UTC",
+      "bytes": 2381200,
+      "sha256": "c6f94a76fa65ee6d7c85a8a4cc68d2c887fc4033e44234386ed3c73edf69ee7d"
+    },
+    {
+      "file": "tri-2014-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2014_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:13 UTC",
+      "bytes": 2369665,
+      "sha256": "39c2207363ffbb1cf7408f240b54d1a2a761acc735327e3c9d6858f3299d3ff9"
+    },
+    {
+      "file": "tri-2015-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2015_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:18 UTC",
+      "bytes": 2431176,
+      "sha256": "fc7b54eb68815ca1ecf059872b8229624c4dcc6231413f4b62578dc293573730"
+    },
+    {
+      "file": "tri-2016-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2016_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:22 UTC",
+      "bytes": 2336681,
+      "sha256": "673e054c388595f32a042674576d5a1e19b405009e7557ededbbe46f18f932f0"
+    },
+    {
+      "file": "tri-2017-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2017_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:27 UTC",
+      "bytes": 2402516,
+      "sha256": "b7faddb28cda566b7b52f1b57be4a8346c95cf5df83439011349cf66fd8ea556"
+    },
+    {
+      "file": "tri-2018-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2018_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:31 UTC",
+      "bytes": 2359212,
+      "sha256": "d5af3a121abb041cd0e5ea8709fc0b86551cb58b407e460554fa6409538a8920"
+    },
+    {
+      "file": "tri-2019-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2019_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:35 UTC",
+      "bytes": 2346092,
+      "sha256": "4d25071848c67df4816745d870f41cc13451293262aafa64f01795d6da474f38"
+    },
+    {
+      "file": "tri-2020-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2020_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:39 UTC",
+      "bytes": 2295092,
+      "sha256": "ee13ceb840f81478560f7f88906acd341fa1b2a9270f0363635618908b9871ef"
+    },
+    {
+      "file": "tri-2021-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2021_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:43 UTC",
+      "bytes": 2311593,
+      "sha256": "652009828af80b2986b781eceef6568e8c8746dcc9532d90fe7fa1d0baf9287f"
+    },
+    {
+      "file": "tri-2022-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2022_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:48 UTC",
+      "bytes": 2374099,
+      "sha256": "d91ceaca4df6178e7ed900c53d1fbf4dd57c73fd3852c190ac67bf1fc4f2227f"
+    },
+    {
+      "file": "tri-2023-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2023_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:52 UTC",
+      "bytes": 2383100,
+      "sha256": "f95306f9c10547e39be321ae331670bd1e14cb72b28d8e51c9761bb6e21a16c9"
+    },
+    {
+      "file": "tri-2024-LA.csv",
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_LA/csv",
+      "retrieved_utc": "2026-11-17 21:58:56 UTC",
+      "bytes": 2305846,
+      "sha256": "37fe5ddb24c909604940fc4d93a2128ec6c83d0035bf0e794d2cce2970fd4056"
+    },
+    {
+      "file": "nas-549.json",
+      "url": "https://nas.er.usgs.gov/api/v2/occurrence/search?species_ID=549",
+      "retrieved_utc": "2026-11-18 15:06:20 UTC",
+      "bytes": 11496210,
+      "sha256": "aa347a2e8a74b6f2dcf6dafc628638529975612d6fb9d39f53e0ca19fb814cf4"
+    },
+    {
+      "file": "nas-551.json",
+      "url": "https://nas.er.usgs.gov/api/v2/occurrence/search?species_ID=551",
+      "retrieved_utc": "2026-11-18 15:06:22 UTC",
+      "bytes": 3560382,
+      "sha256": "8243d4d30529e3951bba6df77c589d76de391d8b19d1c725718fa309b0299c7a"
+    },
+    {
+      "file": "nas-573.json",
+      "url": "https://nas.er.usgs.gov/api/v2/occurrence/search?species_ID=573",
+      "retrieved_utc": "2026-11-18 15:06:25 UTC",
+      "bytes": 1227622,
+      "sha256": "02285012f88258ff56b60e30f6c23e6518618bb9b0ef79a2deab84faba56ce2f"
+    },
+    {
+      "file": "nas-5.json",
+      "url": "https://nas.er.usgs.gov/api/v2/occurrence/search?species_ID=5",
+      "retrieved_utc": "2026-11-18 15:06:32 UTC",
+      "bytes": 11829300,
+      "sha256": "fc6a129abb735947631a51bd6296f42ca0723394adeefb293dfa1cc693675df1"
+    },
+    {
+      "file": "rivers-natural-earth.geojson",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson/ne_10m_rivers_lake_centerlines.geojson",
+      "retrieved_utc": "2026-11-17 19:43:16 UTC",
+      "bytes": 7307743,
+      "sha256": "bb854a900ecbd3b408df46d5e16e3e0f974ba55993f9d8b5c26e855273c0905a"
+    }
+  ],
+  "usgs": {
+    "services": {
+      "peaks": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/peaks (parameter 00060)",
+      "low_flow": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/daily (parameter 00060, statistic 00003)",
+      "conductivity": "https://www.waterqualitydata.us (CharacteristicName: Specific conductance)",
+      "background": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/PredECHydroline/FeatureServer/0/query (EPA Freshwater Explorer, Predicted Background Conductivity)"
+    },
+    "retrieved_utc": "2026-11-18 16:21:09 UTC",
+    "dataRetrieval": "2.7.27",
+    "files": [
+      {
+        "file": "gages.csv",
+        "sha256": "689626d8757862a83588525aae0f96285050b7e0d85b2018da6b4215d0d44bd0"
+      },
+      {
+        "file": "peaks.csv",
+        "sha256": "ba72d72cd51333f6446584d0f84cb6b8cf46aac0d01971267e2695a80ceda394"
+      },
+      {
+        "file": "low-flow.csv",
+        "sha256": "99e0350cd2eb2f6b5da3ed3c1936a7da30134e810185457946287acb26d99ae8"
+      },
+      {
+        "file": "conductivity.csv",
+        "sha256": "63549ec42e981139a5e77d2abbd4e70ae783ee2e188c88205675c1894494660a"
+      },
+      {
+        "file": "wq-sites.csv",
+        "sha256": "7293b874e4a6a93129cec4272e9340226e14b24a9a84ca0111ade11b4f114145"
+      }
+    ]
+  }
+}
