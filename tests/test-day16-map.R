@@ -97,6 +97,7 @@ slabs <- c(ledgers, paste0(ledgers, "-all"))
 stem_ids <- c(paste0(ledgers, "-stem"), paste0(ledgers, "-stem-all"))
 stopifnot(setequal(unlist(w$x$slider_control$layers), c(slabs, stem_ids)),
           setequal(vapply(w$x$layers, function(l) l$id, character(1)), c("river", slabs, stem_ids, "places")))
+stopifnot(isTRUE(w$x$fullscreen_control$enabled))
 entries <- setNames(lapply(w$x$layers_control$layers_config, function(e) e$ids),
                     vapply(w$x$layers_control$layers_config, function(e) e$label, character(1)))
 stopifnot(identical(entries$Industry, c("tri", "tri-stem")), identical(entries$Invasives, c("nas", "nas-stem")),

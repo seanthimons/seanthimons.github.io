@@ -848,6 +848,8 @@ build_day16_widget <- function(prep) {
     day16_legends(legend, cfg) |>
     mapgl::add_control(panel, position = "top-left") |>
     mapgl::add_navigation_control(visualize_pitch = TRUE) |>
+    # Readers can take the map fullscreen from the post (Esc returns).
+    mapgl::add_fullscreen_control(position = "top-right") |>
     mapgl::add_layers_control(
       layers = list(
         Industry = c("tri", "tri-stem"), Floods = c("usgs", "usgs-stem"), `Low water` = c("low", "low-stem"),
