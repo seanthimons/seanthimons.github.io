@@ -20,6 +20,8 @@ day16_config <- function() {
     ),
     window = c(xmin = -95, ymin = 28.9, xmax = -88, ymax = 45.05),
     hex_m = 12000, gage_radius_m = 5000,
+    # Stems tie each column that starts after the first year to the ground (about a pixel wide at the opening zoom).
+    stem_radius_m = 2000, stem_color = "#93a1ad", stem_opacity = 0.4,
     metres_per_year = c(`4` = 16000, `6` = 4000, `8` = 1000, `10` = 250, `12` = 60),
     camera = list(center = c(-90.9, 36.5), zoom = 5.15, pitch = 60, bearing = -78),
     years = 1987:2024,
@@ -557,9 +559,31 @@ day16_slabs <- function(prep) {
   slab <- function(year, geometry, ...) {
     sf::st_sf(year = year, b = year - min(cfg$years), ..., geometry = geometry)
   }
-  discs <- function(lon, lat) {
-    pts <- sf::st_transform(sf::st_as_sf(data.frame(lon = lon, lat = lat), coords = c("lon", "lat"), crs = 4326), cfg$crs)
-    sf::st_buffer(sf::st_geometry(pts), cfg$gage_radius_m, nQuadSegs = 6)
+  pts <- function(lon, lat) {
+    sf::st_geometry(sf::st_transform(sf::st_as_sf(data.frame(lon = lon, lat = lat), coords = c("lon", "lat"), crs = 4326), cfg$crs))
+  }
+  # Disc radius: gage_radius_m, shrunk to 45% of the distance to the nearest other site of the same kind, so
+  # neighboring columns never touch (Hastings and Prescott are 3.6 km apart). Returns the radius at each lon/lat.
+  radius_at <- function(lon, lat) {
+    key <- paste(lon, lat)
+    u <- !duplicated(key)
+    d <- matrix(as.numeric(sf::st_distance(pts(lon[u], lat[u]))), sum(u))
+    diag(d) <- Inf
+    r <- pmin(cfg$gage_radius_m, 0.45 * apply(d, 1, min))
+    function(lon, lat) r[match(paste(lon, lat), key[u])]
+  }
+  gage_r <- radius_at(c(prep$gages$lon, prep$low_gages$lon), c(prep$gages$lat, prep$low_gages$lat))
+  wq_used <- prep$wq_sites[prep$wq_sites$group %in% prep$conductivity$group, ]
+  wq_r <- radius_at(wq_used$lon, wq_used$lat)
+  discs <- function(lon, lat, r) sf::st_buffer(pts(lon, lat), r(lon, lat), nQuadSegs = 4)
+  # A thin stem from the ground up to the first slab of each column (key), so a column that starts late stays tied
+  # to its place. It carries that first year, so the slider shows it with the slab; columns starting in the first
+  # year need none. r caps the stem radius per row (half a shrunken disc).
+  stems <- function(key, year, at, r = rep(cfg$stem_radius_m, length(year))) {
+    o <- order(key, year)
+    i <- o[!duplicated(key[o])]
+    i <- i[year[i] > min(cfg$years)]
+    slab(year[i], sf::st_buffer(at[i], pmin(cfg$stem_radius_m, r[i]), nQuadSegs = 2))
   }
 
   # Only years with reported discharges get a slab; zero and not-quantified years are gaps in the column.
@@ -584,8 +608,8 @@ day16_slabs <- function(prep) {
   pk <- prep$peaks
   g <- prep$gages[match(pk$site, prep$gages$site), ]
   usgs <- slab(
-    pk$water_year, discs(g$lon, g$lat),
-    pctl = pk$pctl,
+    pk$water_year, discs(g$lon, g$lat, gage_r),
+    pctl = round(pk$pctl, 3),
     tip = sprintf(
       "<b>%s</b><br>Water year %d peak: <b>%s cfs</b> on %s<br>Rank %d of %d years since 1987 (1 = highest)%s",
       g$name, pk$water_year, day16_fmt(pk$peak_cfs), pk$peak_date, pk$rank,
@@ -596,8 +620,8 @@ day16_slabs <- function(prep) {
   lw <- prep$low
   lg <- prep$low_gages[match(lw$site, prep$low_gages$site), ]
   low <- slab(
-    lw$climate_year, discs(lg$lon, lg$lat),
-    pctl = lw$pctl,
+    lw$climate_year, discs(lg$lon, lg$lat, gage_r),
+    pctl = round(lw$pctl, 3),
     tip = sprintf(
       "<b>%s</b><br>Climatic year %d (April to March): lowest 7-day flow <b>%s cfs</b>, week ending %s%s<br>Rank %d of %d years since 1987 (1 = driest)%s",
       lg$name, lw$climate_year, day16_fmt(lw$min7_cfs), lw$min7_end,
@@ -609,8 +633,8 @@ day16_slabs <- function(prep) {
   wc <- prep$conductivity
   ws <- prep$wq_sites[match(wc$group, prep$wq_sites$group), ]
   wq <- slab(
-    wc$water_year, discs(ws$lon, ws$lat),
-    ratio = wc$ratio,
+    wc$water_year, discs(ws$lon, ws$lat, wq_r),
+    ratio = round(wc$ratio, 3),
     tip = sprintf(
       "<b>%s</b><br>Water year %d: <b>%.1f× natural background</b><br>Median %s µS/cm over %d visits; modeled background %s µS/cm",
       wc$group, wc$water_year, wc$ratio, day16_fmt(wc$median_us_cm), wc$n_visits, day16_fmt(wc$background_us_cm)
@@ -646,9 +670,23 @@ day16_slabs <- function(prep) {
     sf::st_geometry(x) <- sf::st_as_sfc(sf::st_as_text(sf::st_geometry(x), digits = 6), crs = 4326)
     x
   }
+  stem <- list(
+    tri = stems(hy$hex_id, hy$year, sf::st_centroid(cells)),
+    usgs = stems(pk$site, pk$water_year, pts(g$lon, g$lat), gage_r(g$lon, g$lat) / 2),
+    low = stems(lw$site, lw$climate_year, pts(lg$lon, lg$lat), gage_r(lg$lon, lg$lat) / 2),
+    wq = stems(wc$group, wc$water_year, pts(ws$lon, ws$lat), wq_r(ws$lon, ws$lat) / 2),
+    # Narrower than the industry stems on the same hexagon centres, so the two never draw one cylinder in "All".
+    nas = stems(ny$hex_id, ny$year, sf::st_centroid(ncells), rep(0.6 * cfg$stem_radius_m, nrow(ny)))
+  )
+  names(stem) <- paste0(names(stem), "-stem")
+  # In "All", floods and low-water stems split like their slabs, so a gage with both never draws two in one place.
+  stem$`usgs-stem-all` <- stem$`usgs-stem`
+  sf::st_geometry(stem$`usgs-stem-all`) <- day16_half(sf::st_geometry(stem$`usgs-stem`), "east", cfg$half_gap)
+  stem$`low-stem-all` <- stem$`low-stem`
+  sf::st_geometry(stem$`low-stem-all`) <- day16_half(sf::st_geometry(stem$`low-stem`), "west", cfg$half_gap)
   places <- sf::st_as_sf(prep$places, coords = c("lon", "lat"), crs = 4326)
   c(
-    lapply(list(tri = tri, usgs = usgs, `usgs-all` = usgs_all, low = low, `low-all` = low_all, wq = wq, nas = nas), to_wgs),
+    lapply(c(list(tri = tri, usgs = usgs, `usgs-all` = usgs_all, low = low, `low-all` = low_all, wq = wq, nas = nas), stem), to_wgs),
     list(river = sf::st_transform(sf::st_sf(geometry = prep$river), 4326), places = places)
   )
 }
@@ -661,9 +699,10 @@ day16_height <- function(prop, cfg, add = 0) {
   c(list("interpolate", list("linear"), list("zoom")), stops)
 }
 
-# The year-stacked extrusion layers: one per ledger, and an "-all" copy of each. Alone, a slab fills its year;
-# in "All", each ledger takes its own plate within the year (floods and low water share one, split in halves), so no
-# two ledgers share a surface. Only Industry shows on load.
+# The year-stacked extrusion layers: one per ledger, and an "-all" copy of each, each with its stems. Alone, a slab
+# fills its year; in "All", each ledger takes its own plate within the year (floods and low water share one, split in
+# halves), so no two ledgers share a surface. Stems rise to the base of the ledger's first slab. Only Industry shows
+# on load.
 day16_extrusions <- function(map, colors, sources, tip_style, cfg) {
   plates <- c(tri = 1, usgs = 2, low = 2, wq = 3, nas = 4)
   step <- cfg$slab / max(plates)
@@ -680,6 +719,14 @@ day16_extrusions <- function(map, colors, sources, tip_style, cfg) {
         fill_extrusion_opacity = 0.92,
         visibility = if (id == "tri") "visible" else "none",
         tooltip = "tip", tooltip_style = tip_style
+      )
+      map <- mapgl::add_fill_extrusion_layer(
+        map, id = paste0(k, "-stem", set), source = sources[[paste0(k, "-stem", set)]],
+        fill_extrusion_color = cfg$stem_color,
+        fill_extrusion_base = 0,
+        fill_extrusion_height = day16_height("b", cfg, base),
+        fill_extrusion_opacity = cfg$stem_opacity,
+        visibility = if (id == "tri") "visible" else "none"
       )
     }
   }
@@ -742,10 +789,14 @@ build_day16_widget <- function(prep) {
     nas = match_group(cfg$nas_groups)
   )
   # Each ledger is drawn twice: alone (its own switch entry) and in the "All" set, so no layer belongs to two entries
-  # of the one-at-a-time switch. The copies share a source, except floods and low water, which are split in "All".
-  ids <- c(names(colors), paste0(names(colors), "-all"))
-  sources <- setNames(paste0(sub("-all$", "", ids), "-src"), ids)
-  sources[c("usgs-all", "low-all")] <- c("usgs-all-src", "low-all-src")
+  # of the one-at-a-time switch.
+  ledgers <- names(colors)
+  ids <- c(ledgers, paste0(ledgers, "-all"))
+  stem_ids <- c(paste0(ledgers, "-stem"), paste0(ledgers, "-stem-all"))
+  # Alone and "All" copies share a source, except floods and low water (slabs and stems), which are split in "All".
+  sources <- setNames(paste0(sub("-all$", "", c(ids, stem_ids)), "-src"), c(ids, stem_ids))
+  split <- c("usgs-all", "low-all", "usgs-stem-all", "low-stem-all")
+  sources[split] <- paste0(split, "-src")
   orgs <- unique(sub("^USGS-.*", "USGS", prep$wq_sites$org[prep$wq_sites$group %in% prep$conductivity$group]))
   wq_credit <- paste(ifelse(orgs %in% names(cfg$wq_org_names), cfg$wq_org_names[orgs], orgs), collapse = ", ")
   panel <- sprintf(
@@ -753,7 +804,7 @@ build_day16_widget <- function(prep) {
       padding:13px 15px;font:13px/1.45 system-ui,sans-serif">
       <div style="font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:%s;font-weight:600">
         30DayMapChallenge · Day 16</div>
-      <details open><summary style="cursor:pointer;font-size:21px;font-weight:700;line-height:1.15;margin:3px 0 7px"
+      <details><summary style="cursor:pointer;font-size:21px;font-weight:700;line-height:1.15;margin:3px 0 7px;color:%s"
       title="Show or hide the description">The river\'s ledger</summary>
       <div style="color:#c9d3db">Five ledgers of one river, switched below (or all at once). Each column stacks years,
       1987 at the ground to 2024 at the top; gaps are years with nothing on record.
@@ -766,7 +817,7 @@ build_day16_widget <- function(prep) {
       <div style="color:%s;font-size:11px;margin-top:8px">Data: USGS Water Data API (annual peaks, daily flow); USGS
       Nonindigenous Aquatic Species database; EPA Toxics Release Inventory 1987–2024; Water Quality Portal (%s); EPA
       Freshwater Explorer background conductivity. %s.</div></details></div>',
-    cfg$ink, cfg$muted, cfg$muted, wq_credit, cfg$label
+    cfg$ink, cfg$muted, cfg$ink, cfg$muted, wq_credit, cfg$label
   )
   map <- mapgl::maplibre(
     style = mapgl::carto_style("dark-matter-no-labels"), projection = "mercator", maxPitch = 80,
@@ -788,7 +839,7 @@ build_day16_widget <- function(prep) {
       text_anchor = "top", text_offset = c(0, 0.7), text_pitch_alignment = "viewport"
     ) |>
     mapgl::add_slider_control(
-      layers = ids, property = "year", values = cfg$years,
+      layers = c(ids, stem_ids), property = "year", values = cfg$years,
       mode = "cumulative", initial_value = max(cfg$years),
       play_button = TRUE, animation_duration = 350, loop = TRUE,
       title = "Year", position = "bottom-left",
@@ -799,8 +850,9 @@ build_day16_widget <- function(prep) {
     mapgl::add_navigation_control(visualize_pitch = TRUE) |>
     mapgl::add_layers_control(
       layers = list(
-        Industry = "tri", Floods = "usgs", `Low water` = "low", Conductivity = "wq", Invasives = "nas",
-        `All five` = paste0(names(colors), "-all")
+        Industry = c("tri", "tri-stem"), Floods = c("usgs", "usgs-stem"), `Low water` = c("low", "low-stem"),
+        Conductivity = c("wq", "wq-stem"), Invasives = c("nas", "nas-stem"),
+        `All five` = c(paste0(ledgers, "-all"), paste0(ledgers, "-stem-all"))
       ),
       mode = "single", collapsible = FALSE, position = "top-left",
       background_color = "#0f151b", active_color = "#2a6f9e", hover_color = "#1b2630",
