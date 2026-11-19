@@ -6,6 +6,10 @@ dir.create(".R-library", showWarnings = FALSE)
 options(pak.sysreqs = FALSE, Ncpus = 2)
 Sys.setenv(PKG_SYSREQS = "false")
 if (!requireNamespace("pak", quietly = TRUE)) stop("Install pak first.")
+# Binaries only: on glibc Linux, P3M's portable manylinux_2_28 URL serves prebuilt packages for any distro
+# (the generic https://p3m.dev/cran/latest serves source; boosterpak rewrites it the same way).
+manylinux <- identical(Sys.info()[["sysname"]], "Linux")
+options(repos = c(CRAN = if (manylinux) "https://p3m.dev/cran/__linux__/manylinux_2_28/latest" else "https://p3m.dev/cran/latest"))
 pak::pkg_install(c("terra", "sf"), lib = ".R-library", ask = FALSE)
 if (!identical(Sys.info()[["sysname"]], "Linux")) quit(status = 0)
 os <- readLines("/etc/os-release", warn = FALSE)
