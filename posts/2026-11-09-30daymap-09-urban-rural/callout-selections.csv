@@ -1,0 +1,8 @@
+number,label,GEOID10,reference_layer,reference_name,dx_m,dy_m,source_url,retrieved_date
+1,Westwood,39061010002,neighborhoods,Westwood,-5000,-4500,https://data.cincinnati-oh.gov/dataset/Cincinnati-Statistical-Neighborhood-Approximations/i9zh-juvu,2026-11-12
+2,Avondale,39061006600,neighborhoods,Avondale,4500,-3500,https://data.cincinnati-oh.gov/dataset/Cincinnati-Statistical-Neighborhood-Approximations/i9zh-juvu,2026-11-12
+3,Lincoln Heights,39061022700,places,Lincoln Heights village,5500,3500,https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/4,2026-11-12
+4,Goshen Township,39025040204,subdivisions,Goshen township,6000,2500,https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/1,2026-11-12
+5,Batavia Township,39025041102,subdivisions,Batavia township,5000,-2500,https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/1,2026-11-12
+6,Monroe Township,39025041701,subdivisions,Monroe township,6500,-2000,https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/1,2026-11-12
+7,Ohio Township,39025041600,subdivisions,Ohio township,-5500,-3000,https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/1,2026-11-12

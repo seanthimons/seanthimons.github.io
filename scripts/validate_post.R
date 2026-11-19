@@ -129,12 +129,18 @@ for (block in tibble_blocks) {
 }
 
 # --- Check 3: Plot images referenced but potentially empty ---
-# Count figure references in the markdown
+# Count figure references in the markdown: knitr plots, other images a code cell printed (knitr::include_graphics,
+# as the map posts use), and htmlwidgets. Images written in the prose do not count.
 fig_refs <- regmatches(md, gregexpr("figure-html/[^)\"]+\\.png", md))[[1]]
-n_figs <- length(fig_refs)
+image_refs <- regmatches(md, gregexpr(
+  "::: \\{\\.cell-output-display\\}\\s*!\\[[^]]*\\]\\([^)]+\\.(png|jpe?g)\\)", md, perl = TRUE
+))[[1]]
+image_refs <- image_refs[!grepl("figure-html/", image_refs, fixed = TRUE)]
+widget_refs <- regmatches(md, gregexpr("class=\"[^\"]*html-widget", md))[[1]]
+n_figs <- length(fig_refs) + length(image_refs) + length(widget_refs)
 
 if (n_figs == 0) {
-  issues <- c(issues, "NO_PLOTS: No plot images (figure-html/*.png) referenced in rendered output")
+  issues <- c(issues, "NO_PLOTS: No plots, images or widgets referenced in rendered output")
 } else {
   # Check actual figure files on disk
   freeze_fig_dir <- file.path(

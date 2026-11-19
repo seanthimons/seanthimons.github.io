@@ -6,15 +6,15 @@ day,theme,package_lane,data_idea,fallback
 5,Senses: Sight,lidar-intervisibility,Who sees what: Devou - Eden Park - Mount Echo overlooks to five landmarks over the USGS 3DEP lidar surface (rlas + terra; OSM),Bare-earth line of sight to the same landmarks
 6,Vintage,historical-raster,Pre-Prohibition breweries across Cincinnati Covington and Newport over two 1914 USGS sheets (terra),Map only supported site proxies; list unresolved historical addresses explicitly
 7,10 minute map,network-isochrones,Fountain Square five- and ten-minute walking cycling driving isochrones (Valhalla + sf),Saved routing responses and Census context; identical map extents with explicit speed and parking assumptions
-8,Utopia,to-scope,TBD in morning scope,TBD after scope
-9,Urban-rural,to-scope,TBD in morning scope,TBD after scope
+8,Utopia,watershed-assessment,Ohio 2024 ATTAINS aquatic-life watershed status with a full-support goal; Freshwater Explorer named-stream context,Preserve reporting-unit geography and distinguish unresolved assessments; never classify reaches from modelled conductivity
+9,Urban-rural,network-food-access,Inbound walking versus driving supermarket catchments across Hamilton and Clermont counties; USDA 2019 vehicle-based low-income low-access context,Keep historical tract flags distinct from modelled access; SNAP supermarkets/superstores only with explicit exclusions and cached routing
 10,Prompting only,to-scope,TBD in morning scope,TBD after scope
 11,Senses: Sound,to-scope,TBD in morning scope,TBD after scope
 12,Power,to-scope,TBD in morning scope,TBD after scope
 13,Interactions,to-scope,TBD in morning scope,TBD after scope
 14,Borgesian map,to-scope,TBD in morning scope,TBD after scope
 15,Inside out,to-scope,TBD in morning scope,TBD after scope
-16,Collaborative map,to-scope,TBD in morning scope,TBD after scope
+16,Collaborative map,webgl-3d,Head-to-head on the Mississippi (St. Paul to the Gulf) with USGS and EPA data: TRI water discharges - flood peaks - 7-day low flows - conductivity vs modeled background - NAS invasive carp and zebra mussel as a mapgl space-time cube,Static PNG of the cube; fewer ledgers if the page outgrows its budget
 17,Light & dark,to-scope,TBD in morning scope,TBD after scope
 18,NULL,to-scope,TBD in morning scope,TBD after scope
 19,Senses: Smell,to-scope,TBD in morning scope,TBD after scope

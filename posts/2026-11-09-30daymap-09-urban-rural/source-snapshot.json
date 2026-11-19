@@ -1,0 +1,125 @@
+{
+  "sources": [
+    {
+      "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1/query?where=STATE%3D%2739%27%20AND%20COUNTY%20IN%20%28%27061%27%2C%27025%27%29&outFields=%2A&outSR=4326&f=geojson&maxAllowableOffset=2e-04",
+      "path": "data/30daymap/2026/day09/counties.json",
+      "sha256": "b593d76f31d0c02d3fb8d96778447459e0bc632fe788426f9fbe7f05fde1cc7c",
+      "retrieved_utc": "2026-11-12 16:49:19 UTC",
+      "_row": "counties.json"
+    },
+    {
+      "url": "https://services1.arcgis.com/RLQu0rK7h4kbsBq5/arcgis/rest/services/snap_retailer_location_data/FeatureServer/0/query?where=Store_Type%20IN%20%28%27Supermarket%27%2C%27Super%20Store%27%2C%27Grocery%20Store%27%29&geometry=-85.15%2C38.50%2C-83.45%2C39.75&geometryType=esriGeometryEnvelope&inSR=4326&returnGeometry=true&outSR=4326&outFields=%2A&f=geojson",
+      "path": "data/30daymap/2026/day09/grocery-candidates.json",
+      "sha256": "35ce87abb4826200a4879294fc0d4c69d11104443ba99bf2e1936f3ed0019590",
+      "retrieved_utc": "2026-11-12 16:58:18 UTC",
+      "_row": "grocery-candidates.json"
+    },
+    {
+      "url": "https://gisportal.ers.usda.gov/server/rest/services/FARA/FARA_2019/MapServer/30/query?where=GEOID10%20LIKE%20%2739061%25%27%20OR%20GEOID10%20LIKE%20%2739025%25%27&outFields=GEOID10%2CCnty_Name%2CUrban%2CLowIncomeTracts%2CLILATracts_Vehicle%2CHUNVFlag%2CPOP2010%2COHU2010%2CTractHUNV%2CPovertyRate&outSR=4326&f=geojson&maxAllowableOffset=2e-04",
+      "path": "data/30daymap/2026/day09/fara2019-tracts.json",
+      "sha256": "642a83db47f2e81471411eb7f829879b998998b98ebf3058000684637bcacb88",
+      "retrieved_utc": "2026-11-12 16:54:06 UTC",
+      "_row": "fara2019-tracts.json"
+    },
+    {
+      "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Urban/MapServer/0/query?where=1%3D1&geometry=-84.85%2C38.75%2C-83.83%2C39.45&geometryType=esriGeometryEnvelope&inSR=4326&outFields=%2A&outSR=4326&f=geojson&maxAllowableOffset=2e-04",
+      "path": "data/30daymap/2026/day09/urban2020.json",
+      "sha256": "0056f845f6116b2dc616e79a59184188fb27650b1136b44d87e5975025194330",
+      "retrieved_utc": "2026-11-12 16:54:07 UTC",
+      "_row": "urban2020.json"
+    },
+    {
+      "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/1/query?where=STATE%3D%2739%27%20AND%20COUNTY%20IN%20%28%27061%27%2C%27025%27%29&outFields=%2A&f=geojson&outSR=4326&geometry=-84.85%2C38.75%2C-83.83%2C39.45&geometryType=esriGeometryEnvelope&inSR=4326&maxAllowableOffset=2e-04",
+      "path": "data/30daymap/2026/day09/callouts/subdivisions.json",
+      "sha256": "25dcc7523fd3209402e3af49e5250dc8aae092b3bce7df6efc6d8366fc607926",
+      "retrieved_utc": "2026-11-12 17:13:15 UTC",
+      "_row": "callouts/subdivisions.json"
+    },
+    {
+      "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/4/query?where=STATE%3D%2739%27&outFields=%2A&f=geojson&outSR=4326&geometry=-84.85%2C38.75%2C-83.83%2C39.45&geometryType=esriGeometryEnvelope&inSR=4326&maxAllowableOffset=2e-04",
+      "path": "data/30daymap/2026/day09/callouts/places.json",
+      "sha256": "1f51bf99d74e041a643a1e2535c83c32cc2b69f65edfd6a42faec225b18e2f42",
+      "retrieved_utc": "2026-11-12 17:13:15 UTC",
+      "_row": "callouts/places.json"
+    },
+    {
+      "url": "https://cagisonline.hamilton-co.org/arcgis/rest/services/CINC_PLANNING/Cincinnati_Neighborhoods/MapServer/0/query?where=1%3D1&outFields=%2A&outSR=4326&f=geojson&maxAllowableOffset=1e-04",
+      "path": "data/30daymap/2026/day09/callouts/neighborhoods.json",
+      "sha256": "698494de0631894960ce31554be540e8f712b261f1b3ed72be588281bd37b08c",
+      "retrieved_utc": "2026-11-12 17:13:47 UTC",
+      "_row": "callouts/neighborhoods.json"
+    },
+    {
+      "url": "https://valhalla1.openstreetmap.de/status",
+      "path": "data/30daymap/2026/day09/valhalla-status.json",
+      "sha256": "70c266ec3b55cab23ed268e0299a3a824a7d1ab83c9f01e27ae1a41271edaece",
+      "retrieved_utc": "2026-11-12 16:58:19 UTC",
+      "_row": "valhalla-status.json"
+    }
+  ],
+  "render_inputs": [
+    {
+      "path": "posts/2026-11-09-30daymap-09-urban-rural/grocery-access.gpkg",
+      "sha256": "3d54a48b082c3859451345f6425da71fa0b0bfec33e2db4bab8c5a0b17116b12",
+      "_row": "posts/2026-11-09-30daymap-09-urban-rural/grocery-access.gpkg"
+    },
+    {
+      "path": "posts/2026-11-09-30daymap-09-urban-rural/stores.csv",
+      "sha256": "f15e9145f73d6cbdb86c1d17efd686ae8d0a70b453ff82941bc67728eb584ea3",
+      "_row": "posts/2026-11-09-30daymap-09-urban-rural/stores.csv"
+    },
+    {
+      "path": "posts/2026-11-09-30daymap-09-urban-rural/excluded-retailers.csv",
+      "sha256": "10ad6efd625374debcff7131c62729fc67aff7fa8e77b6501783b0512a84c4fb",
+      "_row": "posts/2026-11-09-30daymap-09-urban-rural/excluded-retailers.csv"
+    },
+    {
+      "path": "posts/2026-11-09-30daymap-09-urban-rural/fara2019-tracts.csv",
+      "sha256": "ef83acbddad974ba26db854cd48e4d988116d4387fcd510b72ce94ceaadb8989",
+      "_row": "posts/2026-11-09-30daymap-09-urban-rural/fara2019-tracts.csv"
+    },
+    {
+      "path": "posts/2026-11-09-30daymap-09-urban-rural/routing-manifest.csv",
+      "sha256": "0be4ac45b908e960cceb6db3b68b30fed0bae396ca0ad9565f3e240246dccece",
+      "_row": "posts/2026-11-09-30daymap-09-urban-rural/routing-manifest.csv"
+    },
+    {
+      "path": "posts/2026-11-09-30daymap-09-urban-rural/store-snaps.csv",
+      "sha256": "9c8fe87fadb4897d6fe56ba9045700d97326024a88c0f22928809b17c745e3a2",
+      "_row": "posts/2026-11-09-30daymap-09-urban-rural/store-snaps.csv"
+    },
+    {
+      "path": "posts/2026-11-09-30daymap-09-urban-rural/callout-selections.csv",
+      "sha256": "cc4bbaf1077a5a7cf7907a5774bd3f4892898fd605943c0770560665dcac021b",
+      "_row": "posts/2026-11-09-30daymap-09-urban-rural/callout-selections.csv"
+    }
+  ],
+  "valhalla": {
+    "version": "3.9.1-a34c729",
+    "tileset_last_modified": 1794477250,
+    "available_actions": [
+      "route",
+      "locate",
+      "sources_to_targets",
+      "optimized_route",
+      "isochrone",
+      "trace_route",
+      "trace_attributes",
+      "height",
+      "transit_available",
+      "expansion",
+      "centroid",
+      "status",
+      "tile"
+    ]
+  },
+  "retrieved_date": "2026-11-12",
+  "counts": {
+    "stores": 195,
+    "inside_study": 90,
+    "walking_destinations": 103,
+    "historical_tracts": 262,
+    "historical_vehicle_lila": 63
+  },
+  "note": "Inbound five/ten-minute contours to SNAP supermarkets/superstores; smaller and specialty retailers and membership chains excluded. Stores within 25 km supply driving, within 2 km supply walking. Static road speeds; parking, prices, opening hours and transit not modelled. USDA vehicle-based low-income/low-access tract flags are a 2019 historical benchmark on 2010 tract geometry, not a current designation."
+}
