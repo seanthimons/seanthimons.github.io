@@ -1,0 +1,104 @@
+{
+  "sources": [
+    {
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-84.514,39.1008,-84.5118,39.1025",
+      "path": "data/30daymap/2026/day07/origin.osm",
+      "sha256": "2b5ed022683d22dc220f4255ffd0a07fc5fbefe7fd71eb18cdd5c077edc88603",
+      "retrieved_utc": "2026-11-11 22:43:10 UTC",
+      "_row": "data/30daymap/2026/day07/origin.osm"
+    },
+    {
+      "url": "https://valhalla1.openstreetmap.de/status",
+      "path": "data/30daymap/2026/day07/valhalla-status.json",
+      "sha256": "9f39347a5228cb3c837ff8f7e81e464aed6fc326830111aaed29a4743515cd85",
+      "retrieved_utc": "2026-11-11 22:44:23 UTC",
+      "_row": "data/30daymap/2026/day07/valhalla-status.json"
+    },
+    {
+      "url": "https://valhalla1.openstreetmap.de/isochrone",
+      "path": "data/30daymap/2026/day07/pedestrian-response.json",
+      "sha256": "5b69cf1196481b3b3bafa2ebae9ec650202207145d3fea0c75eac738cf8f762e",
+      "retrieved_utc": "2026-11-11 22:44:21 UTC",
+      "_row": "data/30daymap/2026/day07/pedestrian-response.json"
+    },
+    {
+      "url": "https://valhalla1.openstreetmap.de/isochrone",
+      "path": "data/30daymap/2026/day07/bicycle-response.json",
+      "sha256": "f3e67fb60182afd4e03bd760c66770cdf5cf0d133fbf1d36a52d62c4a79bdb9c",
+      "retrieved_utc": "2026-11-11 22:44:21 UTC",
+      "_row": "data/30daymap/2026/day07/bicycle-response.json"
+    },
+    {
+      "url": "https://valhalla1.openstreetmap.de/isochrone",
+      "path": "data/30daymap/2026/day07/auto-response.json",
+      "sha256": "9dad079ae5953344fad3a4ba71bcf4a85b9f54a0320ffc6a53c034ae9ffa46cb",
+      "retrieved_utc": "2026-11-11 22:44:22 UTC",
+      "_row": "data/30daymap/2026/day07/auto-response.json"
+    },
+    {
+      "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer/2/query?where=1%3D1&geometry=-84.65%2C38.99%2C-84.37%2C39.21&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=%2A&returnGeometry=true&outSR=4326&geometryPrecision=5&maxAllowableOffset=5e-05&f=geojson",
+      "path": "data/30daymap/2026/day07/primary.json",
+      "sha256": "b7525c42e108961b9f6bba39a34713b6a65a809d33324bfc16816b80f400d6b9",
+      "retrieved_utc": "2026-11-11 22:45:29 UTC",
+      "_row": "data/30daymap/2026/day07/primary.json"
+    },
+    {
+      "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer/6/query?where=1%3D1&geometry=-84.65%2C38.99%2C-84.37%2C39.21&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=%2A&returnGeometry=true&outSR=4326&geometryPrecision=5&maxAllowableOffset=5e-05&f=geojson",
+      "path": "data/30daymap/2026/day07/secondary.json",
+      "sha256": "81029a223e9a5dde3f3dd51ee61c7e717eb1e739dd263455afe276c5f2eaee72",
+      "retrieved_utc": "2026-11-11 22:45:29 UTC",
+      "_row": "data/30daymap/2026/day07/secondary.json"
+    },
+    {
+      "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Hydro/MapServer/1/query?where=1%3D1&geometry=-84.65%2C38.99%2C-84.37%2C39.21&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=%2A&returnGeometry=true&outSR=4326&geometryPrecision=5&maxAllowableOffset=5e-05&f=geojson",
+      "path": "data/30daymap/2026/day07/water.json",
+      "sha256": "0b11d602b23b59e34710821a4c4e5e68a737453afe5685777aad2c59c468d20f",
+      "retrieved_utc": "2026-11-11 22:45:30 UTC",
+      "_row": "data/30daymap/2026/day07/water.json"
+    }
+  ],
+  "render_inputs": [
+    {
+      "path": "posts/2026-11-07-30daymap-07-10-minute-map/isochrones.geojson",
+      "sha256": "7b80e99b74aa7a055a28cd087a19deebd2a68dd61ab1e84312296d1baf30dc3a",
+      "_row": "posts/2026-11-07-30daymap-07-10-minute-map/isochrones.geojson"
+    },
+    {
+      "path": "posts/2026-11-07-30daymap-07-10-minute-map/roads.geojson",
+      "sha256": "48c3c5f28fdb4d3adf54f861cd1d7bdfcf77668fc9c374e2ba4d53c5b9fc7d2a",
+      "_row": "posts/2026-11-07-30daymap-07-10-minute-map/roads.geojson"
+    },
+    {
+      "path": "posts/2026-11-07-30daymap-07-10-minute-map/water.geojson",
+      "sha256": "b68dce69781cd0672cd1714986a16a819d8be5f0c22c082151d1dc47bd11ae6b",
+      "_row": "posts/2026-11-07-30daymap-07-10-minute-map/water.geojson"
+    },
+    {
+      "path": "posts/2026-11-07-30daymap-07-10-minute-map/origin.csv",
+      "sha256": "03fdce7576d2a1df590620af4d649efc6952e6aa2a92017753bb88c005b666f6",
+      "_row": "posts/2026-11-07-30daymap-07-10-minute-map/origin.csv"
+    },
+    {
+      "path": "posts/2026-11-07-30daymap-07-10-minute-map/origin-snaps.csv",
+      "sha256": "9e15192e420c86b51d68d733a66b5c2e8bf6bed13e4534041fff87c4c754bd03",
+      "_row": "posts/2026-11-07-30daymap-07-10-minute-map/origin-snaps.csv"
+    },
+    {
+      "path": "posts/2026-11-07-30daymap-07-10-minute-map/routing-requests.json",
+      "sha256": "fc8216c91e3a3c5c42f8b32bf5b7c214218bf0880d1baaf694d85708475f68e9",
+      "_row": "posts/2026-11-07-30daymap-07-10-minute-map/routing-requests.json"
+    },
+    {
+      "path": "posts/2026-11-07-30daymap-07-10-minute-map/summary.csv",
+      "sha256": "e7b4e56010aff8b65d48f52623fcdaaa874aa68f2e98df9a475068149889a5fc",
+      "_row": "posts/2026-11-07-30daymap-07-10-minute-map/summary.csv"
+    }
+  ],
+  "valhalla": {
+    "version": "3.9.1-9aac4da",
+    "tileset_last_modified": 1794401899,
+    "available_actions": ["route", "locate", "sources_to_targets", "optimized_route", "isochrone", "trace_route", "trace_attributes", "height", "transit_available", "expansion", "centroid", "status", "tile"]
+  },
+  "retrieved_date": "2026-11-11",
+  "note": "Outward time contours; speed_types=[] excludes traffic speed sources. Other costing defaults are server-version dependent. Census context is separate from OSM routing. Generalized contours are envelopes, not a guarantee that every interior point is accessible."
+}

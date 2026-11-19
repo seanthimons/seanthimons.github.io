@@ -1,0 +1,4 @@
+"mode","minutes","max_straight_line_km"
+"pedestrian",10,0.848
+"bicycle",10,2.755
+"auto",10,12.292

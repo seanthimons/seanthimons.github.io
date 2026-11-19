@@ -5,7 +5,7 @@ day,theme,package_lane,data_idea,fallback
 4,Clusters,point-clustering,EPA TRI 2024 reporting-site clusters - Cincinnati to Louisville,Keep sites visible and compare multiple neighborhood distances
 5,Senses: Sight,lidar-intervisibility,Who sees what: Devou - Eden Park - Mount Echo overlooks to five landmarks over the USGS 3DEP lidar surface (rlas + terra; OSM),Bare-earth line of sight to the same landmarks
 6,Vintage,historical-raster,Pre-Prohibition breweries across Cincinnati Covington and Newport over two 1914 USGS sheets (terra),Map only supported site proxies; list unresolved historical addresses explicitly
-7,10 minute map,to-scope,TBD in morning scope,TBD after scope
+7,10 minute map,network-isochrones,Fountain Square five- and ten-minute walking cycling driving isochrones (Valhalla + sf),Saved routing responses and Census context; identical map extents with explicit speed and parking assumptions
 8,Utopia,watershed-assessment,Ohio 2024 ATTAINS aquatic-life watershed status with a full-support goal; Freshwater Explorer named-stream context,Preserve reporting-unit geography and distinguish unresolved assessments; never classify reaches from modelled conductivity
 9,Urban-rural,network-food-access,Inbound walking versus driving supermarket catchments across Hamilton and Clermont counties; USDA 2019 vehicle-based low-income low-access context,Keep historical tract flags distinct from modelled access; SNAP supermarkets/superstores only with explicit exclusions and cached routing
 10,Prompting only,to-scope,TBD in morning scope,TBD after scope

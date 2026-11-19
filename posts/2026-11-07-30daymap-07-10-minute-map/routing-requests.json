@@ -1,0 +1,85 @@
+{
+  "pedestrian": {
+    "locations": [
+      {
+        "lat": 39.1014843,
+        "lon": -84.5125001
+      }
+    ],
+    "costing": "pedestrian",
+    "costing_options": {
+      "pedestrian": {
+        "walking_speed": 5.1
+      }
+    },
+    "contours": [
+      {
+        "time": 5
+      },
+      {
+        "time": 10
+      }
+    ],
+    "polygons": true,
+    "denoise": 0,
+    "generalize": 10,
+    "show_locations": true,
+    "reverse": false
+  },
+  "bicycle": {
+    "locations": [
+      {
+        "lat": 39.1014843,
+        "lon": -84.5125001
+      }
+    ],
+    "costing": "bicycle",
+    "costing_options": {
+      "bicycle": {
+        "bicycle_type": "hybrid",
+        "cycling_speed": 18,
+        "use_hills": 0.25
+      }
+    },
+    "contours": [
+      {
+        "time": 5
+      },
+      {
+        "time": 10
+      }
+    ],
+    "polygons": true,
+    "denoise": 0,
+    "generalize": 10,
+    "show_locations": true,
+    "reverse": false
+  },
+  "auto": {
+    "locations": [
+      {
+        "lat": 39.1014843,
+        "lon": -84.5125001
+      }
+    ],
+    "costing": "auto",
+    "costing_options": {
+      "auto": {
+        "speed_types": []
+      }
+    },
+    "contours": [
+      {
+        "time": 5
+      },
+      {
+        "time": 10
+      }
+    ],
+    "polygons": true,
+    "denoise": 0,
+    "generalize": 10,
+    "show_locations": true,
+    "reverse": false
+  }
+}
