@@ -1,5 +1,4 @@
 # Run from the repository root with sh scripts/map-r.sh.
-library(magrittr)
 source("posts/2026-11-07-30daymap-07-10-minute-map/render-map.R")
 cfg <- day07_config()
 verify_day07()

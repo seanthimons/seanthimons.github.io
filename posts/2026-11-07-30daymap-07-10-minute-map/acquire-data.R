@@ -1,6 +1,5 @@
 #!/usr/bin/env Rscript
 # Explicit network step. The published post and renderer never contact a routing API.
-library(magrittr)
 source("posts/2026-11-07-30daymap-07-10-minute-map/render-map.R")
 if (!"--download" %in% commandArgs(trailingOnly = TRUE)) stop("Opt in with --download")
 options(timeout = 180)
@@ -23,7 +22,7 @@ origin_node <- xml2::xml_find_first(origin_doc, "/osm/node[@id='13840947952']")
 if (is.na(xml2::xml_name(origin_node)) ||
     max(abs(as.numeric(xml2::xml_attrs(origin_node)[c("lon", "lat")]) - cfg$origin)) > 1e-7)
   stop("Fountain Square OSM location changed; review the origin")
-origin <- sf::st_as_sf(data.frame(lon = cfg$origin[1], lat = cfg$origin[2]), coords = c("lon", "lat"), crs = 4326) %>%
+origin <- sf::st_as_sf(data.frame(lon = cfg$origin[1], lat = cfg$origin[2]), coords = c("lon", "lat"), crs = 4326) |>
   sf::st_transform(cfg$crs)
 contours <- list(); snaps <- list()
 for (mode in cfg$modes) {
@@ -70,7 +69,7 @@ jsonlite::write_json(requests, file.path(day07_root, "routing-requests.json"), a
 # Census roads and river polygons provide context; Valhalla's OSM graph provides the routing.
 base <- "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/"
 layers <- c(primary = "Transportation/MapServer/2", secondary = "Transportation/MapServer/6", water = "Hydro/MapServer/1")
-roi <- sf::st_as_sfc(sf::st_bbox(c(xmin = cfg$bounds[1], ymin = cfg$bounds[2], xmax = cfg$bounds[3], ymax = cfg$bounds[4]), crs = sf::st_crs(4326))) %>%
+roi <- sf::st_as_sfc(sf::st_bbox(c(xmin = cfg$bounds[1], ymin = cfg$bounds[2], xmax = cfg$bounds[3], ymax = cfg$bounds[4]), crs = sf::st_crs(4326))) |>
   sf::st_transform(cfg$crs)
 context <- lapply(names(layers), function(key) {
   query <- list(where = "1=1", geometry = paste(cfg$bounds, collapse = ","), geometryType = "esriGeometryEnvelope",
@@ -81,13 +80,13 @@ context <- lapply(names(layers), function(key) {
   fetch(url, path)
   raw <- jsonlite::read_json(path)
   if (!is.null(raw$error) || isTRUE(raw$exceededTransferLimit) || isTRUE(raw$properties$exceededTransferLimit)) stop("Incomplete Census response: ", key)
-  x <- sf::st_read(path, quiet = TRUE) %>% sf::st_transform(cfg$crs) %>% sf::st_make_valid()
+  x <- sf::st_read(path, quiet = TRUE) |> sf::st_transform(cfg$crs) |> sf::st_make_valid()
   x <- suppressWarnings(sf::st_intersection(x, roi))
   urls[filename] <<- url
   sf::st_sf(kind = key, name = if ("NAME" %in% names(x)) x$NAME else "", geometry = sf::st_geometry(x))
 })
-roads <- rbind(context[[1]], context[[2]]) %>% sf::st_simplify(dTolerance = 10) %>% sf::st_transform(4326)
-water <- context[[3]] %>% sf::st_simplify(dTolerance = 5, preserveTopology = TRUE) %>% sf::st_transform(4326)
+roads <- rbind(context[[1]], context[[2]]) |> sf::st_simplify(dTolerance = 10) |> sf::st_transform(4326)
+water <- context[[3]] |> sf::st_simplify(dTolerance = 5, preserveTopology = TRUE) |> sf::st_transform(4326)
 sf::st_write(roads, file.path(day07_root, "roads.geojson"), delete_dsn = TRUE, quiet = TRUE)
 sf::st_write(water, file.path(day07_root, "water.geojson"), delete_dsn = TRUE, quiet = TRUE)
 origin_xy <- sf::st_coordinates(origin)[1, ]

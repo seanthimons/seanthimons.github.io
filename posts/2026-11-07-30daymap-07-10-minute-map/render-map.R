@@ -32,14 +32,14 @@ day07_radius <- function(geometry, origin) {
 
 read_day07 <- function() {
   cfg <- day07_config()
-  read <- function(name) sf::st_read(file.path(day07_root, name), quiet = TRUE) %>% sf::st_transform(cfg$crs)
+  read <- function(name) sf::st_read(file.path(day07_root, name), quiet = TRUE) |> sf::st_transform(cfg$crs)
   contours <- read("isochrones.geojson")
   if (nrow(contours) != 6 || !setequal(contours$mode, cfg$modes) ||
       anyDuplicated(paste(contours$mode, contours$minutes)) ||
       !setequal(contours$minutes, c(5, 10)) || any(sf::st_is_empty(contours)) ||
       !all(sf::st_is_valid(contours)) || !all(sf::st_geometry_type(contours) %in% c("POLYGON", "MULTIPOLYGON")))
     stop("Invalid isochrone reduction")
-  origin <- sf::st_as_sf(data.frame(lon = cfg$origin[1], lat = cfg$origin[2]), coords = c("lon", "lat"), crs = 4326) %>%
+  origin <- sf::st_as_sf(data.frame(lon = cfg$origin[1], lat = cfg$origin[2]), coords = c("lon", "lat"), crs = 4326) |>
     sf::st_transform(cfg$crs)
   list(contours = contours, origin = origin, roads = read("roads.geojson"), water = read("water.geojson"))
 }
@@ -65,7 +65,7 @@ draw_day07 <- function(data, cfg = day07_config()) {
   assumptions <- c("5.1 km/h walking baseline", "Hybrid bicycle / 18 km/h baseline", "Static road speeds / parking excluded")
   labels <- data.frame(name = c("CINCINNATI", "COVINGTON", "NEWPORT", "NORWOOD"),
                         lon = c(-84.518, -84.520, -84.487, -84.459), lat = c(39.121, 39.073, 39.081, 39.161))
-  places <- sf::st_as_sf(labels, coords = c("lon", "lat"), crs = 4326) %>% sf::st_transform(cfg$crs)
+  places <- sf::st_as_sf(labels, coords = c("lon", "lat"), crs = 4326) |> sf::st_transform(cfg$crs)
   xy <- sf::st_coordinates(places)
   for (i in seq_along(cfg$modes)) {
     mode <- cfg$modes[i]; color <- cfg$colors[[mode]]
@@ -117,7 +117,6 @@ draw_day07 <- function(data, cfg = day07_config()) {
 }
 
 render_day07 <- function() {
-  library(magrittr)
   verify_day07()
   data <- read_day07()
   out <- file.path(day07_root, "artifacts")
