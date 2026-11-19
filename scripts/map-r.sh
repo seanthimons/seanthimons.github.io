@@ -15,7 +15,7 @@ if [ -d "$ROOT/.sysdeps/usr/lib64" ]; then
     export UDUNITS2_XML_PATH="$ROOT/.sysdeps/usr/share/udunits/udunits2.xml"
   fi
 fi
-# Map scripts prepend .R-library themselves, retaining the user's normal R library.
+# Map scripts prepend .R-library themselves; once setup.R has run, the root .Rprofile also loads the renv library.
 if [ "${1:-}" = "--quarto" ]; then
   shift
   exec quarto "$@"

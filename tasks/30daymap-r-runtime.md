@@ -2,6 +2,18 @@
 
 Run from this branch's worktree root. Nothing requires sudo. The map pipeline is native R; the shell wrapper only sets runtime paths and starts R or Quarto.
 
+## Project environment (renv, boosterpak-owned)
+
+The repo root is a renv project managed by [boosterpak](https://github.com/seanthimons/boosterpak). `renv.lock` is the portable lockfile; `setup.R` is the only entry point that installs into the root renv library:
+
+```sh
+Rscript --vanilla setup.R
+```
+
+On Linux it rewrites the P3M URL to the portable `manylinux_2_28` one, so every package installs as a prebuilt binary and nothing compiles. The library lives in gitignored `renv/library/`. After adding packages, run `boosterpak::snapshot_project()` (boosterpak >= 0.13.1, which drops R's own recommended packages from the lockfile) and commit `renv.lock`; run `boosterpak::write_portable_setup()` to refresh `setup.R`. Sources outside the lockfile (`docs/`, `_freeze/`, `.R-library/`, `.sysdeps/`) are excluded via `.renvignore`.
+
+The per-day `tasks/30daymap-*-r.lock` files and `.R-library/` below predate this and are kept as a record of each day's tested set; new days should use the root project.
+
 ## Setup
 
 ```sh
@@ -10,13 +22,20 @@ Rscript scripts/setup-map-r.R
 
 The explicit setup recipe uses `pak` to install spatial R packages into ignored `.R-library/`. This host is Debian 13 and lacked GDAL/PROJ/GEOS runtimes. The recipe simulates APT resolution, downloads the missing Debian runtime packages, and extracts them with `dpkg-deb -x` into ignored `.sysdeps/`. It does not install system packages, execute maintainer scripts, change global libraries, or use sudo. It assumes Debian 13's runtime package names and binary-compatible R packages; it is not a cross-distribution installer. `pak` and Quarto's R dependencies must already be available in the ordinary R library.
 
-The verified R dependency versions and their transitive dependencies are recorded in `tasks/30daymap-r.lock`. This campaign lockfile is separate from site-wide configuration; setup does not activate renv or alter the whole blog. The simple pak setup resolves currently available binaries. To restore the recorded R package set instead, with `renv` already available, use:
+The verified R dependency versions and their transitive dependencies are recorded in `tasks/30daymap-r.lock`. This campaign lockfile is separate from site-wide configuration; the root renv project above is separate and covers the whole blog. The simple pak setup resolves currently available binaries. To restore the recorded R package set instead, with `renv` already available, use:
 
 ```r
-renv::restore(lockfile = "tasks/30daymap-r.lock", library = ".R-library", prompt = FALSE)
+# Linux: use the manylinux URL so pak installs binaries (the lockfile's generic URL serves source).
+options(renv.config.pak.enabled = TRUE)
+renv::restore(lockfile = "tasks/30daymap-r.lock", library = ".R-library", prompt = FALSE,
+  repos = c(CRAN = "https://p3m.dev/cran/__linux__/manylinux_2_28/latest"))
 ```
 
 The extracted runtime package versions are recorded in `tasks/30daymap-runtime-packages.txt`. The local APT plan/debs remain in `.sysdeps/` for audit; a future APT mirror may supersede those package versions.
+
+## Packages: binaries only
+
+Never build R packages from source in this repo. Install with `pak::pkg_install()` from Posit Package Manager (P3M): `https://p3m.dev/cran/latest` is the portable repo, which serves source on Linux unless rewritten to manylinux (see boosterpak and baseline's `templates/config/.Rprofile`); on glibc Linux use `https://p3m.dev/cran/__linux__/manylinux_2_28/latest` so pak fetches prebuilt binaries. `install.packages()` with `pkgType = "binary"` fails on Linux, and `type = "source"` compiles; use neither. `scripts/setup-map-r.R` sets the repo itself. The lockfiles pin `https://p3m.dev/cran/latest`.
 
 ## Test and render
 
@@ -166,7 +185,7 @@ Lidar comes from the USGS 3DEP Entwine (EPT) copies in the public
 the node files in `source-snapshot.json`; a changed manifest means USGS rebuilt the
 index and the matrix needs review.
 
-`rlas` 1.9.5 builds from CRAN source and needs GDAL, PROJ, and GEOS development
+**Documented exception to "binaries only" (legacy Fedora `.R-library` path only; the root renv lock gets `rlas` as a manylinux binary):** `rlas` 1.9.5 builds from CRAN source and needs GDAL, PROJ, and GEOS development
 files. On the Fedora 44 host, without sudo, the matching `-devel` RPMs were
 extracted into ignored `.sysdeps/gdal-devel/` (`dnf download --arch=x86_64
 gdal-devel-3.12.4-1.fc44 proj-devel-9.8.1-1.fc44 geos-devel-3.14.1-2.fc44`, then

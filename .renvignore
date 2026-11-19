@@ -1,0 +1,8 @@
+# Rendered/cached output and the campaign's ignored local runtime are not dependency sources.
+docs/
+_freeze/
+.quarto/
+.R-library/
+.sysdeps/
+data/
+hero_previews/
