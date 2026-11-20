@@ -6,7 +6,7 @@ on:
   pull_request:  # build only; deploy is skipped on PRs
   workflow_dispatch:  # Allows manual trigger from Actions tab
   schedule:
-    - cron: "17 9 * * *"  # daily rebuild refreshes the Hardcover reading list
+    - cron: "17 9 */3 * *"  # every 3rd day of the month (1st, 4th, ...) rebuilds to refresh the Hardcover reading list
 
 permissions:
   contents: read
