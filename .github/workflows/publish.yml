@@ -47,6 +47,9 @@ jobs:
           HARDCOVER_TOKEN: ${{ secrets.HARDCOVER_TOKEN }}
         run: python3 scripts/fetch_reading.py
 
+      - name: Fetch publications from OpenAlex
+        run: python3 scripts/fetch_works.py
+
       - name: Render site
         run: quarto render
         # Uses _freeze/ for pre-computed R output - no R installation needed
@@ -145,6 +148,22 @@ jobs:
           if missing:
               raise SystemExit("Unresolved rendered image assets:\n" + "\n".join(missing))
           print("Rendered image asset verification passed")
+          PY
+
+      - name: Verify CV bibliographies rendered
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          html = Path("docs/resume.html").read_text(encoding="utf-8")
+          counts = {}
+          for div in ("refs_works", "refs_ppp"):
+              m = re.search(rf'id="{div}".*?(?=<section|</main)', html, re.S)
+              counts[div] = len(re.findall(r'class="csl-entry"', m.group(0))) if m else 0
+          if not all(counts.values()):
+              raise SystemExit(f"Empty CV bibliography (multibib broken?): {counts}")
+          print(f"CV bibliographies rendered: {counts}")
           PY
 
       - name: Verify Basotho Wool post completeness
