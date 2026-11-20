@@ -47,6 +47,9 @@ jobs:
           HARDCOVER_TOKEN: ${{ secrets.HARDCOVER_TOKEN }}
         run: python3 scripts/fetch_reading.py
 
+      - name: Fetch publications from OpenAlex
+        run: python3 scripts/fetch_works.py
+
       - name: Render site
         run: quarto render
         # Uses _freeze/ for pre-computed R output - no R installation needed

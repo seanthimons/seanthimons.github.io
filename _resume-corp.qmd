@@ -7,7 +7,7 @@ format:
       - margin=0.9cm
     fontsize: 11pt
     pagestyle: plain
-bibliography_works: works.bib
+bibliography_works: works.json
 bibliography_ppp: ppp.bib
 nocite: '@*'
 csl: https://raw.githubusercontent.com/citation-style-language/styles/master/apa.csl

@@ -1,0 +1,206 @@
+[
+  {
+    "id": "W4290991466",
+    "type": "article-journal",
+    "title": "Ferrate-pretreated directional solvent extraction for hydraulic fracturing produced water: Technical and economic feasibility studies",
+    "author": [
+      {
+        "family": "Thimons",
+        "given": "Sean"
+      },
+      {
+        "family": "Saxena",
+        "given": "Shray"
+      },
+      {
+        "family": "Den",
+        "given": "Walter"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2022,
+          8,
+          11
+        ]
+      ]
+    },
+    "container-title": "Journal of Water Process Engineering",
+    "page": "103053",
+    "volume": "49",
+    "DOI": "10.1016/j.jwpe.2022.103053",
+    "URL": "https://doi.org/10.1016/j.jwpe.2022.103053"
+  },
+  {
+    "id": "W4381598588",
+    "type": "article-journal",
+    "title": "Onsite Nonpotable Water Systems Pathogen Treatment Targets: A Comparison of Infection and Disability-Adjusted Life Years (DALYs) Risk Benchmark Approaches",
+    "author": [
+      {
+        "family": "Schoen",
+        "given": "Mary E."
+      },
+      {
+        "family": "Garland",
+        "given": "Jay L."
+      },
+      {
+        "family": "Soller",
+        "given": "Jeffrey A."
+      },
+      {
+        "family": "Thimons",
+        "given": "Sean X."
+      },
+      {
+        "family": "Jahne",
+        "given": "Michael A."
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2023,
+          6,
+          21
+        ]
+      ]
+    },
+    "container-title": "Environmental Science & Technology",
+    "page": "9559-9566",
+    "volume": "57",
+    "issue": "26",
+    "DOI": "10.1021/acs.est.3c01152",
+    "URL": "https://doi.org/10.1021/acs.est.3c01152"
+  },
+  {
+    "id": "W4395673210",
+    "type": "article-journal",
+    "title": "Non-targeted analysis and toxicity prediction for evaluation of photocatalytic membrane distillation removing organic contaminants from hypersaline oil and gas field-produced water",
+    "author": [
+      {
+        "family": "Delanka-Pedige",
+        "given": "H.M.K."
+      },
+      {
+        "family": "Young",
+        "given": "Robert B."
+      },
+      {
+        "family": "Abutokaikah",
+        "given": "Maha T."
+      },
+      {
+        "family": "Chen",
+        "given": "Lin"
+      },
+      {
+        "family": "Wang",
+        "given": "Huiyao"
+      },
+      {
+        "family": "Imihamillage",
+        "given": "Kanchana A B I"
+      },
+      {
+        "family": "Thimons",
+        "given": "Sean"
+      },
+      {
+        "family": "Jahne",
+        "given": "Michael A."
+      },
+      {
+        "family": "Williams",
+        "given": "Antony"
+      },
+      {
+        "family": "Zhang",
+        "given": "Yanyan"
+      },
+      {
+        "family": "Xu",
+        "given": "Pei"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2024,
+          4,
+          26
+        ]
+      ]
+    },
+    "container-title": "Journal of Hazardous Materials",
+    "page": "134436",
+    "volume": "471",
+    "DOI": "10.1016/j.jhazmat.2024.134436",
+    "URL": "https://doi.org/10.1016/j.jhazmat.2024.134436"
+  },
+  {
+    "id": "W7162125317",
+    "type": "article-journal",
+    "title": "A curated geospatial dataset of chemicals used in hydraulic fracturing and their functions",
+    "author": [
+      {
+        "family": "Isaacs",
+        "given": "Kristin"
+      },
+      {
+        "family": "Williams",
+        "given": "A J"
+      },
+      {
+        "family": "Phillips",
+        "given": "Katherine A."
+      },
+      {
+        "family": "Jahne",
+        "given": "Michael"
+      },
+      {
+        "family": "Thimons",
+        "given": "Sean"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2026,
+          5,
+          1
+        ]
+      ]
+    },
+    "container-title": "Journal of Environmental Quality",
+    "page": "e70185",
+    "volume": "55",
+    "issue": "3",
+    "DOI": "10.1002/jeq2.70185",
+    "URL": "https://doi.org/10.1002/jeq2.70185"
+  },
+  {
+    "id": "W7172477119",
+    "type": "thesis",
+    "title": "Treatment of Produced Water Using Ferrate (VI) and Directional Solvent Extraction",
+    "author": [
+      {
+        "family": "Thimons",
+        "given": "Sean"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2021,
+          5,
+          1
+        ]
+      ]
+    },
+    "publisher": "Texas A&M University – San Antonio",
+    "URL": "https://digitalcommons.tamusa.edu/water_theses/1"
+  }
+]
