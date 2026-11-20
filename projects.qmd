@@ -4,9 +4,6 @@ format:
   html:
     body-classes: page-work
 page-layout: full
-bibliography: works.bib
-nocite: |
-  @*
 ---
 
 
@@ -89,9 +86,3 @@ Most of my work starts in R. The rest of the stack exists to make the analysis i
 | **Automation and collaboration** | Python, shell scripting, Git, GitHub Actions, Obsidian, Markdown, and citation workflows |
 
 `boosterpak` is the piece I built for the gap between a package list and a project template. A pack can declare the dependencies, helper functions, startup choices, configuration, and checks needed for a particular kind of R project. `pak` still installs packages and `renv` still records the library. The pack records the working setup.
-
-## Publications
-
-::: {#refs}
-[@*]
-:::
