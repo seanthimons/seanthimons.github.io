@@ -20,7 +20,6 @@ Outside of work, I volunteer as a **data scientist** for a research group focuse
 
 [View My Projects &rarr;](projects.qmd){.btn .btn-primary}
 
-## Education
+## Currently Reading
 
-- M.S., *Water Resources, Science & Technology*, Texas A&M University – San Antonio, 2021
-- B.S., *Biology*, Texas A&M University – San Antonio, 2019
+{{< include _reading.md >}}
