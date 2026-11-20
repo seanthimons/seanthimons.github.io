@@ -1,0 +1,77 @@
+---
+title: "30 Day Map Challenge — Day 10: Prompting only"
+author: "Sean Thimons"
+date: "2026-11-10"
+description: "Lake Superior with the water taken out, 51 years to the day after the Edmund Fitzgerald went down. Every line of code came from prompts."
+categories: [cartography, R, 30DayMapChallenge, water]
+image: artifacts/day10-superior.png
+resources:
+  - terrain/**
+draft: true
+---
+
+```{r}
+#| label: build-superior
+#| include: false
+#| message: false
+#| warning: false
+day10_map <- local({
+  old <- setwd("../..")
+  on.exit(setwd(old))
+  source("posts/2026-11-10-30daymap-10-prompting-only/render-map.R", local = TRUE)
+  render_day10()
+})
+```
+
+```{r}
+#| label: map
+#| echo: false
+#| column: page
+#| fig-height: 7.5
+day10_map
+```
+
+## Lake Superior, drained
+
+The *Edmund Fitzgerald* sank in Lake Superior on November 10, 1975, about 17 miles from Whitefish Point, with all 29 crew. Day 10 falls on the anniversary, so this map takes the water out of the lake and leaves the ships where they lie.
+
+The floor is NOAA's bathymetry of the whole lake, shown as 3D terrain at 30× vertical exaggeration. The blue columns are the missing water. Each 6 km hexagon gets one column, as tall as the lake was deep at its center. Zoomed out, the lake reads as a block of water. Zoom in and the columns fade away, leaving 51 named wrecks on the bottom. The button flies to the *Fitzgerald*, in a trough about 150 m (500 ft) down on the Canadian side of the shipping lane.
+
+## Prompting only
+
+The theme is Prompting only, so I wrote no code for this map. I gave prompts and Claude (an AI model) wrote everything: the data acquisition, the terrain tiles, the widget and this post's chunks. The prompts are below, word for word, with what came back and what went wrong along the way. The ideas, the topic and the call to combine the floor and the water columns were mine. The plumbing was not.
+
+::: {.callout-note collapse="true"}
+## The prompt log
+
+{{< include _prompt-log.md >}}
+:::
+
+## Method
+
+The map is a `mapgl` MapLibre widget. `mapgl` passes only a TileJSON URL to MapLibre for elevation sources, so a short `htmlwidgets::onRender()` hook adds the terrain source, turns on 3D terrain, colours the floor by depth with MapLibre's `color-relief` layer, shades it and darkens the sky. The terrain is 176 PNG tiles in Terrarium encoding, zoom 4 to 9, built in R with `terra`. MapLibre stretches zoom 9 tiles when you zoom past it.
+
+The water columns are a hexagon grid in Great Lakes Albers (EPSG:3175), clipped to the lake. MapLibre sets an extrusion's base on the terrain but does not exaggerate its height, so each column is drawn at its depth × 30 to reach the lake surface. The depth comes from the hexagon's center, because that's where MapLibre reads the terrain under an extrusion.
+
+The key design choice is the fade. Water columns and wrecks can't be read at the same time, so the columns are visible only at lake scale and are gone by zoom 8.4, where individual wrecks start to separate. The [complete R pipeline](render-map.R) covers acquisition, tiles, tables and the widget.
+
+## Data & provenance
+
+- **NOAA NCEI [Bathymetry of Lake Superior](https://www.ncei.noaa.gov/products/great-lakes-bathymetry)**, 3 arc-second grid, depths relative to the Low Water Datum (183.2 m, IGLD 1985). Public domain.
+- **[Wikidata](https://www.wikidata.org/)** shipwrecks with coordinates inside the lake's bounding box, from a SPARQL query in the pipeline. 57 hits, 6 left out: two museum ships, a replica, a ship that survived, a dredge in Torch Lake, and a scow in an inland lake. The [wreck table](wrecks.csv) keeps them with the reason. CC0.
+- **NOAA [ENC Direct](https://encdirect.noaa.gov/)** general-scale wreck points, used only as a check: the chart's "dangerous wreck" off Whitefish Point lies within 200 m of Wikidata's *Fitzgerald*. Public domain.
+- Basemap © CARTO and OpenStreetMap contributors.
+
+Sources were retrieved November 19–20, 2026. [Source fingerprints](source-snapshot.json) identify the cached files and committed tables, and the render stops if a committed table has changed. Rendering makes no data requests; only basemap tiles load live. Coordinates are WGS84.
+
+## Caveats
+
+- The 90 m grid can't resolve the shoreline. Wrecks on reefs and beaches can fall on a dry grid cell, and their tooltips say "nearshore" rather than giving a depth.
+- Depths are at Wikidata's coordinate, not measured at the wreck. The grid reads 150 m at the *Fitzgerald*'s point; the wreck is usually given as 530 ft (162 m).
+- *Henry Chisholm*, *Cumberland* and *Puritan* share one coordinate in Wikidata. The first two did wreck on the same reef off Isle Royale; the third may be a copied position.
+- Wikidata lists notable wrecks, not all of them. Lake Superior has hundreds more.
+- The 30× exaggeration also applies to the land, which makes the shore look steep.
+
+## Alt text
+
+A dark 3D map of Lake Superior seen at an angle from the south. The lake floor is shaded and coloured by depth, pale blue in the shallows and navy in the deep basin east of the Keweenaw Peninsula, with ridges and troughs showing through a thin layer of translucent dark blue hexagon columns whose tops sit level at the old lake surface. Orange dots mark 51 named shipwrecks, clustered off Whitefish Point in the east, around Isle Royale in the northwest, and near Duluth and the Apostle Islands in the west. A label marks the *Edmund Fitzgerald* north-west of Whitefish Point. A panel at the top left holds the title, a short description and a button that flies to the wreck.

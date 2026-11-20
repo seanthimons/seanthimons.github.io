@@ -1,0 +1,16 @@
+{
+  "retrieved": "2026-11-20",
+  "sources": {
+    "ncei": "https://www.ngdc.noaa.gov/mgg/greatlakes/superior/data/geotiff/superior_lld.geotiff.tar.gz",
+    "wikidata": "https://query.wikidata.org/sparql",
+    "enc": "https://encdirect.noaa.gov/arcgis/rest/services/encdirect/enc_general/MapServer/29/query"
+  },
+  "sha256": {
+    "superior_lld.geotiff.tar.gz": "273908d7d4c6f5ae4741603fa7dbe78d259b719e73244d0f8d16e558bdbcd407",
+    "wikidata-wrecks.csv": "ab577bc2b04c6ce51bb078a0e87dedbeed438d2be27aa561026d7e23f4063f03",
+    "enc-wrecks.json": "60accbf8c8baa050d40f8d07756f7f5f50ef462e4868621015d93dc3e3a95ddb",
+    "wrecks.csv": "586000bf982852a68ce5173dbae43c97e95390e97c24b0edd55d453280893ed9",
+    "enc-wrecks.csv": "73a6d0ffb7f10a7c2810927748fcddd3381b559cb32cd1e32ac6e57a549f01c2",
+    "water-columns.geojson": "a435f589245a5e3f609851534006d6b68486e62c666d597b460775a8e69ae0dd"
+  }
+}
