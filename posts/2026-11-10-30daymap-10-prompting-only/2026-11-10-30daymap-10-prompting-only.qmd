@@ -7,7 +7,7 @@ categories: [cartography, R, 30DayMapChallenge, water]
 image: artifacts/day10-superior.png
 resources:
   - terrain/**
-draft: true
+draft: false
 ---
 
 ```{r}

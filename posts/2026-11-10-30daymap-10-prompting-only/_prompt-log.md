@@ -44,3 +44,8 @@ Assistant replies are summarized, not quoted.
 10. **Prompt:** "Looks good! Save the static PNG, then commit." (and "Yes." to also committing the Mapbox setup notes)
     **Reply:** Cropped a browser screenshot of the opening view to the map, saved it as the post's listing image, and
     committed the post with its test and setup notes.
+11. **Prompt:** "Open PR against master"
+    **Reply:** Opened the pull request.
+12. **Prompt:** "Swap the page to live, and use the gitleaks action to make sure nothing leaked into the transcript."
+    **Reply:** Took the post out of draft and scanned the post, this prompt log and the session transcript for secrets
+    with gitleaks.
