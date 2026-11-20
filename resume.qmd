@@ -5,10 +5,15 @@ format:
     body-classes: page-cv
     toc: true
     toc-title: "Sections"
-bibliography_works: works.bib
-bibliography_ppp: ppp.bib
+bibliography:
+  works: works.bib
+  ppp: ppp.bib
+filters:
+  - multibib
+validate-yaml: false
+citeproc: false
 nocite: '@*'
-csl: https://raw.githubusercontent.com/citation-style-language/styles/master/apa.csl
+csl: apa.csl  # vendored so builds do not fetch it
 ---
 
 ::: {.cv-contact .text-center}
