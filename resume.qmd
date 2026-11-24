@@ -36,7 +36,7 @@ Physical scientist at the U.S. Environmental Protection Agency studying what it 
 | **Water Quality & Treatment** | Water reuse and wastewater treatment, chemical and microbial risk assessment, contaminant screening, ecological impact assessment, remediation |
 | **Regulation & Policy** | Clean Water Act (CWA), Safe Drinking Water Act (SDWA), drinking water compliance, water quality protection and restoration, development and review of policies, technical standards, and discharge guidelines |
 | **Research & Program Coordination** | Environmental study design and oversight, data quality assurance, coordination with states and tribes, stakeholder collaboration, risk communication, technical documentation |
-| **Data Analysis & Modeling** | Cheminformatics, statistical analysis, predictive modeling, machine learning (classification and regression), data mining and curation, large language models for text classification, summarization, and labeling |
+| **Data Analysis & Modeling** | Cheminformatics, microbial dose–response modeling, statistical analysis, predictive modeling, machine learning (classification and regression), data mining and curation, large language models for text classification, summarization, and labeling |
 | **Programming & Databases** | R package development, Shiny applications, Python, SQL, database architecture |
 | **Visualization & Reporting** | Data visualization (ggplot2, Plotly), reporting (Quarto, Markdown) |
 
@@ -51,7 +51,7 @@ US Environmental Protection Agency [Cincinnati, OH]{.cv-date}
 :::
 
 - Curate chemical disclosures from *FracFocus*, including where and when chemicals were used in oil and gas operations. The data support work on federal wastewater discharge rules and emergency response.
-- Develop *CompToxR*, an R package that gives researchers access to EPA chemical data and tools for hazard screening, toxicity evaluation, and non-targeted analysis (screening samples for chemicals without a predefined list). The package connects researchers to EPA workflows and resources including GenRA, ECOTOX, and EPI Suite.
+- Develop [CompToxR](https://seanthimons.github.io/ComptoxR/), an R package that lets researchers resolve chemical identifiers and retrieve properties, hazard, exposure, and environmental fate data in batches. It supports toxicity evaluation and non-targeted analysis and connects researchers to GenRA, ECOTOX, and EPI Suite.
 - Develop *THREAT* (Toxicological, Hazard, Risk Evaluation Assessment Tool), an R Shiny app that lets users upload their water sample results, compare sites and chemicals against environmental benchmarks, and prioritize follow-up.
 - Advised on an emergency response using EPA research and analysis from a produced-water reuse study. Received EPA Region 8’s *Shooting Star* award for the work.
 - Support EPA Office of Research and Development projects by assessing risks for specific water uses (SSWR.406.1), curating data on chemical structures, samples, and properties (CSS.407.1), and combining evidence from different fields in case studies that support chemical safety decisions (CSS.408.3).
@@ -60,7 +60,7 @@ US Environmental Protection Agency [Cincinnati, OH]{.cv-date}
 - Currently holds a Level 4 (Moderate Risk) security clearance.
 :::
 
-### Technical Support {.cv-subsection}
+### Selected Research and Regulatory Projects {#technical-support}
 
 - Combined more than ten years of monitoring data from eight laboratories and led the analysis for EPA Region 8’s *Evaluation of Produced Water Intended for Beneficial Reuse in Multiple Oil and Gas Basins*. Developed an R Shiny app that uses field and experimental results to prioritize sites using EPA cheminformatics tools and assessments of acute, chronic, and cumulative toxicity. Partners included EPA Regions 3 and 6, EPA research centers, and the U.S. Department of Energy’s National Energy Technology Laboratory.
 
@@ -166,6 +166,14 @@ National Park Service, Texas A&M University-San Antonio [San Antonio, Texas]{.cv
 :::
 
 - Tracked populations of the Rio Grande chirping frog (*Eleutherodactylus cystignathoides*) for the National Park Service and assisted with ecological monitoring.
+
+---
+
+## Selected Software
+
+- Developed [singlehit](https://github.com/seanthimons/singlehit), an R package and companion Shiny app for microbial dose–response modeling, model comparison, and uncertainty reporting.
+- Built [CONCERT](https://github.com/seanthimons/concert), an R package and Shiny app that reconciles chemical identifiers, standardizes measurement units and sample media, and exports benchmark data for review.
+- Built two R clients using [specmill](https://github.com/seanthimons/specmill). [echoverse](https://github.com/seanthimons/epaechoverse) retrieves EPA enforcement, compliance, and Envirofacts data. [aqsually](https://github.com/seanthimons/aqsually) retrieves EPA air quality data.
 
 ---
 

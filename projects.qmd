@@ -31,6 +31,14 @@ Chemical ontology harmonization and entity-resolution toolkit for identifier cro
 [GitHub](https://github.com/seanthimons/concert){.btn .btn-primary}
 :::
 
+::: {.card}
+### singlehit
+
+R package and companion Shiny app for microbial dose–response modeling. Fit and compare models and report uncertainty from the same workflow in R or the app.
+
+[GitHub](https://github.com/seanthimons/singlehit){.btn .btn-primary}
+:::
+
 ::: {.card .card-chorus}
 ![](assets/logos/chorus.png){.project-logo fig-alt="CHORUS hex sticker"}
 
@@ -56,7 +64,7 @@ Reusable R project capability packs: typed bundles of dependencies, optional sou
 
 ### specmill
 
-R package for generating and maintaining API clients from local OpenAPI schemas and reviewed YAML policy. Creates endpoint wrappers, documentation, and request contract tests while the client package retains control of HTTP, authentication, and response handling.
+R package for generating and maintaining API clients from local OpenAPI schemas and reviewed YAML policy. Creates endpoint wrappers, documentation, and request contract tests while the client package retains control of HTTP, authentication, and response handling. Used to generate [echoverse](#echoverse) and [aqsually](#aqsually).
 
 [GitHub](https://github.com/seanthimons/specmill){.btn .btn-primary}
 :::
@@ -69,6 +77,30 @@ R package for generating and maintaining API clients from local OpenAPI schemas 
 Local-first literature-review and research assistant built with R, Shiny, DuckDB, OpenAlex, and LLM-assisted analysis. Intended to make paper triage, metadata capture, and evidence synthesis reproducible instead of chat-log archaeology.
 
 [GitHub](https://github.com/seanthimons/serapeum){.btn .btn-primary}
+:::
+
+::: {.card}
+### echoverse
+
+Unofficial R client for EPA Enforcement and Compliance History Online (ECHO) and Envirofacts. Use it to retrieve compliance records and environmental datasets. Generated with specmill.
+
+[GitHub](https://github.com/seanthimons/epaechoverse){.btn .btn-primary}
+:::
+
+::: {.card}
+### aqsually
+
+R client for the EPA Air Quality System API. Retrieve air monitoring and sample data through wrappers generated with specmill, with offline tests for request construction.
+
+[GitHub](https://github.com/seanthimons/aqsually){.btn .btn-primary}
+:::
+
+::: {.card}
+### Watershed Evidence MCP
+
+Python hackathon prototype that retrieves public U.S. water quality data with source provenance. It helps users distinguish monitoring observations, watershed screening information, and assessment records.
+
+[GitHub](https://github.com/seanthimons/watershed-evidence-mcp){.btn .btn-primary}
 :::
 
 :::
