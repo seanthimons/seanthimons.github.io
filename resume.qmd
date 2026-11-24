@@ -25,7 +25,7 @@ csl: apa.csl  # vendored so builds do not fetch it
 
 ## Professional Summary
 
-Physical scientist at the U.S. Environmental Protection Agency studying what it takes to reuse water safely, from chemical hazards to microbial risks. Uses cheminformatics to screen chemicals in oil and gas wastewater and inform federal discharge rules. Builds R tools that help researchers put EPA chemical data to work.
+Physical scientist at the U.S. Environmental Protection Agency studying what it takes to reuse water safely. Serves as a technical authority and subject matter expert on the risks and treatment of chemical and microbial contaminants in water. Uses cheminformatics to screen chemicals in oil and gas wastewater, informs federal discharge rules, and builds R tools for working with EPA chemical data.
 
 ---
 
@@ -51,7 +51,7 @@ US Environmental Protection Agency [Cincinnati, OH]{.cv-date}
 :::
 
 - Curate chemical disclosures from *FracFocus*, including where and when chemicals were used in oil and gas operations. The data support work on federal wastewater discharge rules and emergency response.
-- Develop *CompToxR*, an R package that gives researchers access to EPA chemical data and tools for hazard screening, toxicity evaluation, and analysis of samples where chemicals have yet to be identified.
+- Develop *CompToxR*, an R package that gives researchers access to EPA chemical data and tools for hazard screening, toxicity evaluation, and non-targeted analysis (screening samples for chemicals without a predefined list). The package connects researchers to EPA workflows and resources including GenRA, ECOTOX, and EPI Suite.
 - Develop *THREAT* (Toxicological, Hazard, Risk Evaluation Assessment Tool), an R Shiny app that lets users upload their water sample results, compare sites and chemicals against environmental benchmarks, and prioritize follow-up.
 - Advised on an emergency response using EPA research and analysis from a produced-water reuse study. Received EPA Region 8’s *Shooting Star* award for the work.
 - Support EPA Office of Research and Development projects by assessing risks for specific water uses (SSWR.406.1), curating data on chemical structures, samples, and properties (CSS.407.1), and combining evidence from different fields in case studies that support chemical safety decisions (CSS.408.3).
@@ -59,7 +59,7 @@ US Environmental Protection Agency [Cincinnati, OH]{.cv-date}
 
 ### Technical Support {.cv-subsection}
 
-- Combined more than ten years of monitoring data from eight laboratories and led the analysis for EPA Region 8’s *Evaluation of Produced Water Intended for Beneficial Reuse in Multiple Oil and Gas Basins*. Developed an R Shiny app that uses field and experimental results to prioritize sites based on short-term, long-term, and combined toxic effects. Partners included EPA Regions 3 and 6, EPA research centers, and the U.S. Department of Energy’s National Energy Technology Laboratory.
+- Combined more than ten years of monitoring data from eight laboratories and led the analysis for EPA Region 8’s *Evaluation of Produced Water Intended for Beneficial Reuse in Multiple Oil and Gas Basins*. Developed an R Shiny app that uses field and experimental results to prioritize sites using EPA cheminformatics tools and assessments of acute, chronic, and cumulative toxicity. Partners included EPA Regions 3 and 6, EPA research centers, and the U.S. Department of Energy’s National Energy Technology Laboratory.
 
 ::: {.cv-thin-separator}
 :::
@@ -84,12 +84,12 @@ US Environmental Protection Agency [Cincinnati, OH]{.cv-date}
 ::: {.cv-thin-separator}
 :::
 
-- Provide technical support to New Mexico State University as it tests produced water to identify chemicals and assess short- and long-term effects of exposure to the full wastewater mixture.
+- Provide technical support to New Mexico State University on non-targeted analysis and whole effluent toxicity testing to identify chemicals and assess acute and chronic toxicity of produced water as a mixture.
 
 ::: {.cv-thin-separator}
 :::
 
-- Advise on chemical risks and combine results from microbial tests, chemical measurements, and laboratory toxicity assays into datasets partners can use. This work supports *Potable Water Reuse in Protein Production and Processing* with Tyson Foods, the University of Nebraska, and the U.S. Department of Agriculture, and EPA’s *Evaluating the Microbial and Chemical Quality of Air Handler Unit Condensate* project.
+- Serve as the chemical risk subject matter expert and data analyst, integrating microbial and chemical measurements, in vitro assays, and non-targeted analysis results into datasets partners can use. This work supports *Potable Water Reuse in Protein Production and Processing* with Tyson Foods, the University of Nebraska, and the U.S. Department of Agriculture, and EPA’s *Evaluating the Microbial and Chemical Quality of Air Handler Unit Condensate* project.
 
 ---
 
