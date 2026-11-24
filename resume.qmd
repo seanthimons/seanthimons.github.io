@@ -33,12 +33,12 @@ Physical scientist at the U.S. Environmental Protection Agency studying what it 
 
 | Area | Details |
 |:-----|:--------|
-| **Programming & Databases** | R (Shiny, Package Development), SQL, Python, Database Architecture |
-| **Data Analysis, Modeling, ML/AI** | Cheminformatics, Statistical Analysis, Predictive Modeling, Machine Learning (Classification, Regression), Data Mining & Curation, Generative AI / LLMs (Text Classification, Summarization, Data Labeling) |
-| **Visualization & Reporting** | R Shiny, ggplot2, Plotly, Quarto, Markdown, Data Storytelling |
-| **Regulatory & Policy Expertise** | Expertise in Clean Water Act (CWA), Safe Drinking Water Act (SDWA), and related environmental regulations; Development and review of environmental policies, technical standards, and regulatory guidelines |
-| **Water Resource & Program Management** | Technical expertise in reviewing water quality protection, restoration, and regulatory compliance for drinking water programs; Programmatic coordination with states, tribes, and stakeholders on water resource initiatives; Design, execution, and oversight of environmental studies for water quality assessment and improvement |
-| **Methodologies & Practices** | Research Planning & Execution, Data Quality Assurance, Stakeholder Communication & Collaboration (oral & written), Risk Communication, Technical Documentation & Written Communication |
+| **Water Quality & Treatment** | Water reuse and wastewater treatment, chemical and microbial risk assessment, contaminant screening, ecological impact assessment, remediation |
+| **Regulation & Policy** | Clean Water Act (CWA), Safe Drinking Water Act (SDWA), drinking water compliance, water quality protection and restoration, development and review of policies, technical standards, and discharge guidelines |
+| **Research & Program Coordination** | Environmental study design and oversight, data quality assurance, coordination with states and tribes, stakeholder collaboration, risk communication, technical documentation |
+| **Data Analysis & Modeling** | Cheminformatics, statistical analysis, predictive modeling, machine learning (classification and regression), data mining and curation, large language models for text classification, summarization, and labeling |
+| **Programming & Databases** | R package development, Shiny applications, Python, SQL, database architecture |
+| **Visualization & Reporting** | Data visualization (ggplot2, Plotly), reporting (Quarto, Markdown) |
 
 ---
 
