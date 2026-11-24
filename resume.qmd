@@ -60,7 +60,7 @@ US Environmental Protection Agency [Cincinnati, OH]{.cv-date}
 - Currently holds a Level 4 (Moderate Risk) security clearance.
 :::
 
-### Technical Support {.cv-subsection}
+### Selected Research and Regulatory Projects {#technical-support}
 
 - Combined more than ten years of monitoring data from eight laboratories and led the analysis for EPA Region 8’s *Evaluation of Produced Water Intended for Beneficial Reuse in Multiple Oil and Gas Basins*. Developed an R Shiny app that uses field and experimental results to prioritize sites using EPA cheminformatics tools and assessments of acute, chronic, and cumulative toxicity. Partners included EPA Regions 3 and 6, EPA research centers, and the U.S. Department of Energy’s National Energy Technology Laboratory.
 
