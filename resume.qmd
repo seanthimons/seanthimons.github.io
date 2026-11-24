@@ -55,7 +55,10 @@ US Environmental Protection Agency [Cincinnati, OH]{.cv-date}
 - Develop *THREAT* (Toxicological, Hazard, Risk Evaluation Assessment Tool), an R Shiny app that lets users upload their water sample results, compare sites and chemicals against environmental benchmarks, and prioritize follow-up.
 - Advised on an emergency response using EPA research and analysis from a produced-water reuse study. Received EPA Region 8’s *Shooting Star* award for the work.
 - Support EPA Office of Research and Development projects by assessing risks for specific water uses (SSWR.406.1), curating data on chemical structures, samples, and properties (CSS.407.1), and combining evidence from different fields in case studies that support chemical safety decisions (CSS.408.3).
+
+::: {.content-hidden}
 - Currently holds a Level 4 (Moderate Risk) security clearance.
+:::
 
 ### Technical Support {.cv-subsection}
 
