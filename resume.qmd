@@ -25,33 +25,7 @@ csl: apa.csl  # vendored so builds do not fetch it
 
 ## Professional Summary
 
-Physical Scientist and Principal Investigator at the US Environmental Protection Agency with a Master of Science in Water Resources, Science, and Technology and over four years of comprehensive experience. Focuses on produced water, industrial wastewaters, and applying data science (data curation, advanced statistical analysis, predictive modeling, Generative AI) to chemical/microbial risk assessment for fit-for-purpose water reuse and environmental protection. Develops user-facing applications (R Shiny, R Packages like ComptoxR, QHRTET) and utilizes R, SQL, and machine learning to architect, analyze, and visualize complex datasets, informing critical decisions and supporting regulatory implementation (Clean Water Act, Safe Drinking Water Act). Experienced in leading research (e.g., StRAPs SSWR.406.1, CSS.407.1) and fostering inter-agency/stakeholder collaboration (DOE, USGS, EPA Regions, New Mexico Produced Water Research Consortium) for enhanced environmental stewardship. Serves as technical authority and subject matter expert for risks and treatment of chemical and microbial contaminants in water.
-
----
-
-## Education
-
-::: {.cv-entry}
-[**Master of Science --- Water Resources, Science, and Technology**]{.cv-title} [2019--2021]{.cv-date}
-
-Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
-:::
-
-- Thesis focus on treatment of produced water from fracking operations for industrial and municipal reuse through advanced oxidation and solvation solutions.
-- Education focused on water management across industrial and municipal users, including reuse, treatment, ecological impact assessment, and remediation efforts (totaling 36+ credit hours).
-
-::: {.cv-separator}
-:::
-
-::: {.cv-entry}
-[**Bachelor of Science --- Biology**]{.cv-title} [2016--2019]{.cv-date}
-
-Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
-:::
-
-- Research focused on anthropogenic effects on ichthyological and herpetological populations.
-- Varied lab experience with analysis equipment for organic and inorganic chemistry.
-- Experience with ecological field surveying, cataloguing, and collection techniques including preservation.
+Physical scientist at the U.S. Environmental Protection Agency studying what it takes to reuse water safely. Serves as a technical authority and subject matter expert on the risks and treatment of chemical and microbial contaminants in water. Uses cheminformatics to screen chemicals in oil and gas wastewater, informs federal discharge rules, and builds R tools for working with EPA chemical data.
 
 ---
 
@@ -59,12 +33,12 @@ Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 
 | Area | Details |
 |:-----|:--------|
-| **Programming & Databases** | R (Shiny, Package Development), SQL, Python, Database Architecture |
-| **Data Analysis, Modeling, ML/AI** | Cheminformatics, Statistical Analysis, Predictive Modeling, Machine Learning (Classification, Regression), Data Mining & Curation, Generative AI / LLMs (Text Classification, Summarization, Data Labeling) |
-| **Visualization & Reporting** | R Shiny, ggplot2, Plotly, Quarto, Markdown, Data Storytelling |
-| **Regulatory & Policy Expertise** | Expertise in Clean Water Act (CWA), Safe Drinking Water Act (SDWA), and related environmental regulations; Development and review of environmental policies, technical standards, and regulatory guidelines |
-| **Water Resource & Program Management** | Technical expertise in reviewing water quality protection, restoration, and regulatory compliance for drinking water programs; Programmatic coordination with states, tribes, and stakeholders on water resource initiatives; Design, execution, and oversight of environmental studies for water quality assessment and improvement |
-| **Methodologies & Practices** | Research Planning & Execution, Data Quality Assurance, Stakeholder Communication & Collaboration (oral & written), Risk Communication, Technical Documentation & Written Communication |
+| **Water Quality & Treatment** | Water reuse and wastewater treatment, chemical and microbial risk assessment, contaminant screening, ecological impact assessment, remediation |
+| **Regulation & Policy** | Clean Water Act (CWA), Safe Drinking Water Act (SDWA), drinking water compliance, water quality protection and restoration, development and review of policies, technical standards, and discharge guidelines |
+| **Research & Program Coordination** | Environmental study design and oversight, data quality assurance, coordination with states and tribes, stakeholder collaboration, risk communication, technical documentation |
+| **Data Analysis & Modeling** | Cheminformatics, statistical analysis, predictive modeling, machine learning (classification and regression), data mining and curation, large language models for text classification, summarization, and labeling |
+| **Programming & Databases** | R package development, Shiny applications, Python, SQL, database architecture |
+| **Visualization & Reporting** | Data visualization (ggplot2, Plotly), reporting (Quarto, Markdown) |
 
 ---
 
@@ -76,69 +50,49 @@ Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 US Environmental Protection Agency [Cincinnati, OH]{.cv-date}
 :::
 
-- **Current ORD StRAP Research Support:**
-  - *SSWR.406.1*: Risk Characterization to inform fit-for-purpose water use.
-  - *CSS.407.1*: Generate and curate data relevant to chemical substances, structures, samples, and properties.
-  - *CSS.408.3*: Cross-disciplinary integration and applied case studies to support chemical safety decision making.
-- Curation of *FracFocus* database: Regulatory, industry-led disclosure database that features compounds found in petrochemical exploration, product usage, along with spatial-temporal prevalence.
-  - Utilized for updating current effluent guidelines (40 CFR 435 Subpart E) and for emergency responses.
-- *ComptoxR*: R Package to Retrieve compound information from US EPA Products and APIs for rapid chemical hazard, risk, toxicological evaluation and screening.
-  - Includes access to Cheminformatics modules, GenRA, Non-target analysis, ECOTOX, and EPI-Suite workflows.
-- *Toxicological, Hazard, Risk Evaluation Assessment Tool (THREAT)*: R Shiny app for rapid site, compound, and source water criteria comparison.
-  - Able to upload user data from conventional analysis workflows, compare against/with in sites and compounds for holistic prioritization, crosswalk against environmental benchmarks and standards.
-- Recognized by EPA Region 8 via *Shooting Star* award for consultation on an emergency response event utilizing novel ORD research and continued data analysis from RARE project.
+- Curate chemical disclosures from *FracFocus*, including where and when chemicals were used in oil and gas operations. The data support work on federal wastewater discharge rules and emergency response.
+- Develop *CompToxR*, an R package that gives researchers access to EPA chemical data and tools for hazard screening, toxicity evaluation, and non-targeted analysis (screening samples for chemicals without a predefined list). The package connects researchers to EPA workflows and resources including GenRA, ECOTOX, and EPI Suite.
+- Develop *THREAT* (Toxicological, Hazard, Risk Evaluation Assessment Tool), an R Shiny app that lets users upload their water sample results, compare sites and chemicals against environmental benchmarks, and prioritize follow-up.
+- Advised on an emergency response using EPA research and analysis from a produced-water reuse study. Received EPA Region 8’s *Shooting Star* award for the work.
+- Support EPA Office of Research and Development projects by assessing risks for specific water uses (SSWR.406.1), curating data on chemical structures, samples, and properties (CSS.407.1), and combining evidence from different fields in case studies that support chemical safety decisions (CSS.408.3).
+
+::: {.content-hidden}
 - Currently holds a Level 4 (Moderate Risk) security clearance.
+:::
 
 ### Technical Support {.cv-subsection}
 
-- **Region 8 RARE project:** *Evaluation of Produced Water Intended for Beneficial Reuse in Multiple Oil and Gas Basins*. Stakeholders include EPA's Region 3 and 6, US Department of Energy's National Energy Technology Laboratory, and US EPA ORD-CCTE/CEMM.
-  - Principal data analyst for long-term monitoring data generated under project; harmonized over ten years of data from eight different labs.
-  - Responsible for R Shiny application development for site prioritization utilizing field and experimental data for acute, chronic, and cumulative toxicological evaluation utilizing new ORD cheminformatic data and tools.
+- Combined more than ten years of monitoring data from eight laboratories and led the analysis for EPA Region 8’s *Evaluation of Produced Water Intended for Beneficial Reuse in Multiple Oil and Gas Basins*. Developed an R Shiny app that uses field and experimental results to prioritize sites using EPA cheminformatics tools and assessments of acute, chronic, and cumulative toxicity. Partners included EPA Regions 3 and 6, EPA research centers, and the U.S. Department of Energy’s National Energy Technology Laboratory.
 
 ::: {.cv-thin-separator}
 :::
 
-- **Technical Support for rule revision for Oil and Gas Extraction Effluent Guidelines (40 CFR 435 Subpart E)**
-  - Cross-agency project featuring Office of Science and Technology and relevant regions to determine new effluent guidelines for water reuse of produced water.
-  - Responsible for background and risk characterization of chemicals known or suspected to be in produced water.
+- Assess risks from chemicals known or suspected to occur in produced water, the wastewater generated during oil and gas extraction. Work with EPA’s Office of Science and Technology and regional offices to inform revisions to the Oil and Gas Extraction Effluent Guidelines, the federal discharge rules for the industry (40 CFR 435 Subpart E).
 
 ::: {.cv-thin-separator}
 :::
 
-- **New Mexico Produced Water Research Consortium's** Risk and Toxicology work group, the Multi-State Coordination Counsel, and the Water-Portal and Data Management work group.
-  - Development of risk-based workflow to assess acute and chronic potential across human and ecological receptors and determine potential for fit-for-purpose usage of treated produced water.
-  - Former workgroup lead for Risk and Toxicology efforts.
+- Help develop a workflow to assess short- and long-term risks to people and ecosystems and identify potential uses for treated produced water. Previously led the New Mexico Produced Water Research Consortium’s Risk and Toxicology work group and contribute to its multistate coordination and water data efforts.
 
 ::: {.cv-thin-separator}
 :::
 
-- **SSWR.411.3:** BIL/IIJA Funded Technical Assistance Projects to Support the Drinking Water State Revolving Fund
-  - Responsible for R Shiny application for validation of state lead service-line inventories; able to parse various state templates and generate subsetted datasets for in-person site validation.
+- Develop an R Shiny app that reads lead service line inventories in different state formats and produces records for field verification. The app supports federally funded technical assistance for the Drinking Water State Revolving Fund (SSWR.411.3).
 
 ::: {.cv-thin-separator}
 :::
 
-- **Integrated Performance Framework for Emerging Contaminants in Wastewater Treatment Plants**, US EPA project
-  - Collaborative project with Office of Water and extra-mural contractors for evaluation of treatment technology costs for implementation and efficacy of removal for unregulated contaminants.
-  - Responsible for physio-chemical parameter generation, interface into CompTox datasets.
-  - Development of random forest model for prediction of removal rates by technology.
+- Develop chemical property inputs from EPA CompTox data and a random forest model to predict how effectively different wastewater treatment technologies remove unregulated contaminants. This work supports the EPA Office of Water and its contractors through the *Integrated Performance Framework for Emerging Contaminants in Wastewater Treatment Plants*, which evaluates treatment costs and removal effectiveness.
 
 ::: {.cv-thin-separator}
 :::
 
-- Technical support for New Mexico State University's *Non-Targeted Analysis and Whole Effluent Toxicity* testing efforts for produced water to assess acute and chronic effects of exposure.
+- Provide technical support to New Mexico State University on non-targeted analysis and whole effluent toxicity testing to identify chemicals and assess acute and chronic toxicity of produced water as a mixture.
 
 ::: {.cv-thin-separator}
 :::
 
-- **Potable Water Reuse in Protein Production and Processing**, Collaborative partnership of Tyson Foods, University of Nebraska, and the United States Department of Agriculture
-  - Serves as chemical risk subject matter expert and data analyst responsible for harmonizing microbial, chemical, in-vitro assays, and non-targeted analysis data into deliverable dataset for stakeholders.
-
-::: {.cv-thin-separator}
-:::
-
-- **Evaluating the Microbial and Chemical Quality of Air Handler Unit Condensate**, US EPA project
-  - Serves as chemical risk subject matter expert and data analyst responsible for harmonizing microbial, chemical, in-vitro assays, and non-targeted analysis data into deliverable dataset for stakeholders.
+- Serve as the chemical risk subject matter expert and data analyst, integrating microbial and chemical measurements, in vitro assays, and non-targeted analysis results into datasets partners can use. This work supports *Potable Water Reuse in Protein Production and Processing* with Tyson Foods, the University of Nebraska, and the U.S. Department of Agriculture, and EPA’s *Evaluating the Microbial and Chemical Quality of Air Handler Unit Condensate* project.
 
 ---
 
@@ -150,10 +104,9 @@ US Environmental Protection Agency [Cincinnati, OH]{.cv-date}
 Oak Ridge Institute for Science and Education with US Environmental Protection Agency [Cincinnati, OH]{.cv-date}
 :::
 
-- Conducted foundational informatics work leading to the development of the `ComptoxR` package and `THREAT` Shiny application, focusing on data integration, API interaction, and user-interface design for rapid risk assessment.
-- Performed comprehensive data mining, cleaning, and analysis of large environmental datasets to identify patterns and inform risk models.
-- Created compelling data visualizations to communicate research findings and support decision-making for internal and external stakeholders.
-- Contributed to research planning, experimental design, and interpretation of results for multiple ORD projects.
+- Laid the groundwork for the *CompToxR* package and *THREAT* Shiny app by integrating data, working with APIs, and designing user interfaces for rapid risk assessment.
+- Mined, cleaned, and analyzed large environmental datasets to identify patterns and inform risk models. Visualized findings for EPA staff and external partners to support research decisions.
+- Helped plan studies, design experiments, and interpret results for projects in EPA’s Office of Research and Development.
 
 ::: {.cv-separator}
 :::
@@ -164,9 +117,9 @@ Oak Ridge Institute for Science and Education with US Environmental Protection A
 Strategies to End Homelessness, Inc. / Flywheel Social Enterprise Hub [Cincinnati, OH]{.cv-date}
 :::
 
-- Apply machine learning techniques (classification, regression, random forest) and statistical analysis to diverse datasets (survey, demographic, self-reported), including the application of Large Language Models (LLMs) via APIs (e.g., OpenAI) for classifying unstructured text data (survey responses, case notes), labeling sentiment, and generating thematic summaries to identify predictors and risk factors associated with homelessness.
-- Develop predictive models aimed at informing resource allocation, intervention strategies, and prevention efforts within the community.
-- Clean, integrate, and analyze sensitive data, presenting findings to non-technical stakeholders to support program development.
+- Use statistical analysis and machine learning (classification, regression, and random forests) to identify factors associated with homelessness in survey, demographic, and other self-reported data. Build predictive models to help inform resource allocation, interventions, and prevention.
+- Use large language model APIs (including OpenAI) to classify free-text survey responses and case notes, label sentiment, and summarize themes.
+- Clean and integrate sensitive datasets and explain findings to nontechnical stakeholders to support program development.
 
 ::: {.cv-separator}
 :::
@@ -177,8 +130,8 @@ Strategies to End Homelessness, Inc. / Flywheel Social Enterprise Hub [Cincinnat
 Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 :::
 
-- Development of new techniques for treatment of produced water from fracking operations for industrial and municipal reuse though advanced oxidation and solvation solutions.
-- Support ongoing projects at the University through research and grant proposal writing.
+- Developed advanced oxidation and solvation methods to treat produced water from hydraulic fracturing for potential industrial and municipal reuse.
+- Contributed research and wrote grant proposals to support ongoing university projects.
 
 ::: {.cv-separator}
 :::
@@ -189,8 +142,8 @@ Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 :::
 
-- Work in the development of reduction towards perfluorinated carboxylic acids / perfluorooctanoic acid (PFCAs/PFOAs) in water using novel technologies.
-- Development of new techniques for treatment of produced water from fracking operations for reuse though advanced oxidation and solvation solutions.
+- Helped develop treatment methods to reduce perfluorinated carboxylic acids (PFCAs), including perfluorooctanoic acid (PFOA), in water.
+- Helped develop advanced oxidation and solvation methods to treat produced water from hydraulic fracturing for reuse.
 
 ::: {.cv-separator}
 :::
@@ -201,6 +154,8 @@ Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 Marriott International [San Antonio, Texas]{.cv-date}
 :::
 
+- Supervised daily operations, scheduled staff, and managed team performance. Wrote operational reports and updated standard operating procedures.
+
 ::: {.cv-separator}
 :::
 
@@ -210,10 +165,37 @@ Marriott International [San Antonio, Texas]{.cv-date}
 National Park Service, Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 :::
 
-- Invasive population tracking of *Eleutherodactylus cystignathoides* (Rio Grande Chirping Frog) for NPS along with casual ecological monitoring.
+- Tracked populations of the Rio Grande chirping frog (*Eleutherodactylus cystignathoides*) for the National Park Service and assisted with ecological monitoring.
 
 ---
 
+## Education
+
+::: {.cv-entry}
+[**Master of Science --- Water Resources, Science, and Technology**]{.cv-title} [2019--2021]{.cv-date}
+
+Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
+:::
+
+- [Thesis research](https://digitalcommons.tamusa.edu/water_theses/1) evaluated advanced oxidation and solvent extraction for treating produced water from oil and gas operations, using statistical analysis and modeling to assess treatment performance for potential industrial and municipal reuse.
+- Completed 36+ credit hours focused on industrial and municipal water management, including reuse, treatment, ecological impact assessment, and remediation.
+
+::: {.cv-separator}
+:::
+
+::: {.cv-entry}
+[**Bachelor of Science --- Biology**]{.cv-title} [2016--2019]{.cv-date}
+
+Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
+:::
+
+- Studied how human activities affect fish, amphibian, and reptile populations.
+- Used analytical instruments in organic and inorganic chemistry labs.
+- Conducted ecological field surveys and collected, cataloged, and preserved specimens.
+
+---
+
+::: {.content-hidden}
 ## Relevant Coursework
 
 | | |
@@ -224,10 +206,9 @@ National Park Service, Texas A&M University-San Antonio [San Antonio, Texas]{.cv
 | Desalination Processes and Emerging Technologies (3 CR) | Wastewater Treatment for Direct and Indirect Uses (3 CR) |
 | Water Resources Science and Technology Internship (3 CR) | Water Laws, Rules, and Policy (3 CR) |
 | Thesis research (6 CR) | |
+:::
 
----
-
-## Selected Publications
+## Selected Publications and Thesis {#selected-publications}
 
 ::: {#refs_works}
 :::
