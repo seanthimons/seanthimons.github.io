@@ -31,6 +31,14 @@ Chemical ontology harmonization and entity-resolution toolkit for identifier cro
 [GitHub](https://github.com/seanthimons/concert){.btn .btn-primary}
 :::
 
+::: {.card}
+### singlehit
+
+R package and companion Shiny app for microbial dose–response modeling. Fit and compare models and report uncertainty from the same workflow in R or the app.
+
+[GitHub](https://github.com/seanthimons/singlehit){.btn .btn-primary}
+:::
+
 ::: {.card .card-chorus}
 ![](assets/logos/chorus.png){.project-logo fig-alt="CHORUS hex sticker"}
 
@@ -69,14 +77,6 @@ R package for generating and maintaining API clients from local OpenAPI schemas 
 Local-first literature-review and research assistant built with R, Shiny, DuckDB, OpenAlex, and LLM-assisted analysis. Intended to make paper triage, metadata capture, and evidence synthesis reproducible instead of chat-log archaeology.
 
 [GitHub](https://github.com/seanthimons/serapeum){.btn .btn-primary}
-:::
-
-::: {.card}
-### singlehit
-
-R package and companion Shiny app for microbial dose–response modeling. Fit and compare models and report uncertainty from the same workflow in R or the app.
-
-[GitHub](https://github.com/seanthimons/singlehit){.btn .btn-primary}
 :::
 
 ::: {.card}
