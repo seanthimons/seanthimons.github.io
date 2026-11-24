@@ -174,7 +174,7 @@ National Park Service, Texas A&M University-San Antonio [San Antonio, Texas]{.cv
 Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 :::
 
-- Thesis research evaluated advanced oxidation and solvent extraction for treating produced water from oil and gas operations, using statistical analysis and modeling to assess treatment performance for potential industrial and municipal reuse.
+- [Thesis research](https://digitalcommons.tamusa.edu/water_theses/1) evaluated advanced oxidation and solvent extraction for treating produced water from oil and gas operations, using statistical analysis and modeling to assess treatment performance for potential industrial and municipal reuse.
 - Completed 36+ credit hours focused on industrial and municipal water management, including reuse, treatment, ecological impact assessment, and remediation.
 
 ::: {.cv-separator}
@@ -205,7 +205,7 @@ Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 | Thesis research (6 CR) | |
 :::
 
-## Selected Publications
+## Selected Publications and Thesis {#selected-publications}
 
 ::: {#refs_works}
 :::
