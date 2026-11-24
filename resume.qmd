@@ -25,33 +25,7 @@ csl: apa.csl  # vendored so builds do not fetch it
 
 ## Professional Summary
 
-Physical Scientist and Principal Investigator at the US Environmental Protection Agency with a Master of Science in Water Resources, Science, and Technology and over four years of comprehensive experience. Focuses on produced water, industrial wastewaters, and applying data science (data curation, advanced statistical analysis, predictive modeling, Generative AI) to chemical/microbial risk assessment for fit-for-purpose water reuse and environmental protection. Develops user-facing applications (R Shiny, R Packages like ComptoxR, QHRTET) and utilizes R, SQL, and machine learning to architect, analyze, and visualize complex datasets, informing critical decisions and supporting regulatory implementation (Clean Water Act, Safe Drinking Water Act). Experienced in leading research (e.g., StRAPs SSWR.406.1, CSS.407.1) and fostering inter-agency/stakeholder collaboration (DOE, USGS, EPA Regions, New Mexico Produced Water Research Consortium) for enhanced environmental stewardship. Serves as technical authority and subject matter expert for risks and treatment of chemical and microbial contaminants in water.
-
----
-
-## Education
-
-::: {.cv-entry}
-[**Master of Science --- Water Resources, Science, and Technology**]{.cv-title} [2019--2021]{.cv-date}
-
-Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
-:::
-
-- Thesis focus on treatment of produced water from fracking operations for industrial and municipal reuse through advanced oxidation and solvation solutions.
-- Education focused on water management across industrial and municipal users, including reuse, treatment, ecological impact assessment, and remediation efforts (totaling 36+ credit hours).
-
-::: {.cv-separator}
-:::
-
-::: {.cv-entry}
-[**Bachelor of Science --- Biology**]{.cv-title} [2016--2019]{.cv-date}
-
-Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
-:::
-
-- Research focused on anthropogenic effects on ichthyological and herpetological populations.
-- Varied lab experience with analysis equipment for organic and inorganic chemistry.
-- Experience with ecological field surveying, cataloguing, and collection techniques including preservation.
+Physical scientist at the U.S. Environmental Protection Agency who studies the chemical and microbial risks of water reuse. Uses cheminformatics to screen chemicals and evaluates risks from oil and gas wastewater to inform federal discharge rules. Builds R tools that help researchers find and use EPA chemical data.
 
 ---
 
@@ -214,6 +188,33 @@ National Park Service, Texas A&M University-San Antonio [San Antonio, Texas]{.cv
 
 ---
 
+## Education
+
+::: {.cv-entry}
+[**Master of Science --- Water Resources, Science, and Technology**]{.cv-title} [2019--2021]{.cv-date}
+
+Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
+:::
+
+- Thesis focus on treatment of produced water from fracking operations for industrial and municipal reuse through advanced oxidation and solvation solutions.
+- Education focused on water management across industrial and municipal users, including reuse, treatment, ecological impact assessment, and remediation efforts (totaling 36+ credit hours).
+
+::: {.cv-separator}
+:::
+
+::: {.cv-entry}
+[**Bachelor of Science --- Biology**]{.cv-title} [2016--2019]{.cv-date}
+
+Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
+:::
+
+- Research focused on anthropogenic effects on ichthyological and herpetological populations.
+- Varied lab experience with analysis equipment for organic and inorganic chemistry.
+- Experience with ecological field surveying, cataloguing, and collection techniques including preservation.
+
+---
+
+::: {.content-hidden}
 ## Relevant Coursework
 
 | | |
@@ -224,8 +225,7 @@ National Park Service, Texas A&M University-San Antonio [San Antonio, Texas]{.cv
 | Desalination Processes and Emerging Technologies (3 CR) | Wastewater Treatment for Direct and Indirect Uses (3 CR) |
 | Water Resources Science and Technology Internship (3 CR) | Water Laws, Rules, and Policy (3 CR) |
 | Thesis research (6 CR) | |
-
----
+:::
 
 ## Selected Publications
 
