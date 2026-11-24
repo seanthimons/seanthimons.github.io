@@ -174,8 +174,8 @@ National Park Service, Texas A&M University-San Antonio [San Antonio, Texas]{.cv
 Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 :::
 
-- Thesis focus on treatment of produced water from fracking operations for industrial and municipal reuse through advanced oxidation and solvation solutions.
-- Education focused on water management across industrial and municipal users, including reuse, treatment, ecological impact assessment, and remediation efforts (totaling 36+ credit hours).
+- Thesis research evaluated advanced oxidation and solvent extraction for treating produced water from oil and gas operations, using statistical analysis and modeling to assess treatment performance for potential industrial and municipal reuse.
+- Completed 36+ credit hours focused on industrial and municipal water management, including reuse, treatment, ecological impact assessment, and remediation.
 
 ::: {.cv-separator}
 :::
@@ -186,9 +186,9 @@ Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 :::
 
-- Research focused on anthropogenic effects on ichthyological and herpetological populations.
-- Varied lab experience with analysis equipment for organic and inorganic chemistry.
-- Experience with ecological field surveying, cataloguing, and collection techniques including preservation.
+- Studied how human activities affect fish, amphibian, and reptile populations.
+- Used analytical instruments in organic and inorganic chemistry labs.
+- Conducted ecological field surveys and collected, cataloged, and preserved specimens.
 
 ---
 
