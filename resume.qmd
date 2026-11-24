@@ -101,10 +101,9 @@ US Environmental Protection Agency [Cincinnati, OH]{.cv-date}
 Oak Ridge Institute for Science and Education with US Environmental Protection Agency [Cincinnati, OH]{.cv-date}
 :::
 
-- Conducted foundational informatics work leading to the development of the `ComptoxR` package and `THREAT` Shiny application, focusing on data integration, API interaction, and user-interface design for rapid risk assessment.
-- Performed comprehensive data mining, cleaning, and analysis of large environmental datasets to identify patterns and inform risk models.
-- Created compelling data visualizations to communicate research findings and support decision-making for internal and external stakeholders.
-- Contributed to research planning, experimental design, and interpretation of results for multiple ORD projects.
+- Laid the groundwork for the *CompToxR* package and *THREAT* Shiny app by integrating data, working with APIs, and designing user interfaces for rapid risk assessment.
+- Mined, cleaned, and analyzed large environmental datasets to identify patterns and inform risk models. Visualized findings for EPA staff and external partners to support research decisions.
+- Helped plan studies, design experiments, and interpret results for projects in EPA’s Office of Research and Development.
 
 ::: {.cv-separator}
 :::
@@ -115,9 +114,9 @@ Oak Ridge Institute for Science and Education with US Environmental Protection A
 Strategies to End Homelessness, Inc. / Flywheel Social Enterprise Hub [Cincinnati, OH]{.cv-date}
 :::
 
-- Apply machine learning techniques (classification, regression, random forest) and statistical analysis to diverse datasets (survey, demographic, self-reported), including the application of Large Language Models (LLMs) via APIs (e.g., OpenAI) for classifying unstructured text data (survey responses, case notes), labeling sentiment, and generating thematic summaries to identify predictors and risk factors associated with homelessness.
-- Develop predictive models aimed at informing resource allocation, intervention strategies, and prevention efforts within the community.
-- Clean, integrate, and analyze sensitive data, presenting findings to non-technical stakeholders to support program development.
+- Use statistical analysis and machine learning (classification, regression, and random forests) to identify factors associated with homelessness in survey, demographic, and other self-reported data. Build predictive models to help inform resource allocation, interventions, and prevention.
+- Use large language model APIs (including OpenAI) to classify free-text survey responses and case notes, label sentiment, and summarize themes.
+- Clean and integrate sensitive datasets and explain findings to nontechnical stakeholders to support program development.
 
 ::: {.cv-separator}
 :::
@@ -128,8 +127,8 @@ Strategies to End Homelessness, Inc. / Flywheel Social Enterprise Hub [Cincinnat
 Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 :::
 
-- Development of new techniques for treatment of produced water from fracking operations for industrial and municipal reuse though advanced oxidation and solvation solutions.
-- Support ongoing projects at the University through research and grant proposal writing.
+- Developed advanced oxidation and solvation methods to treat produced water from hydraulic fracturing for potential industrial and municipal reuse.
+- Contributed research and wrote grant proposals to support ongoing university projects.
 
 ::: {.cv-separator}
 :::
@@ -140,8 +139,8 @@ Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 :::
 
-- Work in the development of reduction towards perfluorinated carboxylic acids / perfluorooctanoic acid (PFCAs/PFOAs) in water using novel technologies.
-- Development of new techniques for treatment of produced water from fracking operations for reuse though advanced oxidation and solvation solutions.
+- Helped develop treatment methods to reduce perfluorinated carboxylic acids (PFCAs), including perfluorooctanoic acid (PFOA), in water.
+- Helped develop advanced oxidation and solvation methods to treat produced water from hydraulic fracturing for reuse.
 
 ::: {.cv-separator}
 :::
@@ -152,6 +151,8 @@ Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 Marriott International [San Antonio, Texas]{.cv-date}
 :::
 
+- Supervised daily operations, scheduled staff, and managed team performance. Wrote operational reports and updated standard operating procedures.
+
 ::: {.cv-separator}
 :::
 
@@ -161,7 +162,7 @@ Marriott International [San Antonio, Texas]{.cv-date}
 National Park Service, Texas A&M University-San Antonio [San Antonio, Texas]{.cv-date}
 :::
 
-- Invasive population tracking of *Eleutherodactylus cystignathoides* (Rio Grande Chirping Frog) for NPS along with casual ecological monitoring.
+- Tracked populations of the Rio Grande chirping frog (*Eleutherodactylus cystignathoides*) for the National Park Service and assisted with ecological monitoring.
 
 ---
 
